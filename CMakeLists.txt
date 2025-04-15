@@ -1,0 +1,34 @@
+cmake_minimum_required(VERSION 3.13)  # CMake version check
+project(magus)               # Create project "magus"
+set(CMAKE_CXX_STANDARD 23)         # Enable c++23 standard
+
+
+# Set default build type if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
+
+# Set compiler flags for each build type
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+
+find_package(Vulkan REQUIRED)
+find_package(glfw3 REQUIRED)
+
+add_executable(magus 
+    main.cpp 
+    source/Shell.cpp 
+    source/VulkanEngine.cpp 
+    source/GPU.cpp 
+    source/SwapchainManager.cpp 
+    source/Renderer.cpp 
+    source/MagusV0.cpp
+)
+target_include_directories(magus PRIVATE ${CMAKE_SOURCE_DIR}/Include)
+
+if (VULKAN_FOUND)
+    message(STATUS "Found Vulkan,     Including and Linking now")
+    include_directories(${Vulkan_INCLUDE_DIRS})
+    target_link_libraries (${PROJECT_NAME} PRIVATE Vulkan::Vulkan glfw)
+endif (VULKAN_FOUND)
+

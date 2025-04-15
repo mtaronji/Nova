@@ -1,0 +1,70 @@
+# Build folders
+build/
+Build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Compiled object files & binaries
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.exe
+*.out
+*.a
+*.lib
+*.exp
+*.pdb
+*.ilk
+
+# Vulkan validation layer caches
+.vk_layer_settings.txt
+*.log
+
+# IDEs and editors
+.vscode/
+.idea/
+*.code-workspace
+
+# VS specific
+*.vcxproj*
+*.sln
+*.suo
+*.user
+*.userosscache
+*.opensdf
+*.sdf
+*.cache
+*.db
+
+# CLion
+cmake-build-*/
+
+# Mac and Linux cruft
+.DS_Store
+*.swp
+
+# Backup files
+*~
+*.bak
+
+# Debug/release folders
+Debug/
+Release/
+x64/
+x86/
+
+# Generated files
+*.generated.*
+
+# Vulkan shader intermediate files
+*.spv
+*.glsl.temp
+*.temp
+
+# Misc
+*.log
+*.tmp
