@@ -9,8 +9,9 @@
 
 class Pipeline {
 public:
+    Pipeline();
     Pipeline(
-        const GPU& gpu, 
+        GPU& gpu, 
         VkRenderPass renderPass, 
         VkDescriptorSetLayout descriptorSetLayout, 
         Shader<VK_SHADER_STAGE_VERTEX_BIT> vshader, 
@@ -26,7 +27,7 @@ public:
 
 
 private:
-    const GPU& gpu;
+    GPU& gpu;
     VkPipeline pipeline;
     VkPipelineLayout pipelineLayout;
     std::vector<char> ReadShaderFile(const std::string &location);

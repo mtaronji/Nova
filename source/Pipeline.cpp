@@ -4,7 +4,7 @@
 
 
 Pipeline::Pipeline(
-                const GPU& gpu, 
+                GPU& gpu, 
                 VkRenderPass renderPass, 
                 VkDescriptorSetLayout descriptorSetLayout,
                 Shader<VK_SHADER_STAGE_VERTEX_BIT> vshader, 

@@ -27,6 +27,7 @@ class VulkanEngine{
         //bind the buffer
         //VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT mean you can use the buffer as a src of a transfer or the destination of one respectfully
         
+    
         VulkanEngine(GLFWwindow* window);
 
         VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) ;
@@ -37,7 +38,7 @@ class VulkanEngine{
     
         void SetupDebugMessenger();
     
-        void CreateSurface(GLFWwindow *window);
+        void CreateSurface();
         GLFWwindow * GetWindow();
 
         private:

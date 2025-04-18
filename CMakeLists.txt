@@ -20,6 +20,12 @@ add_executable(magus
     source/Shell.cpp 
     source/VulkanEngine.cpp 
     source/GPU.cpp 
+    source/Shader.cpp 
+    source/RenderPass.cpp
+    source/VulkanResourceManager.cpp
+    source/PipelineConfig.cpp 
+    source/Pipeline.cpp
+    source/CommandManager.cpp
     source/SwapchainManager.cpp 
     source/Renderer.cpp 
     source/MagusV0.cpp

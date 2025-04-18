@@ -14,6 +14,7 @@ public:
     GLFWwindow* window;
     Shell();
 
+    GLFWwindow * GetWindow();
     void Run();
 
 private:
@@ -31,6 +32,9 @@ private:
     void MainLoop();
 
     void Cleanup();
+
+    void createSurface();
+
 
    // === CALLBACK FUNCTION DECLARATIONS ===
 

@@ -1,10 +1,10 @@
 #include "VulkanEngine.hpp"
 
 
-
-
 VulkanEngine::VulkanEngine(GLFWwindow* window){
-
+    this->window = window;
+    CreateInstance();
+    CreateSurface();
 }
 
 GLFWwindow * VulkanEngine::GetWindow(){
@@ -51,7 +51,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
     return VK_FALSE;
 }
 
-void VulkanEngine::CreateSurface(GLFWwindow *window) {
+void VulkanEngine::CreateSurface() {
     if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
         throw std::runtime_error("failed to create window surface!");
     }

@@ -2,6 +2,11 @@
 Shell::Shell(){
     InitWindow();
 }
+
+GLFWwindow * Shell::GetWindow(){
+    return this->window;
+}
+
 void Shell::InitWindow() {
 
     glfwInit();
