@@ -17,7 +17,7 @@ public:
     GLFWwindow * GetWindow();
     void Run();
 
-private:
+protected:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
     double xpos;

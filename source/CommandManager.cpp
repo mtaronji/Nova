@@ -1,5 +1,11 @@
 #include "CommandManager.hpp"
+CommandManager::CommandManager(uint32_t framecount):FRAME_COUNT(framecount){
+    AllocateCommandBuffers();
+}
 
+CommandManager::CommandManager(uint32_t framecount):FRAME_COUNT(1){
+    AllocateCommandBuffers();
+}
 
 void CommandManager::Init(VkDevice device_, uint32_t queueFamilyIndex) {
     device = device_;
@@ -14,14 +20,14 @@ void CommandManager::Init(VkDevice device_, uint32_t queueFamilyIndex) {
     }
 }
 
-void CommandManager::AllocateCommandBuffers(uint32_t count) {
-    commandBuffers.resize(count);
+void CommandManager::AllocateCommandBuffers() {
+    commandBuffers.resize(FRAME_COUNT);
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = count;
+    allocInfo.commandBufferCount = FRAME_COUNT;
 
     if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("Failed to allocate command buffers!");

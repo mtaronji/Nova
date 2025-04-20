@@ -1,17 +1,25 @@
 #pragma once
 
 #include "RenderPassManager.hpp"
-#include "Pipeline.hpp"
+#include "PipelineManager.hpp"
 #include "GPU.hpp"
 #include "SwapchainManager.hpp"
 #include "SyncManager.hpp"
 #include "CommandManager.hpp"
+#include "VulkanEngine.hpp"
 #include <array>
-
+#include <cassert>
 
 class Renderer {
     public:
-        Renderer(const GPU& gpu, SwapchainManager& swapchain, SyncManager& syncs, const Pipeline& pipeline, std::vector<VkCommandBuffer>& commandBuffers);
+        Renderer(GPU& gpu, 
+            VulkanEngine &engine,
+            SwapchainManager& swapchainmanager, 
+            SyncManager& syncsmanager, 
+            RenderPassManager& renderpassmanager,
+            const PipelineManager& pipelinemanager, 
+            CommandManager& commandmanager
+        );
         Renderer() = delete;
         ~Renderer();
 
@@ -23,53 +31,73 @@ class Renderer {
             
             Builder& SetGPU(GPU& gpu) 
             { 
-                this->gpu = gpu;
+                this->gpu = &gpu;
                 return *this;
             }
-
-            Builder& SetSwapChain(SwapchainManager& swapchain){
-                this->swapchain = swapchain;
+            Builder& SetVulkanEngine(VulkanEngine& engine){
+                this->engine = &engine;
                 return *this;
             }
-            Builder& SetSyncs(SyncManager&syncs){
-                this->syncs = syncs;
+            Builder& SetSwapChainManager(SwapchainManager& swapchainmanager){
+                this->swapchainmanager = &swapchainmanager;
                 return *this;
             }
-            Builder& SetPipeline(Pipeline& pipeline){
-                this->syncs = syncs;
+            Builder& SetSyncManager(SyncManager& syncmanager){
+                this->syncmanager = &syncmanager;
+                return *this;
+            }
+            Builder& SetPipelineManager(PipelineManager& pipelinemanager){
+                this->pipelinemanager = &pipelinemanager;
+                return *this;
+            }
+            Builder& SetRenderpassManager(RenderPassManager& renderpassmanager){
+                this->renderpassmanager = &renderpassmanager;
                 return *this;
             }
             Builder& CreateCommandBuffers(CommandManager& commandmanager){
-                this->commandmanager = commandmanager;
+                this->commandmanager = &commandmanager;
                 return *this;
             }
-            Builder& CreateFrameBuffers();
+            Builder& CreateFrameBuffers(){
+                
+            }
             Renderer Build(){
-                return Renderer(gpu, swapchain, syncs, pipeline,commandBuffers);
+                return Renderer(*gpu, *engine,*swapchainmanager, *syncmanager, *renderpassmanager, *pipelinemanager, *commandmanager);
             }
             private:
-                GPU&  gpu;
-                SwapchainManager& swapchain;
-                SyncManager& syncs;
-                Pipeline& pipeline;
-                CommandManager& commandmanager;
-                std::vector<VkCommandBuffer>& commandBuffers;
-                std::vector<VkFramebuffer> swapChainFramebuffers;
+                GPU*  gpu;
+                VulkanEngine* engine;
+                SwapchainManager* swapchainmanager;
+                SyncManager* syncmanager;
+                PipelineManager* pipelinemanager;
+                RenderPassManager* renderpassmanager;
+                CommandManager* commandmanager;
+                std::vector<VkFramebuffer>* framebuffers;
+
 
         };
     protected:
-        void virtual DrawFrameCommands();
+        void virtual DrawFrameCommands(VkCommandBuffer commandBuffer, 
+                                        uint32_t imageIndex, 
+                                        VkBuffer vbuffers[] = VK_NULL_HANDLE,
+                                        VkBuffer ibuffer = VK_NULL_HANDLE);
+        GPU& gpu;
+        VulkanEngine& engine;
+        SwapchainManager& swapchainmanager;
+        SyncManager& syncsmanager;
+        RenderPassManager& renderpassmanager;
+        const PipelineManager& pipelinemanager;
+        CommandManager& commandmanager;
+        std::vector<VkFramebuffer> framebuffers;
 
-    private:
-        const GPU& gpu;
-        SwapchainManager& swapchain;
-        SyncManager& syncs;
-        const Pipeline& pipeline;
-        const std::vector<VkCommandBuffer>& commandBuffers;
 
         uint32_t currentFrame = 0;
         static constexpr size_t MAX_FRAMES_IN_FLIGHT = 2;
 
         bool framebufferResized = false;
+
+        void RecreateSwapchain();
+        void DestroyFrameBuffers();
+        void CreateFrameBuffers();
 
 };

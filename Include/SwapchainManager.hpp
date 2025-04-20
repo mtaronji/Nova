@@ -11,6 +11,7 @@ struct SwapChainSupportDetails {
 };
 class SwapchainManager {
     public:
+        SwapchainManager() = default;
         void CreateSwapchain( GPU& device,
             SwapChainSupportDetails& supportDetails,
             VkSurfaceFormatKHR& surfaceFormat,
@@ -28,34 +29,34 @@ class SwapchainManager {
       
 
         class Builder{
-            Builder& QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
-            Builder& ChooseSwapSurfaceFormat();   
-            Builder& ChooseSwapPresentMode();
-            Builder& ChooseSwapExtent(GLFWwindow* window);
+            public:
+                Builder() = default;
+                Builder& SetGPU(GPU& gpu);
+                Builder& SetVulkanEngine(VulkanEngine &engine);
+                Builder& QuerySwapChainSupport();
+                Builder& ChooseSwapSurfaceFormat();   //depends on query swap chain support
+                Builder& ChooseSwapPresentMode();     //depends on query swapchain support
+                Builder& ChooseSwapExtent();
+                SwapchainManager Build();
+                
 
             private:
-                SwapChainSupportDetails swapChainSupport;
+                GPU* gpu;
+                SwapChainSupportDetails swapChainSupportDetails;
                 VkSurfaceFormatKHR surfaceFormat;
                 VkPresentModeKHR presentMode;
                 VkExtent2D extent;        
-                VkSurfaceKHR surface;
+                VulkanEngine* engine;
             
         };
 
-    private:
+    protected:
         VkSwapchainKHR swapchain = VK_NULL_HANDLE;
         std::vector<VkImage> images;
         std::vector<VkImageView> imageViews;
         VkFormat imageFormat;
         VkExtent2D extent;
         std::vector<VkImageView> swapChainImageViews;
-        std::vector<VkFramebuffer> swapChainFramebuffers;
 
         void CreateImageViews(VkDevice device);
 };
-
-
-//         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
-//         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-//         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-//         VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);

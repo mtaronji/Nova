@@ -1,8 +1,10 @@
+#pragma once
+
 #include <fstream>
 #include <stdexcept>
 #include <vector>
+#include <set>
 
-#pragma once
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -24,30 +26,33 @@ struct QueueFamilyIndices {
 };
 
 class GPU {
-public:
-    void Create(VulkanEngine& instance);
-    void Cleanup();
+    public:
+        GPU(VulkanEngine& engine);
+        void Cleanup();
 
-    VkDevice GetVkDevice() const { return device; }
-    VkPhysicalDevice GetPhysicalDevice() const { return physicalDevice; }
-    VkQueue GetGraphicsQueue() const { return graphicsQueue; }
-    VkQueue GetPresentQueue() const { return presentQueue; }
-    uint32_t GetGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
-    uint32_t GetGraphicsQueueFamilyIndex() const { return presentQueueFamilyIndex; }
-    QueueFamilyIndices GPU::FindQueueFamilies(const VkSurfaceKHR& surface);
+        VkDevice GetVkDevice() const { return device; }
+        VkPhysicalDevice GetPhysicalDevice() const { return physicalDevice; }
+        VkQueue GetGraphicsQueue() const { return graphicsQueue; }
+        VkQueue GetPresentQueue() const { return presentQueue; }
 
-private:
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice device = VK_NULL_HANDLE;
-    VkQueue graphicsQueue = VK_NULL_HANDLE;
-    VkQueue presentQueue = VK_NULL_HANDLE;
-    uint32_t graphicsQueueFamilyIndex = 0;
-    uint32_t presentQueueFamilyIndex = 0;
 
-    void PickPhysicalDevice(VkInstance instance);
-    void CreateLogicalDevice();
+        uint32_t GetGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
+        uint32_t GetGraphicsQueueFamilyIndex() const { return presentQueueFamilyIndex; }
+        QueueFamilyIndices GPU::FindQueueFamilies();
 
-    const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-    };
+    protected:
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+        VkDevice device = VK_NULL_HANDLE;
+        VkQueue graphicsQueue = VK_NULL_HANDLE;
+        VkQueue presentQueue = VK_NULL_HANDLE;
+        uint32_t graphicsQueueFamilyIndex = 0;
+        uint32_t presentQueueFamilyIndex = 0;
+        VulkanEngine& engine;
+
+        void PickPhysicalDevice(VkInstance instance);
+        void CreateLogicalDevice();
+
+        const std::vector<const char*> validationLayers = {
+        "VK_LAYER_KHRONOS_validation"
+        };
 };

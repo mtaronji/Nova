@@ -26,7 +26,7 @@ public:
     // Cleanup all semaphores
     void cleanup();
 
-private:
+protected:
     VkDevice m_device;
     std::vector<FrameSync> m_frames;
 

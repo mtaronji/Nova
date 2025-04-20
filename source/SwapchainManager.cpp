@@ -32,7 +32,7 @@ void SwapchainManager::CreateSwapchain( GPU& device,
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices = device.FindQueueFamilies(surface);
+    QueueFamilyIndices indices = device.FindQueueFamilies();
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
     if (indices.graphicsFamily != indices.presentFamily) {
@@ -61,7 +61,13 @@ void SwapchainManager::CreateSwapchain( GPU& device,
     //create image views now
     CreateImageViews(device.GetVkDevice());
 }
+SwapchainManager::Builder& SwapchainManager::Builder::SetGPU(GPU& gpu){
+    this->gpu = &gpu;
+}
 
+SwapchainManager::Builder& SwapchainManager::Builder::SetVulkanEngine(VulkanEngine& engine){
+    this->engine = &engine;
+}
 void SwapchainManager::CreateImageViews(VkDevice device) {
     imageViews.resize(images.size());
 
@@ -82,20 +88,20 @@ void SwapchainManager::CreateImageViews(VkDevice device) {
 }
 
 SwapchainManager::Builder& SwapchainManager::Builder::ChooseSwapSurfaceFormat() {
-    for (const auto& availableFormat : this->swapChainSupport.formats) {
+    for (const auto& availableFormat : this->swapChainSupportDetails.formats) {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             this->surfaceFormat = availableFormat;
             return *this;
         }
     }
 
-    this->surfaceFormat = this->swapChainSupport.formats[0];
+    this->surfaceFormat = this->swapChainSupportDetails.formats[0];
     return *this;
 }
 
 SwapchainManager::Builder&  SwapchainManager::Builder::ChooseSwapPresentMode() {
 
-    for (const auto& availablePresentMode : this->swapChainSupport.presentModes) {
+    for (const auto& availablePresentMode : this->swapChainSupportDetails.presentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
             this->presentMode = availablePresentMode;
             return *this;
@@ -106,10 +112,10 @@ SwapchainManager::Builder&  SwapchainManager::Builder::ChooseSwapPresentMode() {
     return *this;
 }
     
-SwapchainManager::Builder&  SwapchainManager::Builder::ChooseSwapExtent(GLFWwindow* window) {
+SwapchainManager::Builder&  SwapchainManager::Builder::ChooseSwapExtent() {
 
-    auto capabilities = this->swapChainSupport.capabilities;
-
+    auto capabilities = this->swapChainSupportDetails.capabilities;
+    auto window = engine->GetWindow();
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         this->extent = capabilities.currentExtent;
     } else {
@@ -129,8 +135,10 @@ SwapchainManager::Builder&  SwapchainManager::Builder::ChooseSwapExtent(GLFWwind
     }
 }
     
-SwapchainManager::Builder&  SwapchainManager::Builder::QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface) {
+SwapchainManager::Builder&  SwapchainManager::Builder::QuerySwapChainSupport() {
     SwapChainSupportDetails details;
+    auto device = this->gpu->GetPhysicalDevice();
+    auto surface = this->engine->GetSurface();
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
@@ -150,9 +158,14 @@ SwapchainManager::Builder&  SwapchainManager::Builder::QuerySwapChainSupport(VkP
         vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
     }
 
-    this->swapChainSupport = details;
+    this->swapChainSupportDetails = details;
 }
 
+SwapchainManager SwapchainManager::Builder::Build(){
+    auto surface = engine->GetSurface();
+    auto manager = SwapchainManager();
+    manager.CreateSwapchain(*gpu, swapChainSupportDetails, surfaceFormat, presentMode, extent, surface);
+}
 void SwapchainManager::Cleanup(VkDevice device) {
     for (auto view : imageViews)
         vkDestroyImageView(device, view, nullptr);

@@ -17,7 +17,7 @@ class Shader {
         VkPipelineShaderStageCreateInfo GetPipelineStageInfo() const;
 
     
-    private:
+    protected:
         const GPU& gpu;
         VkShaderModule shaderModule;
         VkShaderStageFlagBits stage;

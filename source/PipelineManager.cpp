@@ -1,35 +1,35 @@
-#include "Pipeline.hpp"
-#include "GPU.hpp"
-#include "Shader.hpp"
+#include "PipelineManager.hpp"
 
-
-Pipeline::Pipeline(
-                GPU& gpu, 
-                VkRenderPass renderPass, 
-                VkDescriptorSetLayout descriptorSetLayout,
-                Shader<VK_SHADER_STAGE_VERTEX_BIT> vshader, 
-                Shader<VK_SHADER_STAGE_FRAGMENT_BIT> fshader )
-    : gpu(gpu), descripterSetLayout(descripterSetLayout),renderPass(renderPass), vshader(vshader), fshader(fshader) {
+PipelineManager::PipelineManager(
+        GPU& gpu, 
+        RenderPassManager& renderPassManager, 
+        PipelineInfo& pipelineInfo, 
+        Shader<VK_SHADER_STAGE_VERTEX_BIT>& vshader, 
+        Shader<VK_SHADER_STAGE_FRAGMENT_BIT>& fshader
+    )
+    : gpu(gpu), renderPassManager(renderPassManager), pipelineInfo(pipelineInfo),vshader(vshader), fshader(fshader) {
 
     CreateGraphicsPipeline();
 }
 
-Pipeline::~Pipeline() {
+PipelineManager::~PipelineManager() {
     vkDestroyPipeline(gpu.GetVkDevice(), pipeline, nullptr);
     vkDestroyPipelineLayout(gpu.GetVkDevice(), pipelineLayout, nullptr);
 }
 
 
-Shader<VK_SHADER_STAGE_FRAGMENT_BIT> Pipeline::GetFragShader(){
+Shader<VK_SHADER_STAGE_FRAGMENT_BIT> PipelineManager::GetFragShader(){
     return this->fshader;
 }
-Shader<VK_SHADER_STAGE_VERTEX_BIT> Pipeline::GetVertexShader(){
+Shader<VK_SHADER_STAGE_VERTEX_BIT> PipelineManager::GetVertexShader(){
     return this->vshader;
 }
 
-void Pipeline::CreateGraphicsPipeline() {
+void PipelineManager::CreateGraphicsPipeline() {
     this->fshader.GetPipelineStageInfo();
-    VkPipelineShaderStageCreateInfo shaderStages[] = {this->vshader.GetPipelineStageInfo(), this->fshader.GetPipelineStageInfo()};
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    shaderStages.push_back(this->vshader.GetPipelineStageInfo());
+    shaderStages.push_back(this->fshader.GetPipelineStageInfo());
 
     // Pipeline config (vertex input, assembly, viewport, rasterizer, etc.)
     // Keep simple for now
@@ -40,22 +40,6 @@ void Pipeline::CreateGraphicsPipeline() {
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = 800.0f; // placeholder
-    viewport.height = 600.0f;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-
-    VkRect2D scissor{{0, 0}, {800, 600}};
-
-    VkPipelineViewportStateCreateInfo viewportState{};
-    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportState.viewportCount = 1;
-    viewportState.pViewports = &viewport;
-    viewportState.scissorCount = 1;
-    viewportState.pScissors = &scissor;
 
     VkPipelineRasterizationStateCreateInfo rasterizer{};
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -80,22 +64,22 @@ void Pipeline::CreateGraphicsPipeline() {
     VkPipelineLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     layoutInfo.setLayoutCount = 1;
-    layoutInfo.pSetLayouts = &this->descripterSetLayout;
+    layoutInfo.pSetLayouts = this->pipelineInfo.descriptorSetLayouts.data();
 
     vkCreatePipelineLayout(gpu.GetVkDevice(), &layoutInfo, nullptr, &pipelineLayout);
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = 2;
-    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+    pipelineInfo.pStages = shaderStages.data();
     pipelineInfo.pVertexInputState = &vertexInput;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pViewportState = &this->pipelineInfo.viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.layout = pipelineLayout;
-    pipelineInfo.renderPass = renderPass;
+    pipelineInfo.renderPass = renderPassManager.GetRenderPass();
     pipelineInfo.subpass = 0;
 
     vkCreateGraphicsPipelines(gpu.GetVkDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);

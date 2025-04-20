@@ -16,7 +16,7 @@ class RenderPassManager {
         ~RenderPassManager();
 
         void NotifyRenderPassOutOfDate();
-        VkRenderPass Get() const { return renderPass; }
+        VkRenderPass GetRenderPass() const { return renderPass; }
 
         class Builder{
             Builder() = delete;
@@ -43,7 +43,7 @@ class RenderPassManager {
 
         };
 
-    private:
+    protected:
         VkRenderPass renderPass;
         const GPU& gpu;
         const VkSubpassDescription& subpassDescription;
