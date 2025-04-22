@@ -9,6 +9,7 @@
 #include "VulkanEngine.hpp"
 #include <array>
 #include <cassert>
+#include "Data.hpp"
 
 class Renderer {
     public:

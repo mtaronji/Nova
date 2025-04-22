@@ -17,16 +17,18 @@ find_package(glfw3 REQUIRED)
 
 add_executable(magus 
     main.cpp 
+    source/Nova.cpp
     source/Shell.cpp 
     source/VulkanEngine.cpp 
     source/GPU.cpp 
     source/Shader.cpp 
-    source/RenderPass.cpp
+    source/RenderPassManager.cpp
     source/VulkanResourceManager.cpp
     source/PipelineConfig.cpp 
-    source/Pipeline.cpp
+    source/PipelineManager.cpp
     source/CommandManager.cpp
     source/SwapchainManager.cpp 
+    source/SyncManager.cpp
     source/Renderer.cpp 
     source/MagusV0.cpp
 )

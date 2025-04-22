@@ -1,39 +1,46 @@
 
 #pragma once
+
 #define GLFW_INCLUDE_VULKAN
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
-
 #include <GLFW/glfw3.h>
-
-
+#include "IRenderLoopClient.hpp"
+#include <chrono>
+#include <thread>
 
 class Shell {
 public:
     GLFWwindow* window;
+   
     Shell();
 
     GLFWwindow * GetWindow();
-    void Run();
+    void Run(IRenderLoopClient *app);
 
 protected:
-    const uint32_t WIDTH = 800;
-    const uint32_t HEIGHT = 600;
+    virtual uint32_t GetWidth() const { return 800; }
+    virtual uint32_t GetHeight() const { return 600; }
+
+    using Clock = std::chrono::high_resolution_clock;
+    using TimePoint = std::chrono::time_point<Clock>;
+
     double xpos;
     double ypos;
     double xoffset;
     double yoffset;
     bool isFocused;
-
     bool FramebufferResize = false;
-    
+ 
+    TimePoint previousTime;
+
     void InitWindow();
-    void MainLoop();
+    void MainLoop(IRenderLoopClient *app);
 
     void Cleanup();
 
-    void createSurface();
+    void CreateSurface();
 
 
    // === CALLBACK FUNCTION DECLARATIONS ===

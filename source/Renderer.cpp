@@ -1,6 +1,12 @@
 #include "Renderer.hpp"
 
 
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0,
+    4, 5, 6, 6, 7, 4
+};
+
+
 Renderer::Renderer(GPU& gpu, 
     VulkanEngine &engine,
     SwapchainManager& swapchainmanager, 
@@ -102,7 +108,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     auto const &pipeline = pipelinemanager.GetPipeline();
     auto const &pipelinelayout = pipelinemanager.GetPipelineLayout();
     auto const &pipelineinfo = pipelinemanager.GetPipelineInfo();
-    auto const &pipelined = pipelineinfo.descriptorSetsPerBinding[] 
+    auto const &descriptorSets = pipelineinfo.descriptorSetsPerFrame;
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -151,9 +157,10 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
                 vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT16);
             }
         }
-      
         
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+        
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, descriptorSets[currentFrame].data(), 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
@@ -173,6 +180,7 @@ Renderer::Builder& Renderer::Builder::CreateFrameBuffers() {
     auto renderpass = renderpassmanager->GetRenderPass();
     auto extent = swapchainmanager->GetExtent();
     auto framebufferRef = *framebuffers;
+
 
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         

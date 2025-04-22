@@ -19,15 +19,16 @@ class RenderPassManager {
         VkRenderPass GetRenderPass() const { return renderPass; }
 
         class Builder{
-            Builder() = delete;
+            public:
+                Builder() = default;
 
-            Builder& SetGPU(const GPU* gpu) {
-                this->gpu = gpu;
-                return *this;
-            }
-            Builder& SetAttachments(const std::vector<AttachmentInfo>& attachmentInfos, const std::vector<uint32_t>& preserveAttachments);
+                Builder& SetGPU(const GPU* gpu) {
+                    this->gpu = gpu;
+                    return *this;
+                }
+                Builder& SetAttachments(const std::vector<AttachmentInfo>& attachmentInfos, std::vector<uint32_t>* preserveAttachments = nullptr );
 
-            RenderPassManager Build();
+                RenderPassManager Build();
 
             private:
                 const GPU* gpu;

@@ -34,7 +34,7 @@ class GPU {
         VkPhysicalDevice GetPhysicalDevice() const { return physicalDevice; }
         VkQueue GetGraphicsQueue() const { return graphicsQueue; }
         VkQueue GetPresentQueue() const { return presentQueue; }
-
+        VkCommandPool GetCommandPool()const{return commandPool;}
 
         uint32_t GetGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
         uint32_t GetGraphicsQueueFamilyIndex() const { return presentQueueFamilyIndex; }
@@ -48,10 +48,11 @@ class GPU {
         uint32_t graphicsQueueFamilyIndex = 0;
         uint32_t presentQueueFamilyIndex = 0;
         VulkanEngine& engine;
+        VkCommandPool commandPool;
 
         void PickPhysicalDevice(VkInstance instance);
         void CreateLogicalDevice();
-
+        void CreateCommandPool();
         const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation"
         };

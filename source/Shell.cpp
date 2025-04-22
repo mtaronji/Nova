@@ -1,6 +1,10 @@
 #include "Shell.hpp"
+
+
+
 Shell::Shell(){
     InitWindow();
+    previousTime = Clock::now();
 }
 
 GLFWwindow * Shell::GetWindow(){
@@ -12,21 +16,34 @@ void Shell::InitWindow() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    this->window = glfwCreateWindow(WIDTH, HEIGHT, "Shell", nullptr, nullptr);
+    this->window = glfwCreateWindow(GetWidth(), GetHeight(), "Shell", nullptr, nullptr);
     if(!window){ throw std::runtime_error("Failed to create Window");}
 
     glfwSetWindowUserPointer(window, this);
     this->InitCallbacks(this->window);
 }
 
-void Shell::MainLoop() {
+void Shell::MainLoop(IRenderLoopClient* app) {
     while (!glfwWindowShouldClose(this->window)) {
         glfwPollEvents();
+        TimePoint currentFrameTime = Clock::now();
+        std::chrono::duration<float> elapsed = currentFrameTime - previousTime;
+        float deltaTime = elapsed.count(); // in seconds
+        previousTime = currentFrameTime;
+
+        app->Update(deltaTime);
+        app->Render();
+
+        const float targetFrameTime = 1.0f / 144.0f; // 144 FPS cap
+        if (targetFrameTime > deltaTime) {
+            std::this_thread::sleep_for(std::chrono::duration<float>(targetFrameTime - deltaTime));
+        }
+        
     }
 }
 
-void Shell::Run() {
-    MainLoop();
+void Shell::Run(IRenderLoopClient* app) {
+    MainLoop(app);
     Cleanup();
 }
 

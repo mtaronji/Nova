@@ -18,11 +18,11 @@ void RenderPassManager:: NotifyRenderPassOutOfDate(){
 }
 
 
-RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std::vector<AttachmentInfo>& attachmentInfos, const std::vector<uint32_t>& preserveAttachments){
+RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std::vector<AttachmentInfo>& attachmentInfos, std::vector<uint32_t>* preserveAttachments = nullptr){
     
     this->attachmentrefs = std::vector<VkAttachmentReference>();
     this->colorAttachments = std::vector<VkAttachmentReference>();
-    this->preserveAttachments = preserveAttachments;
+    this->preserveAttachments = *preserveAttachments;
 
     uint32_t index = 0;
     for(const auto& description : attachmentInfos){

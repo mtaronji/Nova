@@ -59,7 +59,9 @@ struct PipelineInfo{
     std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings = std::vector<VkDescriptorSetLayoutBinding>();
     std::vector<VkDescriptorSetLayoutCreateInfo> descriptorSetLayoutCreateInfos = std::vector<VkDescriptorSetLayoutCreateInfo>();
     std::vector<VkDescriptorSetLayout> descriptorSetLayouts = std::vector<VkDescriptorSetLayout>();
-    std::vector<std::vector<VkDescriptorSet>> descriptorSets = std::vector<std::vector<VkDescriptorSet>> ();  //per set per frame;
+    std::vector<VkDescriptorSet> descriptorSets = std::vector<VkDescriptorSet> ();  //per set per frame;
+    std::vector<std::vector<VkDescriptorSet>> descriptorSetsPerFrame = std::vector<std::vector<VkDescriptorSet>> ();  //descriptorSetsPerFrame[frame] -> returns all descriptor sets for the frame
+    std::vector<std::vector<VkDescriptorSet>> descriptorSetFrameDuplicates = std::vector<std::vector<VkDescriptorSet>> (); //descriptorSetFrameDuplicates -> Each descriptor set returns the duplicates of itself for other frames
     VkDescriptorPool descriptorPool;
     const uint32_t MAX_FRAMES;
     
@@ -128,7 +130,7 @@ struct PipelineInfo{
         samplerLayoutBinding.binding = static_cast<uint32_t>(descriptorSetLayoutCreateInfos.size() + 1);
         samplerLayoutBinding.descriptorCount = static_cast<uint32_t>(ubodata.size());
         samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = sampler;
+        samplerLayoutBinding.pImmutableSamplers = &sampler;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         descriptorSetLayoutBindings.push_back(samplerLayoutBinding);
 
@@ -138,11 +140,12 @@ struct PipelineInfo{
         layoutInfo.pBindings = &samplerLayoutBinding;
         descriptorSetLayoutCreateInfos.push_back(layoutInfo);
     }
-    void CreateDescriptorSets(VkDevice& device){
+    void AllocateDescriptorSets(VkDevice& device){
 
         descriptorSets.clear();
         descriptorSets.resize(descriptorSetLayoutCreateInfos.size());
-    
+        
+        descriptorSetsPerFrame.resize(MAX_FRAMES);
         for (size_t i = 0; i < descriptorSetLayoutCreateInfos.size(); ++i) {
             // Create actual descriptor set layout
             VkDescriptorSetLayout layout;
@@ -162,12 +165,18 @@ struct PipelineInfo{
             allocInfo.descriptorSetCount = MAX_FRAMES;
             allocInfo.pSetLayouts = layouts.data();
     
-            descriptorSets[i].resize(MAX_FRAMES);
+            descriptorSetFrameDuplicates[i].resize(MAX_FRAMES);
     
-            if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets[i].data()) != VK_SUCCESS) {
+            if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSetFrameDuplicates[i].data()) != VK_SUCCESS) {
                 throw std::runtime_error("failed to allocate descriptor sets!");
             }
-        }     
+
+            for (size_t frameIndex = 0; frameIndex < MAX_FRAMES; ++frameIndex) {
+                descriptorSetsPerFrame[frameIndex].push_back(descriptorSetFrameDuplicates[i][frameIndex]);
+            }     
+
+        }
+        
     }
         
 

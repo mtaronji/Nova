@@ -4,10 +4,9 @@ PipelineManager::PipelineManager(
         GPU& gpu, 
         RenderPassManager& renderPassManager, 
         PipelineInfo& pipelineInfo, 
-        Shader<VK_SHADER_STAGE_VERTEX_BIT>& vshader, 
-        Shader<VK_SHADER_STAGE_FRAGMENT_BIT>& fshader
+        std::unordered_map<std::string,Shader> shaders
     )
-    : gpu(gpu), renderPassManager(renderPassManager), pipelineInfo(pipelineInfo),vshader(vshader), fshader(fshader) {
+    : gpu(gpu), renderPassManager(renderPassManager), pipelineInfo(pipelineInfo),shaders(shaders) {
 
     CreateGraphicsPipeline();
 }
@@ -18,14 +17,11 @@ PipelineManager::~PipelineManager() {
 }
 
 
-Shader<VK_SHADER_STAGE_FRAGMENT_BIT> PipelineManager::GetFragShader(){
-    return this->fshader;
-}
-Shader<VK_SHADER_STAGE_VERTEX_BIT> PipelineManager::GetVertexShader(){
-    return this->vshader;
-}
+
 
 void PipelineManager::CreateGraphicsPipeline() {
+    auto fshader = GetShader("frag");
+    auto vshader = GetShader("vert");
     this->fshader.GetPipelineStageInfo();
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
     shaderStages.push_back(this->vshader.GetPipelineStageInfo());

@@ -1,7 +1,7 @@
 #include <vulkan/vulkan.h>
 
-class PipelineConfig {
-    public:
+struct PipelineConfig {
+
         PipelineConfig() {
 
             // Setup default states here

@@ -5,24 +5,24 @@
 #include "GPU.hpp"
 
 
-template<VkShaderStageFlagBits T>
+
 class Shader {
     public:
-        Shader(const GPU& gpu, const std::string& filepath);
+        Shader() = delete;
+        Shader(GPU& gpu, const std::string& filepath, VkShaderStageFlagBits stage);
         ~Shader();
     
         VkShaderModule GetModule() const { return shaderModule; }
-        VkShaderStageFlagBits GetStageFlag() const { return stage; }
+        VkShaderStageFlagBits GetStageFlag() const { return shaderStage; }
     
-        VkPipelineShaderStageCreateInfo GetPipelineStageInfo() const;
+        VkPipelineShaderStageCreateInfo GetPipelineShaderStageCreateInfo() const;
 
     
     protected:
-        const GPU& gpu;
+        GPU& gpu;
         VkShaderModule shaderModule;
-        VkShaderStageFlagBits stage;
-        VkPipelineShaderStageCreateInfo shaderStageInfo{};
-        VkPipelineShaderStageCreateInfo stage;
+        VkShaderStageFlagBits shaderStage;
+        VkPipelineShaderStageCreateInfo pipelineShaderStageInfo{};
 
 
         std::vector<char> ReadFile(const std::string& path);

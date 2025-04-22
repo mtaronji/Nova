@@ -1,4 +1,4 @@
-#include "MagusV0.h"
+#include "MagusV0.hpp"
 // #define GLFW_INCLUDE_VULKAN
 // #include <GLFW/glfw3.h>
 
@@ -1604,10 +1604,10 @@
 // };
 
 int main() {
-    Shell app;
+    Magusv0 app;
 
     try {
-        app.Run();
+        app.Start();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;

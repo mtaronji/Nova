@@ -2,23 +2,24 @@
 #include "GPU.hpp"
 #include <fstream>
 
-template<VkShaderStageFlagBits T>
-Shader<T>::Shader(const GPU& gpu, const std::string& filepath) : gpu(gpu) {
 
-    auto code = readFile(filepath);  
+Shader::Shader(GPU& gpu, const std::string& filepath, VkShaderStageFlagBits shaderStage) : gpu(gpu), shaderStage(shaderStage)
+{
+
+    auto code = ReadFile(filepath);  
     CreateShaderModule(code);
     CreateShaderStageInfo();
 }
 
-template<VkShaderStageFlagBits T>
-Shader<T>::~Shader() {
+
+Shader::~Shader() {
     if (shaderModule != VK_NULL_HANDLE) {
         vkDestroyShaderModule(gpu.GetVkDevice(), shaderModule, nullptr);
     }
 }
 
-template<VkShaderStageFlagBits T>
-std::vector<char> Shader<T>::ReadFile(const std::string& path) {
+
+std::vector<char> Shader::ReadFile(const std::string& path) {
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
         throw std::runtime_error("Failed to open shader file: " + path);
@@ -29,8 +30,8 @@ std::vector<char> Shader<T>::ReadFile(const std::string& path) {
     file.read(buffer.data(), size);
     return buffer;
 }
-template<VkShaderStageFlagBits T>
-void Shader<T>::CreateShaderModule(const std::vector<char>& code) {
+
+void Shader::CreateShaderModule(const std::vector<char>& code) {
 
     VkShaderModuleCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -40,16 +41,16 @@ void Shader<T>::CreateShaderModule(const std::vector<char>& code) {
     if (vkCreateShaderModule(gpu.GetVkDevice(), &info, nullptr, &shaderModule) != VK_SUCCESS)
         throw std::runtime_error("Failed to create shader module.");
 }
-template<VkShaderStageFlagBits T>
-VkPipelineShaderStageCreateInfo Shader<T>:: GetPipelineStageInfo() const {
-    return this->stage;
+
+VkPipelineShaderStageCreateInfo Shader:: GetPipelineShaderStageCreateInfo() const {
+    return this->pipelineShaderStageInfo;
 }
 
-template<VkShaderStageFlagBits T>
-void Shader<T>::CreateShaderStageInfo(){
+
+void Shader::CreateShaderStageInfo(){
     
-    stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stage.stage = T;
-    stage.module = GetModule();
-    stage.pName = "main";
+    pipelineShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipelineShaderStageInfo.stage = shaderStage;
+    pipelineShaderStageInfo.module = GetModule();
+    pipelineShaderStageInfo.pName = "main";
 }

@@ -5,6 +5,7 @@ GPU::GPU(VulkanEngine& engine) : engine(engine){
     auto instance = engine.GetInstance();
     PickPhysicalDevice(instance);
     CreateLogicalDevice();
+    CreateCommandPool();
 }
 
 void GPU::Cleanup() {
@@ -127,4 +128,17 @@ QueueFamilyIndices GPU::FindQueueFamilies() {
     }
 
     return indices;
+}
+
+void GPU::CreateCommandPool() {
+                
+    VkCommandPool commandPool;
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.queueFamilyIndex = graphicsQueueFamilyIndex;
+
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics command pool!");
+    }
 }
