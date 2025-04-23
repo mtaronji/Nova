@@ -1,12 +1,16 @@
-#include "FramebufferManager.hpp"
+#include "FramebufferGenerator.hpp"
 
-FramebufferManager::  FramebufferManager(const VkDevice &device,
-    const VkRenderPass &renderPass,
-    const std::vector<VkImageView>& imageViews,
-    const VkExtent2D &extent): device(device), renderPass(renderPass), imageViews(imageViews), extent(extent)
+FramebufferGenerator::  FramebufferGenerator(VkDevice device,
+    VkRenderPass renderPass,
+    SwapchainManager swapchainManager)
 {
-    Cleanup(device); // Recreate-safe
+   
+   CreateFrameBuffers(device, renderPass, swapchainManager);
+}
 
+void FramebufferGenerator::CreateFrameBuffers(VkDevice device, VkRenderPass renderPass, SwapchainManager swapchainManager){
+    auto imageViews = swapchainManager.GetImageViews();
+    auto extent = swapchainManager.GetExtent();
     this->framebuffers.resize(imageViews.size());
 
     for (size_t i = 0; i < imageViews.size(); ++i) {
@@ -27,11 +31,7 @@ FramebufferManager::  FramebufferManager(const VkDevice &device,
     }
 }
 
-const std::vector<VkFramebuffer>& FramebufferManager::GetFramebuffers() const {
-    return this->framebuffers;
-}
-
-void FramebufferManager::Cleanup(const VkDevice& device) {
+void FramebufferGenerator::Cleanup(const VkDevice& device) {
     for (auto framebuffer : this->framebuffers) {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }

@@ -1,4 +1,4 @@
-#include "MagusV0.hpp"
+#include "Nova.hpp"
 // #define GLFW_INCLUDE_VULKAN
 // #include <GLFW/glfw3.h>
 

@@ -3,7 +3,7 @@
 Nova::Nova(VulkanEngine &engine, 
     Shell& shell, 
     GPU& gpu, 
-    FramebufferManager& framebufferManager, 
+    FramebufferGenerator& framebuffersContainer, 
     SyncManager& syncManager,
     SwapchainManager& swapchainManager,
     PipelineLibrary& pipelineLibrary,
@@ -13,7 +13,7 @@ Nova::Nova(VulkanEngine &engine,
     :engine(engine),
     shell(shell),
     gpu(gpu), 
-    framebufferManager(framebufferManager),
+    framebuffersContainer(framebuffersContainer),
     syncManager(syncManager),
     swapchainManager(swapchainManager),
     pipelineLibrary(pipelineLibrary),
@@ -40,7 +40,7 @@ Nova::Builder& Nova::Builder::CreateGPU(){
 }
 Nova::Builder& Nova::Builder::CreateSwapchainManager(){
 
-    auto swapchainManager = SwapchainManager::Builder()
+    swapchainManager =     & SwapchainManager::Builder()
                             .SetVulkanEngine(*this->engine)
                             .SetGPU(*this->gpu)
                             .QuerySwapChainSupport()
@@ -51,11 +51,16 @@ Nova::Builder& Nova::Builder::CreateSwapchainManager(){
     
 }
 Nova::Builder& Nova::Builder::CreateRenderPassManager(){
+    
     //create attachments here for now. One day we will read them from a file
-    auto renderpassManager = RenderPassManager::Builder()
+    renderpassManager =     & RenderPassManager::Builder()
                              .SetGPU(this->gpu)
                              .SetAttachments(this->attachmentInfos)
                              .Build();
+    return *this;
+}
+Nova::Builder& Nova::Builder::CreateFrameBuffers(){
+    framebuffersContainer = & FramebufferGenerator(gpu->GetVkDevice(), renderpassManager->GetRenderPass(), *swapchainManager);
     return *this;
 }
 Nova::Builder& Nova::Builder::CreateShaders(){
@@ -68,19 +73,29 @@ Nova::Builder& Nova::Builder::CreateShaders(){
 
     return *this;
 }
+
+Nova::Builder& Nova::Builder::CreatePipelineManagers(){
+      VkPipelineVertexInputStateCreateInfo vertexInput = {};
+      VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+      VkViewport viewport = {};
+      VkRect2D scissor = {};
+      // Setup default states here
+      vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+      inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+      inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+      
+}
 Nova::Builder& Nova::Builder::CreateSyncManagers(){
     return *this;
 }
 
-Nova::Builder& Nova::Builder::CreatePipelineManagers(){
 
-}
 Nova Nova::Builder::Build(){
 
     return Nova(*engine, 
         *shell, 
         *gpu, 
-        *framebufferManager, 
+        *framebuffersContainer, 
         *syncManager,
         *swapchainManager,
         *pipelineLibrary,
@@ -140,5 +155,10 @@ void Nova::Builder::InitAttachments(std::vector<AttachmentInfo>& attachmentInfos
     depthAttachmentInfo.type = AttachmentInfo::Type::Color;
     depthAttachmentInfo.name = "Depth Color Attachment";
     attachmentInfos.push_back(depthAttachmentInfo);
+
+}
+
+PipelineConfig Nova::Builder::ConfigPipeline(){
+
 
 }

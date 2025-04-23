@@ -1,0 +1,126 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Nova Render Pass Schema",
+    "type": "object",
+    "properties": {
+    "attachments": {
+        "type": "array",
+        "items": {
+        "type": "object",
+        "required": ["id","name", "format", "loadOp", "storeOp", "initialLayout", "finalLayout"],
+        "properties": {
+            "id" :{
+            "type": "string",
+            "description": "User defined ID for the attachment"
+            },
+            "name": {
+            "type": "string",
+            "description": "A user-defined name for the attachment"
+            },
+            "format": {
+            "type": "string",
+            "enum": ["color","depth","stencil","input","resolve"]
+            },
+            "samples": {
+            "type": "integer",
+            "enum": [1, 2, 4, 8, 16, 32, 64],
+            "default": 1
+            },
+            "loadOp": {
+            "type": "string",
+            "enum": ["load", "clear", "dont_care"]
+            },
+            "storeOp": {
+            "type": "string",
+            "enum": ["store", "dont_care"]
+            },
+            "stencilLoadOp": {
+            "type": "string",
+            "enum": ["load", "clear", "dont_care"],
+            "default": "dont_care"
+            },
+            "stencilStoreOp": {
+            "type": "string",
+            "enum": ["store", "dont_care"],
+            "default": "dont_care"
+            },
+            "initialLayout": {
+            "type": "string"
+            },
+            "finalLayout": {
+            "type": "string"
+            }
+        },
+        "additionalProperties": false
+        }
+      },
+      "subpasses": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "pipelineBindPoint": {
+              "type": "string",
+              "enum": ["graphics", "compute"],
+              "default": "graphics"
+            },
+            "colorAttachments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["attachment", "layout"],
+                "properties": {
+                  "attachment": { "type": "integer" },
+                  "layout": { "type": "string" }
+                }
+              }
+            },
+            "depthStencilAttachment": {
+              "type": "object",
+              "required": ["attachment", "layout"],
+              "properties": {
+                "attachment": { "type": "integer" },
+                "layout": { "type": "string" }
+              }
+            }
+          },
+          "required": ["pipelineBindPoint", "colorAttachments"],
+          "additionalProperties": false
+        }
+      },
+      "dependencies": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["srcSubpass", "dstSubpass", "srcStageMask", "dstStageMask"],
+          "properties": {
+            "srcSubpass": { "type": "integer" },
+            "dstSubpass": { "type": "integer" },
+            "srcStageMask": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "dstStageMask": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "srcAccessMask": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "dstAccessMask": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "dependencyFlags": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["attachments", "subpasses"],
+    "additionalProperties": false
+  }

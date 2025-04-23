@@ -8,10 +8,10 @@
 
 class Shader {
     public:
-        Shader() = delete;
+       
         Shader(GPU& gpu, const std::string& filepath, VkShaderStageFlagBits stage);
         ~Shader();
-    
+        static std::vector<char> ReadFile(const std::string& path);
         VkShaderModule GetModule() const { return shaderModule; }
         VkShaderStageFlagBits GetStageFlag() const { return shaderStage; }
     
@@ -25,7 +25,7 @@ class Shader {
         VkPipelineShaderStageCreateInfo pipelineShaderStageInfo{};
 
 
-        std::vector<char> ReadFile(const std::string& path);
+
         void CreateShaderModule(const std::vector<char>& code);
         void CreateShaderStageInfo();
     };

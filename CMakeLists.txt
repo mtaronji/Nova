@@ -14,6 +14,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
+file(COPY ${CMAKE_SOURCE_DIR}/Pipelines DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/RenderPasses DESTINATION ${CMAKE_BINARY_DIR})
 
 add_executable(magus 
     main.cpp 
@@ -23,14 +25,15 @@ add_executable(magus
     source/GPU.cpp 
     source/Shader.cpp 
     source/RenderPassManager.cpp
-    source/VulkanResourceManager.cpp
-    source/PipelineConfig.cpp 
+    source/FramebufferManager.cpp
     source/PipelineManager.cpp
     source/CommandManager.cpp
     source/SwapchainManager.cpp 
     source/SyncManager.cpp
     source/Renderer.cpp 
-    source/MagusV0.cpp
+    
+    source/GraphicsPipelineLoader.cpp 
+    source/RenderpassLoader.cpp
 )
 target_include_directories(magus PRIVATE ${CMAKE_SOURCE_DIR}/Include)
 

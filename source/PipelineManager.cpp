@@ -3,10 +3,10 @@
 PipelineManager::PipelineManager(
         GPU& gpu, 
         RenderPassManager& renderPassManager, 
-        PipelineInfo& pipelineInfo, 
+        PipelineConfig& pipelineConfig, 
         std::unordered_map<std::string,Shader> shaders
     )
-    : gpu(gpu), renderPassManager(renderPassManager), pipelineInfo(pipelineInfo),shaders(shaders) {
+    : gpu(gpu), renderPassManager(renderPassManager), pipelineConfig(pipelineConfig),shaders(shaders) {
 
     CreateGraphicsPipeline();
 }
@@ -22,10 +22,10 @@ PipelineManager::~PipelineManager() {
 void PipelineManager::CreateGraphicsPipeline() {
     auto fshader = GetShader("frag");
     auto vshader = GetShader("vert");
-    this->fshader.GetPipelineStageInfo();
+   
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-    shaderStages.push_back(this->vshader.GetPipelineStageInfo());
-    shaderStages.push_back(this->fshader.GetPipelineStageInfo());
+    shaderStages.push_back(vshader.GetPipelineShaderStageCreateInfo());
+    shaderStages.push_back(fshader.GetPipelineShaderStageCreateInfo());
 
     // Pipeline config (vertex input, assembly, viewport, rasterizer, etc.)
     // Keep simple for now
@@ -60,7 +60,7 @@ void PipelineManager::CreateGraphicsPipeline() {
     VkPipelineLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     layoutInfo.setLayoutCount = 1;
-    layoutInfo.pSetLayouts = this->pipelineInfo.descriptorSetLayouts.data();
+    layoutInfo.pSetLayouts = this->pipelineConfig.descriptorSetLayouts.data();
 
     vkCreatePipelineLayout(gpu.GetVkDevice(), &layoutInfo, nullptr, &pipelineLayout);
 
@@ -70,7 +70,7 @@ void PipelineManager::CreateGraphicsPipeline() {
     pipelineInfo.pStages = shaderStages.data();
     pipelineInfo.pVertexInputState = &vertexInput;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pViewportState = &this->pipelineInfo.viewportState;
+    pipelineInfo.pViewportState = &this->pipelineConfig.viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;

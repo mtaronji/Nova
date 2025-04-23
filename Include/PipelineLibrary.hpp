@@ -1,4 +1,5 @@
 #pragma once
+
 #include "PipelineManager.hpp"
 #include <unordered_map>
 #include <memory>

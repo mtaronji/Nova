@@ -7,7 +7,7 @@
 #include "GPU.hpp"
 #include "Shader.hpp"
 #include "RenderPassManager.hpp"
-#include "VulkanResourceManager.hpp"
+#include "PipelineConfig.hpp"
 
 class PipelineManager {
 
@@ -16,21 +16,21 @@ class PipelineManager {
         PipelineManager(
             GPU& gpu, 
             RenderPassManager& renderPassManager, 
-            PipelineInfo& pipelineInfo, 
+            PipelineConfig& pipelineConfig, 
             std::unordered_map<std::string,Shader> shaders
         );
         
         ~PipelineManager();
         VkPipeline GetPipeline() const { return pipeline; }
         VkPipelineLayout GetPipelineLayout()const {return pipelineLayout;}
-        PipelineInfo GetPipelineInfo() const { return pipelineInfo; }
+        PipelineConfig GetPipelineInfo() const { return pipelineConfig; }
         Shader GetShader(std::string shaderName) const {return shaders.at(shaderName);}
 
 
     protected:
         GPU& gpu;
         VkPipeline pipeline;
-        PipelineInfo pipelineInfo;
+        PipelineConfig pipelineConfig;
         VkPipelineLayout pipelineLayout;
         std::vector<char> ReadShaderFile(const std::string &location);
         RenderPassManager& renderPassManager;

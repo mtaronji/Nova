@@ -1,0 +1,169 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Nova Pipeline Schema",
+    "type": "object",
+
+    "properties": { 
+        "shaderStages": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["stage", "path"],
+                "properties": {
+                    "stage": {
+                        "type": "string",
+                        
+                        "enum": ["vertex", "fragment", "geometry", "tessellationControl", "tessellationEvaluation", "compute"]
+                    },
+                    "path": { "type": "string" }
+                 }
+            }
+        },
+  
+        "inputAssembly": {
+            "type": "object",
+            "properties": {
+                "topology": {
+                "type": "string",
+                "enum": ["point_list", "line_list", "line_strip", "triangle_list", "triangle_strip", "triangle_fan"]
+                },
+                "primitiveRestartEnable": { "type": "boolean" }
+            }
+        },
+  
+        "viewport": {
+            "type": "object",
+            "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" },
+                "minDepth": { "type": "number" },
+                "maxDepth": { "type": "number" }
+            }
+        },
+  
+        "scissor": {
+            "type": "object",
+                "properties": {
+                    "offsetX": { "type": "integer" },
+                    "offsetY": { "type": "integer" },
+                    "extentWidth": { "type": "integer" },
+                    "extentHeight": { "type": "integer" }
+                }
+        },
+  
+        "rasterizer": {
+            "type": "object",
+            "properties": {
+                "depthClampEnable": { "type": "boolean" },
+                "rasterizerDiscardEnable": { "type": "boolean" },
+                "polygonMode": {
+                    "type": "string",
+                    "enum": ["fill", "line", "point"]
+                },
+                "lineWidth":{"type":"number"},
+                "cullMode": {
+                    "type": "string",
+                    "enum": ["none", "front", "back", "front_and_back"]
+                },
+                "frontFace": {
+                    "type": "string",
+                    "enum": ["clockwise", "counter_clockwise"]
+                },
+                "depthBiasEnable": { "type": "boolean" }
+            }
+        },
+  
+        "multisampling": {
+            "type": "object",
+            "properties": {
+                "rasterizationSamples": { 
+                    "type": "integer", 
+                    "enum": [1,2,4,8,16,32,64]
+                },
+                "sampleShadingEnable": { "type": "boolean" },
+                "minSampleShading": { "type": "number" }
+            }
+        },
+  
+        "depthStencil": {
+            "type": "object",
+            "properties": {
+                "depthTestEnable": { "type": "boolean" },
+                "depthWriteEnable": { "type": "boolean" },
+                "depthCompareOp": {
+                    "type": "string",
+                    "enum": ["never", "less", "equal", "less_or_equal", "greater", "not_equal", "greater_or_equal", "always"]
+                },
+                "stencilTestEnable": { "type": "boolean" }
+            }
+        },
+  
+        "colorBlend": {
+            "type": "object",
+            "properties": {
+                "logicOpEnable": { "type": "boolean" },
+                "blendConstants": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "description": "RGBA blend constants, required for constant blend factors."
+                },
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["blendEnable", "colorWriteMask"],
+                        "properties": {
+                            "blendEnable": { "type": "boolean" },
+                            "srcColorBlendFactor": { "type": "string" },
+                            "dstColorBlendFactor": { "type": "string" },
+                            "colorBlendOp": { "type": "string" },
+                            "srcAlphaBlendFactor": { "type": "string" },
+                            "dstAlphaBlendFactor": { "type": "string" },
+                            "alphaBlendOp": { "type": "string" },
+                            "colorWriteMask": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": ["r", "g", "b", "a"]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+  
+        "dynamicStates": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "viewport", "scissor", "lineWidth", "depthBias", "blendConstants",
+                    "depthBounds", "stencilCompareMask", "stencilWriteMask", "stencilReference"
+                ]
+            }
+        },
+  
+      "pushConstants": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["stage", "offset", "size"],
+          "properties": {
+            "stage": {
+              "type": "string",
+              "enum": ["vertex", "fragment", "geometry", "tessellationControl", "tessellationEvaluation"]
+            },
+            "offset": { "type": "integer" },
+            "size": { "type": "integer" }
+          }
+        }
+      }
+    }
+  }

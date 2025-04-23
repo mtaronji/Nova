@@ -179,7 +179,6 @@ Renderer::Builder& Renderer::Builder::CreateFrameBuffers() {
     framebuffers->resize(swapChainImageViews.size());
     auto renderpass = renderpassmanager->GetRenderPass();
     auto extent = swapchainmanager->GetExtent();
-    auto framebufferRef = *framebuffers;
 
 
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
