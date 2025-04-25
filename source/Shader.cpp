@@ -1,9 +1,8 @@
 #include "Shader.hpp"
-#include "GPU.hpp"
-#include <fstream>
 
 
-Shader::Shader(GPU& gpu, const std::string& filepath, VkShaderStageFlagBits shaderStage) : gpu(gpu), shaderStage(shaderStage)
+
+Shader::Shader(std::shared_ptr<GPU> gpu, const std::string& filepath, VkShaderStageFlagBits shaderStage) : gpu(gpu), shaderStage(shaderStage)
 {
 
     auto code = ReadFile(filepath);  
@@ -14,7 +13,7 @@ Shader::Shader(GPU& gpu, const std::string& filepath, VkShaderStageFlagBits shad
 
 Shader::~Shader() {
     if (shaderModule != VK_NULL_HANDLE) {
-        vkDestroyShaderModule(gpu.GetVkDevice(), shaderModule, nullptr);
+        vkDestroyShaderModule(gpu->GetVkDevice(), shaderModule, nullptr);
     }
 }
 
@@ -38,7 +37,7 @@ void Shader::CreateShaderModule(const std::vector<char>& code) {
     info.codeSize = code.size();
     info.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    if (vkCreateShaderModule(gpu.GetVkDevice(), &info, nullptr, &shaderModule) != VK_SUCCESS)
+    if (vkCreateShaderModule(gpu->GetVkDevice(), &info, nullptr, &shaderModule) != VK_SUCCESS)
         throw std::runtime_error("Failed to create shader module.");
 }
 

@@ -7,19 +7,24 @@
 #include "SyncManager.hpp"
 #include "CommandManager.hpp"
 #include "VulkanEngine.hpp"
+#include "FramebufferGenerator.hpp"
 #include <array>
 #include <cassert>
+#include <memory>
 #include "Data.hpp"
 
 class Renderer {
     public:
-        Renderer(GPU& gpu, 
-            VulkanEngine &engine,
-            SwapchainManager& swapchainmanager, 
-            SyncManager& syncsmanager, 
-            RenderPassManager& renderpassmanager,
-            const PipelineManager& pipelinemanager, 
-            CommandManager& commandmanager
+        Renderer(   
+            std::shared_ptr<Shell> shell,
+            std::shared_ptr<GPU> gpu,
+            std::shared_ptr<VulkanEngine> engine,
+            std::shared_ptr<SwapchainManager> swapchainmanager,
+            std::shared_ptr<SyncManager> syncmanager,
+            std::shared_ptr<PipelineManager> pipelinemanager,
+            std::shared_ptr<RenderPassManager> renderpassmanager,
+            std::shared_ptr<CommandManager> commandmanager,
+            std::shared_ptr<FramebufferGenerator> framebufferContainer
         );
         Renderer() = delete;
         ~Renderer();
@@ -29,51 +34,60 @@ class Renderer {
         void NotifySwapchainOutOfDate(); 
         
         class Builder{
-            
-            Builder& SetGPU(GPU& gpu) 
+            Builder& WithShell(std::shared_ptr<Shell> shell) 
             { 
-                this->gpu = &gpu;
+                this->shell = shell;
                 return *this;
             }
-            Builder& SetVulkanEngine(VulkanEngine& engine){
-                this->engine = &engine;
+            Builder& WithGPU(std::shared_ptr<GPU> gpu) 
+            { 
+                this->gpu = gpu;
                 return *this;
             }
-            Builder& SetSwapChainManager(SwapchainManager& swapchainmanager){
-                this->swapchainmanager = &swapchainmanager;
+            Builder& WithVulkanEngine(std::shared_ptr<VulkanEngine>){
+                this->engine = engine;
                 return *this;
             }
-            Builder& SetSyncManager(SyncManager& syncmanager){
-                this->syncmanager = &syncmanager;
+            Builder& WithSwapChainManager(std::shared_ptr<SwapchainManager> swapchainmanager){
+                this->swapchainmanager = swapchainmanager;
                 return *this;
             }
-            Builder& SetPipelineManager(PipelineManager& pipelinemanager){
-                this->pipelinemanager = &pipelinemanager;
+            Builder& WithSyncManager(std::shared_ptr<SyncManager> syncmanager){
+                this->syncmanager = syncmanager;
                 return *this;
             }
-            Builder& SetRenderpassManager(RenderPassManager& renderpassmanager){
-                this->renderpassmanager = &renderpassmanager;
+            Builder& WithPipelineManager(std::shared_ptr<PipelineManager> pipelinemanager){
+                this->pipelinemanager = pipelinemanager;
                 return *this;
             }
-            Builder& CreateCommandBuffers(CommandManager& commandmanager){
-                this->commandmanager = &commandmanager;
+            Builder& WithRenderpassManager( std::shared_ptr<RenderPassManager> renderpassmanager){
+                this->renderpassmanager = renderpassmanager;
                 return *this;
             }
-            Builder& CreateFrameBuffers(){
-                
+            Builder& WithCommandManager(std::shared_ptr<CommandManager> commandmanager){
+                this->commandmanager = commandmanager;
+                return *this;
+            }
+            Builder& WithFrameBuffers(std::shared_ptr<FramebufferGenerator> generator){
+                this->framebufferContainer = std::make_shared<FramebufferGenerator>(gpu->GetVkDevice(), 
+                                                                  renderpassmanager->GetRenderPass(), 
+                                                                  swapchainmanager);
+                return *this;
             }
             Renderer Build(){
-                return Renderer(*gpu, *engine,*swapchainmanager, *syncmanager, *renderpassmanager, *pipelinemanager, *commandmanager);
+                return Renderer(shell,gpu, engine,swapchainmanager, syncmanager, pipelinemanager, renderpassmanager,  commandmanager, framebufferContainer);
             }
             private:
-                GPU*  gpu;
-                VulkanEngine* engine;
-                SwapchainManager* swapchainmanager;
-                SyncManager* syncmanager;
-                PipelineManager* pipelinemanager;
-                RenderPassManager* renderpassmanager;
-                CommandManager* commandmanager;
-                std::vector<VkFramebuffer>* framebuffers;
+                std::shared_ptr<GPU> gpu;
+                std::shared_ptr<VulkanEngine> engine;
+                std::shared_ptr<SwapchainManager> swapchainmanager;
+                std::shared_ptr<SyncManager> syncmanager;
+                std::shared_ptr<PipelineManager> pipelinemanager;
+                std::shared_ptr<RenderPassManager> renderpassmanager;
+                std::shared_ptr<CommandManager> commandmanager;
+                std::shared_ptr<FramebufferGenerator> framebufferContainer;
+                std::shared_ptr<Shell> shell;
+
 
 
         };
@@ -82,14 +96,16 @@ class Renderer {
                                         uint32_t imageIndex, 
                                         VkBuffer vbuffers[] = VK_NULL_HANDLE,
                                         VkBuffer ibuffer = VK_NULL_HANDLE);
-        GPU& gpu;
-        VulkanEngine& engine;
-        SwapchainManager& swapchainmanager;
-        SyncManager& syncsmanager;
-        RenderPassManager& renderpassmanager;
-        const PipelineManager& pipelinemanager;
-        CommandManager& commandmanager;
-        std::vector<VkFramebuffer> framebuffers;
+
+        std::shared_ptr<GPU> gpu;
+        std::shared_ptr<VulkanEngine> engine;
+        std::shared_ptr<SwapchainManager> swapchainmanager;
+        std::shared_ptr<SyncManager> syncmanager;
+        std::shared_ptr<PipelineManager> pipelinemanager;
+        std::shared_ptr<RenderPassManager> renderpassmanager;
+        std::shared_ptr<CommandManager> commandmanager;
+        std::shared_ptr<FramebufferGenerator> framebufferContainer;
+        std::shared_ptr<Shell> shell;
 
 
         uint32_t currentFrame = 0;

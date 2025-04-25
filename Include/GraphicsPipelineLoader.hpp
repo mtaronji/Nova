@@ -10,12 +10,12 @@
 #include "json.hpp"
 #include "Shader.hpp"
 #include "GPU.hpp"
+#include <memory>
 
 class GraphicsPipelineLoader {
     public:
-        GraphicsPipelineLoader() = delete;
-        GraphicsPipelineLoader();
-        static VkGraphicsPipelineCreateInfo LoadFromFile(GPU& gpu, const std::string& filePath);
+        GraphicsPipelineLoader() = default;
+        static VkGraphicsPipelineCreateInfo LoadFromFile(std::shared_ptr<GPU> gpu, const std::string& filePath);
 
     protected:
 

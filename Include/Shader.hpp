@@ -3,13 +3,13 @@
 #include <string>
 #include<vector>
 #include "GPU.hpp"
-
-
+#include <fstream>
+#include <memory>
 
 class Shader {
     public:
        
-        Shader(GPU& gpu, const std::string& filepath, VkShaderStageFlagBits stage);
+        Shader(std::shared_ptr<GPU> gpu, const std::string& filepath, VkShaderStageFlagBits shaderStage);
         ~Shader();
         static std::vector<char> ReadFile(const std::string& path);
         VkShaderModule GetModule() const { return shaderModule; }
@@ -19,7 +19,7 @@ class Shader {
 
     
     protected:
-        GPU& gpu;
+        std::shared_ptr<GPU> gpu;
         VkShaderModule shaderModule;
         VkShaderStageFlagBits shaderStage;
         VkPipelineShaderStageCreateInfo pipelineShaderStageInfo{};

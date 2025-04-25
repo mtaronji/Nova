@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <stdexcept>
+#include <memory>
 
 struct FrameSync {
     VkSemaphore imageAvailable;
@@ -12,7 +13,7 @@ struct FrameSync {
 
 class SyncManager {
 public:
-    SyncManager(const VkDevice& device);
+    SyncManager(VkDevice device);
     ~SyncManager();
     void Initialize(uint32_t maxFramesInFlight);
     // Create a semaphore for synchronization

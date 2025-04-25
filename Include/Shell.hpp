@@ -16,7 +16,7 @@ public:
    
     Shell();
 
-    GLFWwindow * GetWindow();
+    GLFWwindow * GetWindow()const {return window;};
     void Run(IRenderLoopClient *app);
 
 protected:

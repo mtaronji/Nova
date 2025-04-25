@@ -3,7 +3,7 @@ CommandManager::CommandManager(uint32_t framecount):FRAME_COUNT(framecount){
     AllocateCommandBuffers();
 }
 
-CommandManager::CommandManager(uint32_t framecount):FRAME_COUNT(1){
+CommandManager::CommandManager():FRAME_COUNT(1){
     AllocateCommandBuffers();
 }
 

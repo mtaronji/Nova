@@ -7,31 +7,34 @@ const std::vector<uint16_t> indices = {
 };
 
 
-Renderer::Renderer(GPU& gpu, 
-    VulkanEngine &engine,
-    SwapchainManager& swapchainmanager, 
-    SyncManager& syncsmanager, 
-    RenderPassManager& renderpassmanager,
-    const PipelineManager& pipelinemanager, 
-    CommandManager& commandmanager
-    ):gpu(gpu), engine(engine),swapchainmanager(swapchainmanager), syncsmanager(syncsmanager),renderpassmanager(renderpassmanager),pipelinemanager(pipelinemanager),commandmanager(commandmanager)
+Renderer::Renderer(   
+    std::shared_ptr<Shell> shell,
+    std::shared_ptr<GPU> gpu,
+    std::shared_ptr<VulkanEngine> engine,
+    std::shared_ptr<SwapchainManager> swapchainmanager,
+    std::shared_ptr<SyncManager> syncmanager,
+    std::shared_ptr<PipelineManager> pipelinemanager,
+    std::shared_ptr<RenderPassManager> renderpassmanager,
+    std::shared_ptr<CommandManager> commandmanager,
+    std::shared_ptr<FramebufferGenerator> framebufferContainer
+    ):shell(shell),gpu(gpu), engine(engine),swapchainmanager(swapchainmanager), syncmanager(syncmanager),renderpassmanager(renderpassmanager),pipelinemanager(pipelinemanager),commandmanager(commandmanager),framebufferContainer(framebufferContainer)
     {
-        assert(commandmanager.GetFrameCount() > 0);
+        
         
     }
 
 Renderer::~Renderer() {}
 
 void Renderer::DrawFrame() {
-    FrameSync& frame = syncsmanager.GetFrame(currentFrame);
-    auto device = gpu.GetVkDevice();
-    auto graphicsQueue = gpu.GetGraphicsQueue();
-    auto presentQueue = gpu.GetPresentQueue();
-    auto commandbuffer = commandmanager.GetCommandBuffer(currentFrame);
+    FrameSync& frame = syncmanager->GetFrame(currentFrame);
+    auto device = gpu->GetVkDevice();
+    auto graphicsQueue = gpu->GetGraphicsQueue();
+    auto presentQueue = gpu->GetPresentQueue();
+    auto commandbuffer = commandmanager->GetCommandBuffer(currentFrame);
 
     vkWaitForFences(device, 1, &frame.inFlight, VK_TRUE, UINT64_MAX);
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(gpu.GetVkDevice(), swapchainmanager.GetSwapchain(), UINT64_MAX, frame.imageAvailable, VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(gpu->GetVkDevice(), swapchainmanager->GetSwapchain(), UINT64_MAX, frame.imageAvailable, VK_NULL_HANDLE, &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         RecreateSwapchain();
@@ -74,7 +77,7 @@ void Renderer::DrawFrame() {
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = {this->swapchainmanager.GetSwapchain()};
+    VkSwapchainKHR swapChains[] = {this->swapchainmanager->GetSwapchain()};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
 
@@ -98,16 +101,16 @@ void Renderer::NotifySwapchainOutOfDate(){
 
 void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer, 
                                   uint32_t imageIndex, 
-                                  VkBuffer vbuffers[] = VK_NULL_HANDLE, 
-                                  VkBuffer ibuffer = VK_NULL_HANDLE
+                                  VkBuffer vbuffers[], 
+                                  VkBuffer ibuffer
                                   
                                 ){
   
-    auto const &renderpass = renderpassmanager.GetRenderPass();
-    auto const &extent = swapchainmanager.GetExtent();
-    auto const &pipeline = pipelinemanager.GetPipeline();
-    auto const &pipelinelayout = pipelinemanager.GetPipelineLayout();
-    auto const &pipelineinfo = pipelinemanager.GetPipelineInfo();
+    // auto const &renderpass = renderpassmanager->GetRenderPass();
+    auto const &extent = swapchainmanager->GetExtent();
+    // auto const &pipeline = pipelinemanager->GetPipeline();
+    auto const &pipelinelayout = pipelinemanager->GetPipelineLayout();
+    auto const &pipelineinfo = pipelinemanager->GetPipelineInfo();
     auto const &descriptorSets = pipelineinfo.descriptorSetsPerFrame;
 
     VkCommandBufferBeginInfo beginInfo{};
@@ -119,10 +122,10 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderpassmanager.GetRenderPass();
-    renderPassInfo.framebuffer = framebuffers[imageIndex];
+    renderPassInfo.renderPass = renderpassmanager->GetRenderPass();
+    renderPassInfo.framebuffer = framebufferContainer->GetFramebuffers()[imageIndex];
     renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = extent;
+    renderPassInfo.renderArea.extent = swapchainmanager->GetExtent();
 
     std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
@@ -133,7 +136,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinemanager->GetPipeline());
 
         VkViewport viewport{};
         viewport.x = 0.0f;
@@ -171,91 +174,20 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     }
 }
 
-Renderer::Builder& Renderer::Builder::CreateFrameBuffers() {
-
-    auto device = gpu->GetVkDevice();
-    auto swapChainImageViews = swapchainmanager->GetImageViews();
-    framebuffers = & std::vector<VkFramebuffer>(swapChainImageViews.size());
-    framebuffers->resize(swapChainImageViews.size());
-    auto renderpass = renderpassmanager->GetRenderPass();
-    auto extent = swapchainmanager->GetExtent();
-
-
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        
-
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderpass;
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(swapChainImageViews.size());
-        framebufferInfo.pAttachments = swapChainImageViews.data();
-        framebufferInfo.width = extent.width;
-        framebufferInfo.height = extent.height;
-        framebufferInfo.layers = 1;
-
-
-        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &(*framebuffers)[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
-    }
-
-    return *this;
-}
-
-//NOT a duplicate. One is for the builder of the renderer 
-//and this one is for the actual renderer when we need a resize
-void Renderer::CreateFrameBuffers(){
-    auto device = gpu.GetVkDevice();
-    auto swapChainImageViews = swapchainmanager.GetImageViews();
-    framebuffers = std::vector<VkFramebuffer>(swapChainImageViews.size());
-    framebuffers.resize(swapChainImageViews.size());
-    auto renderpass = renderpassmanager.GetRenderPass();
-    auto extent = swapchainmanager.GetExtent();
-
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        
-
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderpass;
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(swapChainImageViews.size());
-        framebufferInfo.pAttachments = swapChainImageViews.data();
-        framebufferInfo.width = extent.width;
-        framebufferInfo.height = extent.height;
-        framebufferInfo.layers = 1;
-
-        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
-    }
-}
-void Renderer::DestroyFrameBuffers() {
-    
-    for (VkFramebuffer framebuffer : framebuffers) {
-        if (framebuffer != VK_NULL_HANDLE) {
-            vkDestroyFramebuffer(gpu.GetVkDevice(), framebuffer, nullptr);
-        }
-    }
-    framebuffers.clear();
-}
 
 void Renderer::RecreateSwapchain(){
-    auto device = gpu.GetVkDevice();
+    auto device = gpu->GetVkDevice();
     int width = 0, height = 0;
 
     vkDeviceWaitIdle(device);
-    DestroyFrameBuffers();
-    swapchainmanager.Cleanup(device);
+    this->framebufferContainer->Cleanup(gpu->GetVkDevice());
+    swapchainmanager->Cleanup(device);
     
-    swapchainmanager = ::SwapchainManager::Builder()
-                        .SetGPU(this->gpu)
-                        .SetVulkanEngine(this->engine)
-                        .QuerySwapChainSupport()
-                        .ChooseSwapSurfaceFormat()
-                        .ChooseSwapPresentMode()
-                        .ChooseSwapExtent()
+    swapchainmanager =  SwapchainManager::Builder()
+                        .WithGPU(gpu)
+                        .WithEngine(engine)
+                        .WithShell(shell)
                         .Build();
                 
-    // createDepthResources();
-    CreateFrameBuffers();
+    this->framebufferContainer->ReCreateFrameBuffers(gpu->GetVkDevice(),renderpassmanager->GetRenderPass(), swapchainmanager);
 }

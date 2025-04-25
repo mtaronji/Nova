@@ -2,15 +2,15 @@
 
 FramebufferGenerator::  FramebufferGenerator(VkDevice device,
     VkRenderPass renderPass,
-    SwapchainManager swapchainManager)
+    std::shared_ptr<SwapchainManager> swapchainManager)
 {
    
    CreateFrameBuffers(device, renderPass, swapchainManager);
 }
 
-void FramebufferGenerator::CreateFrameBuffers(VkDevice device, VkRenderPass renderPass, SwapchainManager swapchainManager){
-    auto imageViews = swapchainManager.GetImageViews();
-    auto extent = swapchainManager.GetExtent();
+void FramebufferGenerator::CreateFrameBuffers(VkDevice device, VkRenderPass renderPass, std::shared_ptr<SwapchainManager> swapchainManager){
+    auto imageViews = swapchainManager->GetImageViews();
+    auto extent = swapchainManager->GetExtent();
     this->framebuffers.resize(imageViews.size());
 
     for (size_t i = 0; i < imageViews.size(); ++i) {
@@ -36,4 +36,8 @@ void FramebufferGenerator::Cleanup(const VkDevice& device) {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
     framebuffers.clear();
+}
+
+void FramebufferGenerator::ReCreateFrameBuffers(VkDevice device, VkRenderPass renderPass, std::shared_ptr<SwapchainManager> swapchainManager){
+    CreateFrameBuffers(device,renderPass, swapchainManager);
 }

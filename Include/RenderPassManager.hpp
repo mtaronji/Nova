@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "GPU.hpp"
 #include <vector>
+#include <memory>
 
 struct AttachmentInfo {
     VkAttachmentDescription description;
@@ -12,7 +13,7 @@ struct AttachmentInfo {
 
 class RenderPassManager {
     public:
-        RenderPassManager(const GPU& gpu, const VkSubpassDescription& subpassDescription, const std::vector<VkAttachmentDescription>& attachmentDescriptions);
+        RenderPassManager(std::shared_ptr<GPU> gpu, const VkSubpassDescription& subpassDescription, const std::vector<VkAttachmentDescription>& attachmentDescriptions);
         ~RenderPassManager();
 
         void NotifyRenderPassOutOfDate();
@@ -22,22 +23,22 @@ class RenderPassManager {
             public:
                 Builder() = default;
 
-                Builder& SetGPU(const GPU* gpu) {
+                Builder& WithGPU(std::shared_ptr<GPU> gpu) {
                     this->gpu = gpu;
                     return *this;
                 }
-                Builder& SetAttachments(const std::vector<AttachmentInfo>& attachmentInfos, std::vector<uint32_t>* preserveAttachments = nullptr );
+                Builder& WithAttachments(const std::vector<AttachmentInfo>& attachmentInfos, std::vector<uint32_t>& preserveAttachments);
 
-                RenderPassManager Build();
+                std::shared_ptr<RenderPassManager> Build();
 
             private:
-                const GPU* gpu;
+                std::shared_ptr<GPU> gpu;
                 std::vector<VkAttachmentReference> colorAttachments;
                 std::vector<VkAttachmentReference> inputAttachments;
                 std::vector<VkAttachmentReference> resolveAttachments;
                 std::optional<VkAttachmentReference> depthStencilAttachment;
                 std::vector<uint32_t> preserveAttachments;
-                const VkFormat* colorFormat;
+                VkFormat colorFormat;
                 std::vector<VkAttachmentReference> attachmentrefs;
                 std::vector<VkAttachmentDescription> attachmentDescriptions;
 
@@ -46,8 +47,8 @@ class RenderPassManager {
 
     protected:
         VkRenderPass renderPass;
-        const GPU& gpu;
-        const VkSubpassDescription& subpassDescription;
+        std::shared_ptr<GPU> gpu;
+        VkSubpassDescription subpassDescription;
         std::vector<VkAttachmentDescription> attachmentDescriptions;
         void CreateRenderPass();
 };

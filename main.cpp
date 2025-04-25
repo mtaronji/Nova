@@ -1604,14 +1604,20 @@
 // };
 
 int main() {
-    Magusv0 app;
-
+    //MUST delete
+    int i = 0;
+    int x = i * 3;
+    std::unique_ptr<IRenderLoopClient> app = Nova::Builder().Build();
+                            
+                            
     try {
-        app.Start();
+        app->Start();
     } catch (const std::exception& e) {
+    
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
+
 
     return EXIT_SUCCESS;
 }

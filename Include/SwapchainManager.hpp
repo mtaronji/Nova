@@ -2,8 +2,9 @@
 
 #include <vulkan/vulkan.h>
 #include "GPU.hpp"
+#include "Shell.hpp"
 #include <stdexcept>
-
+#include <memory>
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
@@ -31,22 +32,25 @@ class SwapchainManager {
         class Builder{
             public:
                 Builder() = default;
-                Builder& SetGPU(GPU& gpu);
-                Builder& SetVulkanEngine(VulkanEngine &engine);
-                Builder& QuerySwapChainSupport();
-                Builder& ChooseSwapSurfaceFormat();   //depends on query swap chain support
-                Builder& ChooseSwapPresentMode();     //depends on query swapchain support
-                Builder& ChooseSwapExtent();
-                SwapchainManager Build();
+                Builder& WithGPU(std::shared_ptr<GPU> gpu);
+                Builder& WithEngine(std::shared_ptr<VulkanEngine> engine);
+                Builder& WithShell(std::shared_ptr<Shell> shell);
+                
+                void QuerySwapChainSupport();
+                void ChooseSwapSurfaceFormat();   //depends on query swap chain support
+                void ChooseSwapPresentMode();     //depends on query swapchain support
+                void ChooseSwapExtent();
+                std::shared_ptr<SwapchainManager> Build();
                 
 
             private:
-                GPU* gpu;
+                std::shared_ptr<GPU> gpu;
+                std::shared_ptr<VulkanEngine> engine;
+                std::shared_ptr<Shell> shell;
                 SwapChainSupportDetails swapChainSupportDetails;
                 VkSurfaceFormatKHR surfaceFormat;
                 VkPresentModeKHR presentMode;
                 VkExtent2D extent;        
-                VulkanEngine* engine;
             
         };
 

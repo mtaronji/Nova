@@ -1,8 +1,8 @@
 #include "GPU.hpp"
 
 
-GPU::GPU(VulkanEngine& engine) : engine(engine){
-    auto instance = engine.GetInstance();
+GPU::GPU(std::shared_ptr<VulkanEngine> engine) : engine(engine){
+    auto instance = engine->GetInstance();
     PickPhysicalDevice(instance);
     CreateLogicalDevice();
     CreateCommandPool();
@@ -54,7 +54,7 @@ void GPU::PickPhysicalDevice(VkInstance instance) {
 void GPU::CreateLogicalDevice() {
 
     QueueFamilyIndices indices = FindQueueFamilies();
-    auto deviceExtensions = engine.GetDeviceExtensions();
+    auto deviceExtensions = engine->GetDeviceExtensions();
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
@@ -98,7 +98,7 @@ void GPU::CreateLogicalDevice() {
 }
 
 QueueFamilyIndices GPU::FindQueueFamilies() {
-    auto surface = engine.GetSurface();
+    auto surface = engine->GetSurface();
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;

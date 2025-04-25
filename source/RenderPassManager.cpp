@@ -2,7 +2,7 @@
 #include "GPU.hpp"
 #include <cassert>
 
-RenderPassManager::RenderPassManager(const GPU& gpu, const VkSubpassDescription& subpassDescription, const std::vector<VkAttachmentDescription>& attachmentDescriptions)
+RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu, const VkSubpassDescription& subpassDescription, const std::vector<VkAttachmentDescription>& attachmentDescriptions)
         : gpu(gpu), subpassDescription(subpassDescription),attachmentDescriptions(attachmentDescriptions){
     
 
@@ -10,7 +10,7 @@ RenderPassManager::RenderPassManager(const GPU& gpu, const VkSubpassDescription&
 }
 
 RenderPassManager::~RenderPassManager() {
-    vkDestroyRenderPass(gpu.GetVkDevice(), renderPass, nullptr);
+    vkDestroyRenderPass(gpu->GetVkDevice(), renderPass, nullptr);
 }
 
 void RenderPassManager:: NotifyRenderPassOutOfDate(){
@@ -18,11 +18,11 @@ void RenderPassManager:: NotifyRenderPassOutOfDate(){
 }
 
 
-RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std::vector<AttachmentInfo>& attachmentInfos, std::vector<uint32_t>* preserveAttachments = nullptr){
+RenderPassManager::Builder& RenderPassManager::Builder::WithAttachments(const std::vector<AttachmentInfo>& attachmentInfos, std::vector<uint32_t>& preserveAttachments){
     
     this->attachmentrefs = std::vector<VkAttachmentReference>();
     this->colorAttachments = std::vector<VkAttachmentReference>();
-    this->preserveAttachments = *preserveAttachments;
+    this->preserveAttachments = preserveAttachments;
 
     uint32_t index = 0;
     for(const auto& description : attachmentInfos){
@@ -31,7 +31,7 @@ RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std
         attachmentDescriptions.push_back(description.description);
 
         switch (description.type){
-            case AttachmentInfo::Type::Color:
+            case AttachmentInfo::Type::Color:{
                 VkAttachmentReference colorAttachmentRef = {};
                 colorAttachmentRef.attachment = index; 
                 colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -40,7 +40,8 @@ RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std
                 index++;
               
                 break;
-            case AttachmentInfo::Type::Depth:
+            }
+            case AttachmentInfo::Type::Depth:{
                 VkAttachmentReference depthStencilAttachmentRef = {};
                 depthStencilAttachmentRef.attachment = index; 
                 depthStencilAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -49,7 +50,8 @@ RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std
                 index++;
 
                 break;
-            case AttachmentInfo::Type::Input:
+            }
+            case AttachmentInfo::Type::Input:{
                 VkAttachmentReference inputAttachmentRef = {};
                 inputAttachmentRef.attachment = index; 
                 inputAttachmentRef.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -58,8 +60,8 @@ RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std
                 index++;
 
                 break;
-
-            case AttachmentInfo::Type::Resolve:
+            }
+            case AttachmentInfo::Type::Resolve:{
                 VkAttachmentReference resolveAttachmentRef = {};
                 resolveAttachmentRef.attachment = index; 
                 resolveAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -67,12 +69,13 @@ RenderPassManager::Builder& RenderPassManager::Builder::SetAttachments(const std
                 index++;
 
                 break;
+            }
         }
     }
     return *this;
 }
 
-RenderPassManager RenderPassManager::Builder::Build(){
+std::shared_ptr<RenderPassManager> RenderPassManager::Builder::Build(){
     VkSubpassDescription subpassDescription{};
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     
@@ -100,7 +103,7 @@ RenderPassManager RenderPassManager::Builder::Build(){
         subpassDescription.pPreserveAttachments = preserveAttachments.data();
     }
 
-    return RenderPassManager(*gpu, subpassDescription,attachmentDescriptions);
+    return std::make_shared<RenderPassManager>(gpu, subpassDescription,attachmentDescriptions);
 }
 void RenderPassManager::CreateRenderPass() {
 
@@ -123,7 +126,7 @@ void RenderPassManager::CreateRenderPass() {
     renderPassInfo.pDependencies = &dependency;
     
 
-    if (vkCreateRenderPass(gpu.GetVkDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+    if (vkCreateRenderPass(gpu->GetVkDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }
 

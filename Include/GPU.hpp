@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <vector>
 #include <set>
-
-
+#include <memory>
+#include <optional>
 #include <vulkan/vulkan.h>
 #include <vector>
 #include "VulkanEngine.hpp"
@@ -27,7 +27,7 @@ struct QueueFamilyIndices {
 
 class GPU {
     public:
-        GPU(VulkanEngine& engine);
+        GPU(std::shared_ptr<VulkanEngine> engine);
         void Cleanup();
 
         VkDevice GetVkDevice() const { return device; }
@@ -37,8 +37,8 @@ class GPU {
         VkCommandPool GetCommandPool()const{return commandPool;}
 
         uint32_t GetGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
-        uint32_t GetGraphicsQueueFamilyIndex() const { return presentQueueFamilyIndex; }
-        QueueFamilyIndices GPU::FindQueueFamilies();
+        uint32_t GetPresentQueueFamilyIndex() const { return presentQueueFamilyIndex; }
+        QueueFamilyIndices FindQueueFamilies();
 
     protected:
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -47,7 +47,7 @@ class GPU {
         VkQueue presentQueue = VK_NULL_HANDLE;
         uint32_t graphicsQueueFamilyIndex = 0;
         uint32_t presentQueueFamilyIndex = 0;
-        VulkanEngine& engine;
+        std::shared_ptr<VulkanEngine> engine;
         VkCommandPool commandPool;
 
         void PickPhysicalDevice(VkInstance instance);

@@ -1,7 +1,7 @@
 #include "SyncManager.hpp"
 
 
-SyncManager::SyncManager(const VkDevice& device) : m_device(device) {}
+SyncManager::SyncManager(VkDevice device ) : m_device(device) {}
 
 SyncManager::~SyncManager() {
     cleanup();
@@ -12,7 +12,7 @@ void SyncManager::Initialize(uint32_t maxFramesInFlight){
     for (auto& frame : m_frames) {
         frame.imageAvailable = CreateSemaphore();
         frame.renderFinished = CreateSemaphore();
-        frame.inFlight = createFenceInternal(true); // Initially signaled
+        frame.inFlight = CreateFence(); // Initially signaled
     }
 }
 

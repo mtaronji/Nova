@@ -10,10 +10,11 @@ class FramebufferGenerator {
 
         FramebufferGenerator(VkDevice device,
             VkRenderPass renderPass,
-            SwapchainManager swapchainManager);
+            std::shared_ptr<SwapchainManager> swapchainManager);
 
         std::vector<VkFramebuffer> GetFramebuffers() const{return framebuffers;}
-        
+        void CreateFrameBuffers(VkDevice device, VkRenderPass renderPass, std::shared_ptr<SwapchainManager> swapchainManager);
+        void ReCreateFrameBuffers(VkDevice device, VkRenderPass renderPass, std::shared_ptr<SwapchainManager> swapchainManager);
 
         void Cleanup(const VkDevice& device);
 
@@ -21,6 +22,6 @@ class FramebufferGenerator {
 
     protected:
         std::vector<VkFramebuffer> framebuffers;
-        void CreateFrameBuffers(VkDevice device, VkRenderPass renderPass, SwapchainManager swapchainManager);
+       
         
 };

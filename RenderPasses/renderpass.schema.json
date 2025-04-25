@@ -3,55 +3,127 @@
     "title": "Nova Render Pass Schema",
     "type": "object",
     "properties": {
-    "attachments": {
+      "attachments": {
         "type": "array",
         "items": {
-        "type": "object",
-        "required": ["id","name", "format", "loadOp", "storeOp", "initialLayout", "finalLayout"],
-        "properties": {
-            "id" :{
-            "type": "string",
-            "description": "User defined ID for the attachment"
+          "type": "object",
+          "required": ["id", "name", "format", "loadOp", "storeOp", "initialLayout", "finalLayout"],
+          "properties": {
+            "id": {
+              "type": "string"
             },
             "name": {
-            "type": "string",
-            "description": "A user-defined name for the attachment"
+              "type": "string"
+            },
+            "attachmentType": {
+              "type": "string",
+              "enum": ["color", "depth", "stencil", "input", "resolve"]
             },
             "format": {
-            "type": "string",
-            "enum": ["color","depth","stencil","input","resolve"]
+              "type": "string"
             },
             "samples": {
-            "type": "integer",
-            "enum": [1, 2, 4, 8, 16, 32, 64],
-            "default": 1
+              "type": "integer",
+              "enum": [1, 2, 4, 8, 16, 32, 64],
+              "default": 1
             },
             "loadOp": {
-            "type": "string",
-            "enum": ["load", "clear", "dont_care"]
+              "type": "string",
+              "enum": ["load", "clear", "dont_care"]
             },
             "storeOp": {
-            "type": "string",
-            "enum": ["store", "dont_care"]
+              "type": "string",
+              "enum": ["store", "dont_care"]
             },
             "stencilLoadOp": {
-            "type": "string",
-            "enum": ["load", "clear", "dont_care"],
-            "default": "dont_care"
+              "type": "string",
+              "enum": ["load", "clear", "dont_care"],
+              "default": "dont_care"
             },
             "stencilStoreOp": {
-            "type": "string",
-            "enum": ["store", "dont_care"],
-            "default": "dont_care"
+              "type": "string",
+              "enum": ["store", "dont_care"],
+              "default": "dont_care"
             },
             "initialLayout": {
-            "type": "string"
+              "type": "string"
             },
             "finalLayout": {
-            "type": "string"
+              "type": "string"
             }
-        },
-        "additionalProperties": false
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "attachmentType": { "const": "color" }
+                }
+              },
+              "then": {
+                "properties": {
+                  "format": {
+                    "type":"string",
+                    "enum": [
+                      "VK_FORMAT_R8G8B8A8_UNORM",
+                      "VK_FORMAT_B8G8R8A8_UNORM",
+                      "VK_FORMAT_R8G8B8A8_SRGB",
+                      "VK_FORMAT_B8G8R8A8_SRGB",
+                      "VK_FORMAT_R8_UNORM",
+                      "VK_FORMAT_R8G8_UNORM",
+                      "VK_FORMAT_R16G16B16A16_SFLOAT",
+                      "VK_FORMAT_R32G32B32A32_SFLOAT",
+                      "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
+                      "VK_FORMAT_R16_SFLOAT",
+                      "VK_FORMAT_R32_UINT",
+                      "VK_FORMAT_R32G32_UINT",
+                      "VK_FORMAT_R32G32B32_SFLOAT",
+                      "VK_FORMAT_R32G32B32A32_UINT",
+                      "VK_FORMAT_BC3_UNORM_BLOCK"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "attachmentType": { "const": "depth" }
+                }
+              },
+              "then": {
+                "properties": {
+                  "format": {
+                    "enum": [
+                      "VK_FORMAT_D16_UNORM",
+                      "VK_FORMAT_D24_UNORM_S8_UINT",
+                      "VK_FORMAT_D32_SFLOAT",
+                      "VK_FORMAT_D32_SFLOAT_S8_UINT"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "attachmentType": { "const": "stencil" }
+                }
+              },
+              "then": {
+                "properties": {
+                  "format": {
+                    "type":"string",
+                    "enum": [
+                      "VK_FORMAT_S8_UINT",
+                      "VK_FORMAT_D24_UNORM_S8_UINT",
+                      "VK_FORMAT_D32_SFLOAT_S8_UINT"
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          "additionalProperties": false
         }
       },
       "subpasses": {
@@ -71,7 +143,16 @@
                 "required": ["attachment", "layout"],
                 "properties": {
                   "attachment": { "type": "integer" },
-                  "layout": { "type": "string" }
+                  "layout": {
+                    "type": "string",
+                    "enum": [
+                      "undefined",
+                      "general",
+                      "color-attachment-optimal",
+                      "transfer-src-optimal",
+                      "transfer-dst-optimal"
+                    ]
+                  }
                 }
               }
             },
@@ -80,7 +161,17 @@
               "required": ["attachment", "layout"],
               "properties": {
                 "attachment": { "type": "integer" },
-                "layout": { "type": "string" }
+                "layout": {
+                  "type": "string",
+                  "enum": [
+                    "undefined",
+                    "general",
+                    "depth-stencil-attachment-optimal",
+                    "depth-stencil-read-only-optimal",
+                    "transfer-src-optimal",
+                    "transfer-dst-optimal"
+                  ]
+                }
               }
             }
           },
@@ -94,33 +185,129 @@
           "type": "object",
           "required": ["srcSubpass", "dstSubpass", "srcStageMask", "dstStageMask"],
           "properties": {
-            "srcSubpass": { "type": "integer" },
-            "dstSubpass": { "type": "integer" },
+            "srcSubpass": {
+              "type": "string",
+              "enum": [
+                "VK_SUBPASS_EXTERNAL", "0", "1", "2", "3", "4", "5", "6", "7",
+                "8", "9", "10", "11", "12", "13", "14", "15"
+              ]
+            },
+            "dstSubpass": {
+              "type": "string",
+              "enum": [
+                "VK_SUBPASS_EXTERNAL", "0", "1", "2", "3", "4", "5", "6", "7",
+                "8", "9", "10", "11", "12", "13", "14", "15"
+              ]
+            },
             "srcStageMask": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": { 
+                "type": "string",
+                "enum": [
+                  "VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT",
+                  "VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT",
+                  "VK_PIPELINE_STAGE_VERTEX_INPUT_BIT",
+                  "VK_PIPELINE_STAGE_VERTEX_SHADER_BIT",
+                  "VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT",
+                  "VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT",
+                  "VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT",
+                  "VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT",
+                  "VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT",
+                  "VK_PIPELINE_STAGE_TRANSFER_BIT",
+                  "VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT",
+                  "VK_PIPELINE_STAGE_HOST_BIT",
+                  "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT",
+                  "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT"
+                ]
+              }
             },
             "dstStageMask": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string",
+                "enum": [
+                  "VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT",
+                  "VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT",
+                  "VK_PIPELINE_STAGE_VERTEX_INPUT_BIT",
+                  "VK_PIPELINE_STAGE_VERTEX_SHADER_BIT",
+                  "VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT",
+                  "VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT",
+                  "VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT",
+                  "VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT",
+                  "VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT",
+                  "VK_PIPELINE_STAGE_TRANSFER_BIT",
+                  "VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT",
+                  "VK_PIPELINE_STAGE_HOST_BIT",
+                  "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT",
+                  "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT"
+                ]
+              }
             },
             "srcAccessMask": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string",
+                "enum": [
+                  "VK_ACCESS_INDIRECT_COMMAND_READ_BIT",
+                  "VK_ACCESS_INDEX_READ_BIT",
+                  "VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT",
+                  "VK_ACCESS_UNIFORM_READ_BIT",
+                  "VK_ACCESS_INPUT_ATTACHMENT_READ_BIT",
+                  "VK_ACCESS_SHADER_READ_BIT",
+                  "VK_ACCESS_SHADER_WRITE_BIT",
+                  "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT",
+                  "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT",
+                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT",
+                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT",
+                  "VK_ACCESS_TRANSFER_READ_BIT",
+                  "VK_ACCESS_TRANSFER_WRITE_BIT",
+                  "VK_ACCESS_HOST_READ_BIT",
+                  "VK_ACCESS_HOST_WRITE_BIT",
+                  "VK_ACCESS_MEMORY_READ_BIT",
+                  "VK_ACCESS_MEMORY_WRITE_BIT"
+                ]
+              }
             },
             "dstAccessMask": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string",
+                "enum": [
+                  "VK_ACCESS_INDIRECT_COMMAND_READ_BIT",
+                  "VK_ACCESS_INDEX_READ_BIT",
+                  "VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT",
+                  "VK_ACCESS_UNIFORM_READ_BIT",
+                  "VK_ACCESS_INPUT_ATTACHMENT_READ_BIT",
+                  "VK_ACCESS_SHADER_READ_BIT",
+                  "VK_ACCESS_SHADER_WRITE_BIT",
+                  "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT",
+                  "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT",
+                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT",
+                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT",
+                  "VK_ACCESS_TRANSFER_READ_BIT",
+                  "VK_ACCESS_TRANSFER_WRITE_BIT",
+                  "VK_ACCESS_HOST_READ_BIT",
+                  "VK_ACCESS_HOST_WRITE_BIT",
+                  "VK_ACCESS_MEMORY_READ_BIT",
+                  "VK_ACCESS_MEMORY_WRITE_BIT"
+                ]
+              }
             },
             "dependencyFlags": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string",
+                "enum": [
+                  "VK_DEPENDENCY_BY_REGION_BIT",
+                  "VK_DEPENDENCY_VIEW_LOCAL_BIT",
+                  "VK_DEPENDENCY_DEVICE_GROUP_BIT"
+                ]
+              }
             }
           },
           "additionalProperties": false
         }
       }
     },
-    "required": ["attachments", "subpasses"],
-    "additionalProperties": false
+    "required": ["attachments", "subpasses"]
   }

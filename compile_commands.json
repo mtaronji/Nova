@@ -1,0 +1,92 @@
+[
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/main.cpp.o -c /home/mtar/Nova/main.cpp",
+  "file": "/home/mtar/Nova/main.cpp",
+  "output": "CMakeFiles/nova.dir/main.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/Nova.cpp.o -c /home/mtar/Nova/source/Nova.cpp",
+  "file": "/home/mtar/Nova/source/Nova.cpp",
+  "output": "CMakeFiles/nova.dir/source/Nova.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/Shell.cpp.o -c /home/mtar/Nova/source/Shell.cpp",
+  "file": "/home/mtar/Nova/source/Shell.cpp",
+  "output": "CMakeFiles/nova.dir/source/Shell.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/VulkanEngine.cpp.o -c /home/mtar/Nova/source/VulkanEngine.cpp",
+  "file": "/home/mtar/Nova/source/VulkanEngine.cpp",
+  "output": "CMakeFiles/nova.dir/source/VulkanEngine.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/GPU.cpp.o -c /home/mtar/Nova/source/GPU.cpp",
+  "file": "/home/mtar/Nova/source/GPU.cpp",
+  "output": "CMakeFiles/nova.dir/source/GPU.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/Shader.cpp.o -c /home/mtar/Nova/source/Shader.cpp",
+  "file": "/home/mtar/Nova/source/Shader.cpp",
+  "output": "CMakeFiles/nova.dir/source/Shader.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/RenderPassManager.cpp.o -c /home/mtar/Nova/source/RenderPassManager.cpp",
+  "file": "/home/mtar/Nova/source/RenderPassManager.cpp",
+  "output": "CMakeFiles/nova.dir/source/RenderPassManager.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/FramebufferManager.cpp.o -c /home/mtar/Nova/source/FramebufferManager.cpp",
+  "file": "/home/mtar/Nova/source/FramebufferManager.cpp",
+  "output": "CMakeFiles/nova.dir/source/FramebufferManager.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/PipelineManager.cpp.o -c /home/mtar/Nova/source/PipelineManager.cpp",
+  "file": "/home/mtar/Nova/source/PipelineManager.cpp",
+  "output": "CMakeFiles/nova.dir/source/PipelineManager.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/CommandManager.cpp.o -c /home/mtar/Nova/source/CommandManager.cpp",
+  "file": "/home/mtar/Nova/source/CommandManager.cpp",
+  "output": "CMakeFiles/nova.dir/source/CommandManager.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/SwapchainManager.cpp.o -c /home/mtar/Nova/source/SwapchainManager.cpp",
+  "file": "/home/mtar/Nova/source/SwapchainManager.cpp",
+  "output": "CMakeFiles/nova.dir/source/SwapchainManager.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/SyncManager.cpp.o -c /home/mtar/Nova/source/SyncManager.cpp",
+  "file": "/home/mtar/Nova/source/SyncManager.cpp",
+  "output": "CMakeFiles/nova.dir/source/SyncManager.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/Renderer.cpp.o -c /home/mtar/Nova/source/Renderer.cpp",
+  "file": "/home/mtar/Nova/source/Renderer.cpp",
+  "output": "CMakeFiles/nova.dir/source/Renderer.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/GraphicsPipelineLoader.cpp.o -c /home/mtar/Nova/source/GraphicsPipelineLoader.cpp",
+  "file": "/home/mtar/Nova/source/GraphicsPipelineLoader.cpp",
+  "output": "CMakeFiles/nova.dir/source/GraphicsPipelineLoader.cpp.o"
+},
+{
+  "directory": "/home/mtar/Nova",
+  "command": "/usr/bin/c++  -I/home/mtar/Nova/Include -g -O0 -std=gnu++23 -o CMakeFiles/nova.dir/source/RenderpassLoader.cpp.o -c /home/mtar/Nova/source/RenderpassLoader.cpp",
+  "file": "/home/mtar/Nova/source/RenderpassLoader.cpp",
+  "output": "CMakeFiles/nova.dir/source/RenderpassLoader.cpp.o"
+}
+]

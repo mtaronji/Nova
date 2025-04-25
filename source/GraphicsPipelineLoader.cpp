@@ -1,11 +1,8 @@
 #include "GraphicsPipelineLoader.hpp"
 
 using json = nlohmann::json;
-GraphicsPipelineLoader::GraphicsPipelineLoader()
-{
 
-}
-VkGraphicsPipelineCreateInfo GraphicsPipelineLoader::LoadFromFile(GPU& gpu, const std::string& filePath){
+VkGraphicsPipelineCreateInfo GraphicsPipelineLoader::LoadFromFile(std::shared_ptr<GPU> gpu, const std::string& filePath){
     std::ifstream in(filePath);
     if (!in.is_open()) {
         throw std::runtime_error("Failed to open render pass file: " + filePath);
@@ -61,10 +58,7 @@ VkGraphicsPipelineCreateInfo GraphicsPipelineLoader::LoadFromFile(GPU& gpu, cons
   
     VkGraphicsPipelineCreateInfo createInfo = {};
 
-
-    
+    return createInfo;
     
 }
-static VkShaderModule ParseShaderStages(const std::string& str) {
 
-}

@@ -33,9 +33,7 @@ class CommandManager {
                         throw std::runtime_error("failed to begin recording command buffer!");
                     }
                 }
-                Builder& BeginRenderPassCmd(){
-                    
-                }
+                Builder& BeginRenderPassCmd();
                 Builder& BindGraphicsPipelineCmd();
                 Builder& BindViewportCmd();
                 Builder& BindScissorCmd();

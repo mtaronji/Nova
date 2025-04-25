@@ -13,74 +13,80 @@
 #include "FramebufferGenerator.hpp"
 #include "Shader.hpp"
 #include "SyncManager.hpp"
+#include "RenderpassLoader.hpp"
+#include "GraphicsPipelineLoader.hpp"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
-class Nova : IRenderLoopClient{
+class Nova : public IRenderLoopClient{
     public:
     Nova() = delete;
     Nova(
-        VulkanEngine &engine, 
-        Shell& shell, 
-        GPU& gpu, 
-        FramebufferGenerator& framebuffersContainer, 
-        SyncManager& syncManager,
-        SwapchainManager& swapchainManager,
-        PipelineLibrary& pipelineLibrary,
-        RenderPassManager& renderpassManager,
-        CommandManager& commandManager,
+        std::shared_ptr<VulkanEngine> engine,
+        std::shared_ptr<Shell> shell,
+        std::shared_ptr<GPU> gpu,
+        std::shared_ptr<FramebufferGenerator> framebuffersContainer,
+        std::shared_ptr<SyncManager> syncManager,
+        std::shared_ptr<SwapchainManager>swapchainManager,
+        std::shared_ptr<PipelineLibrary>pipelineLibrary,
+        std::shared_ptr<RenderPassManager> renderpassManager,
+        std::shared_ptr<CommandManager> commandManager,
         std::unordered_map<std::string, Shader>& shaders);
         
-        void Start();
+        void Start() override;
         
         void Init() override;
         void Load() override;
-        void Update(float deltaTime = 0.0f) override;
+        void Update(float deltaTime) override;
         void Render() override;
         void Shutdown() override;
 
         class Builder{
             public:
                 Builder();
-                Builder& CreateShell();
-                Builder& CreateEngine();
-                Builder& CreateGPU();
-                Builder& CreateSwapchainManager();
-                Builder& CreateRenderPassManager();
-                Builder& CreateShaders();
-                Builder& CreateFrameBuffers();
-                Builder& CreateSyncManagers();
-                Builder& CreatePipelineManagers();
-                Nova Build();
+                std::unique_ptr<IRenderLoopClient> Build();
+                
             protected:
-                VulkanEngine* engine;
-                Shell* shell;
-                GPU* gpu;
-                FramebufferGenerator* framebuffersContainer;
-                SyncManager* syncManager;
-                SwapchainManager* swapchainManager;
-                PipelineLibrary* pipelineLibrary;
-                RenderPassManager* renderpassManager;
-                CommandManager* commandManager;
+                std::shared_ptr<Shell> shell = std::make_shared<Shell>();
+                std::shared_ptr<VulkanEngine> engine = std::make_shared<VulkanEngine>(shell->GetWindow());
+                std::shared_ptr<GPU> gpu = std::make_shared<GPU>(engine);
+
+                std::shared_ptr<SwapchainManager>swapchainManager = SwapchainManager::Builder()
+                                                                    .WithGPU(gpu)
+                                                                    .WithEngine(engine)
+                                                                    .WithShell(shell)
+                                                                    .Build();
+
+                std::shared_ptr<RenderPassManager> renderpassManager = RenderPassManager::Builder().WithGPU(gpu).Build();
+                std::shared_ptr<FramebufferGenerator> framebuffersContainer = std::make_shared<FramebufferGenerator>(
+                                                                                gpu->GetVkDevice(), 
+                                                                                renderpassManager->GetRenderPass(),
+                                                                                swapchainManager);
+                
+                std::shared_ptr<SyncManager> syncManager = std::make_shared<SyncManager>(gpu->GetVkDevice());
+                std::shared_ptr<PipelineLibrary>pipelineLibrary;
+
+                std::shared_ptr<CommandManager> commandManager;
                 std::vector<AttachmentInfo> attachmentInfos;
                 std::unordered_map<std::string, Shader> shaders;
             private:
                 void InitAttachments(std::vector<AttachmentInfo>& attachmentInfos);
-                PipelineConfig ConfigPipeline();
+                
 
         };
     
     protected:
-        VulkanEngine& engine;
-        Shell& shell;
-        GPU& gpu;
-        FramebufferGenerator& framebuffersContainer;
-        SyncManager& syncManager;
-        SwapchainManager& swapchainManager;
-        PipelineLibrary& pipelineLibrary;
-        RenderPassManager& renderpassManager;
-        CommandManager& commandManager;
+        std::shared_ptr<VulkanEngine> engine;
+        std::shared_ptr<Shell> shell;
+        std::shared_ptr<GPU> gpu;
+        std::shared_ptr<FramebufferGenerator> framebuffersContainer;
+        std::shared_ptr<SyncManager> syncManager;
+        std::shared_ptr<SwapchainManager>swapchainManager;
+        std::shared_ptr<PipelineLibrary>pipelineLibrary;
+        std::shared_ptr<RenderPassManager> renderpassManager;
+        std::shared_ptr<CommandManager> commandManager;
         std::unordered_map<std::string, Shader> shaders;
         bool initialized = false;
 

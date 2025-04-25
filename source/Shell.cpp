@@ -4,11 +4,7 @@
 
 Shell::Shell(){
     InitWindow();
-    previousTime = Clock::now();
-}
-
-GLFWwindow * Shell::GetWindow(){
-    return this->window;
+ 
 }
 
 void Shell::InitWindow() {
@@ -24,6 +20,7 @@ void Shell::InitWindow() {
 }
 
 void Shell::MainLoop(IRenderLoopClient* app) {
+    previousTime = Clock::now();
     while (!glfwWindowShouldClose(this->window)) {
         glfwPollEvents();
         TimePoint currentFrameTime = Clock::now();

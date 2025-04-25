@@ -17,9 +17,6 @@ class VulkanEngine{
         #else
         const bool EnableValidationLayers = true;
         #endif
-        VkInstance instance;
-        VkDebugUtilsMessengerEXT debugMessenger;
-        VkSurfaceKHR surface;
 
         //the way memory is allocated in vulkan is that you first:
         //create a vulkan buffer
@@ -27,8 +24,8 @@ class VulkanEngine{
         //bind the buffer
         //VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT mean you can use the buffer as a src of a transfer or the destination of one respectfully
         
-        VulkanEngine();
         VulkanEngine(GLFWwindow* window);
+   
 
         VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) ;
 
@@ -38,11 +35,11 @@ class VulkanEngine{
     
         void SetupDebugMessenger();
     
-        void CreateSurface();
+        void CreateSurface(GLFWwindow* window);
         std::vector<const char*> GetValidationLayers() const {return validationLayers;}
         std::vector<const char*> GetDeviceExtensions() const {return deviceExtensions;}
 
-        GLFWwindow * GetWindow();
+
         VkSurfaceKHR GetSurface() const {return surface;}
         VkInstance GetInstance() const {return instance;}
 

@@ -1,0 +1,39 @@
+{
+    "$schema": "./renderpass.schema.json",
+    "attachments": [
+      {
+        "attachmentType": "color",
+        "id": "color0",
+        "name": "MainColorAttachment",
+        "format": "VK_FORMAT_B8G8R8A8_UNORM",
+        "samples": 1,
+        "loadOp": "clear",
+        "storeOp": "store",
+        "initialLayout": "VK_IMAGE_LAYOUT_UNDEFINED",
+        "finalLayout": "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR"
+        
+      }
+    ],
+    "subpasses": [
+      {
+        "pipelineBindPoint": "graphics",
+        "colorAttachments": [
+          {
+            "attachment": 0,
+            "layout": "color-attachment-optimal"
+          }
+        ]
+      }
+    ],
+    "dependencies": [
+      {
+        "srcSubpass": "VK_SUBPASS_EXTERNAL",
+        "dstSubpass": "0",
+        "srcStageMask": [],
+        "dstStageMask": ["VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT"],
+        "srcAccessMask": [],
+        "dstAccessMask": ["VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT"],
+        "dependencyFlags": []
+      }
+    ]
+}
