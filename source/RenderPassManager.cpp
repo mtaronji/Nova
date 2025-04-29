@@ -1,13 +1,4 @@
 #include "RenderPassManager.hpp"
-#include "GPU.hpp"
-#include <cassert>
-
-RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu, const VkSubpassDescription& subpassDescription, const std::vector<VkAttachmentDescription>& attachmentDescriptions)
-        : gpu(gpu), subpassDescription(subpassDescription),attachmentDescriptions(attachmentDescriptions){
-    
-
-    CreateRenderPass();
-}
 
 RenderPassManager::~RenderPassManager() {
     vkDestroyRenderPass(gpu->GetVkDevice(), renderPass, nullptr);
@@ -17,117 +8,89 @@ void RenderPassManager:: NotifyRenderPassOutOfDate(){
 
 }
 
-
-RenderPassManager::Builder& RenderPassManager::Builder::WithAttachments(const std::vector<AttachmentInfo>& attachmentInfos, std::vector<uint32_t>& preserveAttachments){
-    
-    this->attachmentrefs = std::vector<VkAttachmentReference>();
-    this->colorAttachments = std::vector<VkAttachmentReference>();
-    this->preserveAttachments = preserveAttachments;
-
-    uint32_t index = 0;
-    for(const auto& description : attachmentInfos){
-
-        //The description I load in the index of the scription vector must also be specified for it's corresponding reference (so vulkan can find it)
-        attachmentDescriptions.push_back(description.description);
-
-        switch (description.type){
-            case AttachmentInfo::Type::Color:{
-                VkAttachmentReference colorAttachmentRef = {};
-                colorAttachmentRef.attachment = index; 
-                colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                attachmentrefs.push_back(colorAttachmentRef);
-                colorAttachments.push_back(colorAttachmentRef);
-                index++;
-              
-                break;
-            }
-            case AttachmentInfo::Type::Depth:{
-                VkAttachmentReference depthStencilAttachmentRef = {};
-                depthStencilAttachmentRef.attachment = index; 
-                depthStencilAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-                attachmentrefs.push_back(depthStencilAttachmentRef);   
-                depthStencilAttachment = depthStencilAttachmentRef;               
-                index++;
-
-                break;
-            }
-            case AttachmentInfo::Type::Input:{
-                VkAttachmentReference inputAttachmentRef = {};
-                inputAttachmentRef.attachment = index; 
-                inputAttachmentRef.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                attachmentrefs.push_back(inputAttachmentRef);
-                inputAttachments.push_back(inputAttachmentRef);
-                index++;
-
-                break;
-            }
-            case AttachmentInfo::Type::Resolve:{
-                VkAttachmentReference resolveAttachmentRef = {};
-                resolveAttachmentRef.attachment = index; 
-                resolveAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                attachmentrefs.push_back(resolveAttachmentRef);
-                index++;
-
-                break;
-            }
-        }
-    }
-    return *this;
+RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu){
+    this->gpu = gpu;
+    this->info = RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig.json",attachmentDescriptions,subpassDescriptions, subpassdependencies,colorAtachmentRefs,depthAtachmentRefs);
+    RenderPassManager::CreateRenderPass();
 }
 
-std::shared_ptr<RenderPassManager> RenderPassManager::Builder::Build(){
-    VkSubpassDescription subpassDescription{};
-    subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    
+VkRenderPassCreateInfo RenderPassManager::LoadRenderpassConfig(const std::string path){
+    return RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig.json",attachmentDescriptions,subpassDescriptions, subpassdependencies,colorAtachmentRefs, depthAtachmentRefs);
+}
 
-    if (!colorAttachments.empty()) {
-        subpassDescription.colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size());
-        subpassDescription.pColorAttachments = colorAttachments.data();
-    }
-
-    if (!inputAttachments.empty()) {
-        subpassDescription.inputAttachmentCount = static_cast<uint32_t>(inputAttachments.size());
-        subpassDescription.pInputAttachments = inputAttachments.data();
-    }
-
-    if (!resolveAttachments.empty()) {
-        subpassDescription.pResolveAttachments = resolveAttachments.data();
-    }
-
-    if (depthStencilAttachment.has_value()) {
-        subpassDescription.pDepthStencilAttachment = &depthStencilAttachment.value();
-    }
-
-    if (!preserveAttachments.empty()) {
-        subpassDescription.preserveAttachmentCount = static_cast<uint32_t>(preserveAttachments.size());
-        subpassDescription.pPreserveAttachments = preserveAttachments.data();
-    }
-
-    return std::make_shared<RenderPassManager>(gpu, subpassDescription,attachmentDescriptions);
+void RenderPassManager::SetPresentColorAttachmentFormat(){
+   
 }
 void RenderPassManager::CreateRenderPass() {
 
-
-    VkSubpassDependency dependency{};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-    VkRenderPassCreateInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = attachmentDescriptions.size();
-    renderPassInfo.pAttachments = attachmentDescriptions.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpassDescription;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-    
-
-    if (vkCreateRenderPass(gpu->GetVkDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+    if (vkCreateRenderPass(gpu->GetVkDevice(), &info, nullptr, &renderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }
+}
 
+void RenderPassManager::UpdateColorAttachmentFormats(
+    VkFormat oldColorFormat,
+    VkFormat newColorFormat
+){
+
+    VkRenderPassCreateInfo newinfo;
+    newinfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    newinfo.attachmentCount = info.attachmentCount;
+    newinfo.dependencyCount = info.dependencyCount;
+    newinfo.pDependencies = info.pDependencies;
+    newinfo.flags = info.flags;
+    newinfo.subpassCount = info.subpassCount;
+    newinfo.pSubpasses = info.pSubpasses;
+    std::vector<VkAttachmentDescription> newAttachments;
+    for (uint32_t i = 0; i < info.attachmentCount; ++i) {
+        VkAttachmentDescription attachment = info.pAttachments[i];
+
+        // Check if this attachment is likely part of the swapchain
+        bool usesOldFormat = (attachment.format == oldColorFormat);
+        bool endsInPresent = (attachment.finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+        if (usesOldFormat && endsInPresent) {
+            attachment.format = newColorFormat;         
+        }
+        newAttachments.push_back(attachment);
+    }
+    newinfo.pAttachments = newAttachments.data();
+    info = newinfo;
+}
+
+void  RenderPassManager::UpdateDepthAttachmentFormats(
+    VkFormat oldDepthFormat,
+    VkFormat newDepthFormat
+){
+    VkRenderPassCreateInfo newinfo;
+    newinfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    newinfo.attachmentCount = info.attachmentCount;
+    newinfo.dependencyCount = info.dependencyCount;
+    newinfo.pDependencies = info.pDependencies;
+    newinfo.flags = info.flags;
+    newinfo.subpassCount = info.subpassCount;
+    newinfo.pSubpasses = info.pSubpasses;
+    std::vector<VkAttachmentDescription> newAttachments;
+    for (uint32_t i = 0; i < info.attachmentCount; ++i) {
+        VkAttachmentDescription attachment = info.pAttachments[i];
+    
+        bool isDepthFormat = (
+            attachment.format == VK_FORMAT_D32_SFLOAT ||
+            attachment.format == VK_FORMAT_D32_SFLOAT_S8_UINT ||
+            attachment.format == VK_FORMAT_D24_UNORM_S8_UINT
+        );
+    
+        bool usesOldDepthFormat = (attachment.format == oldDepthFormat);
+        bool endsInDepthLayout = (
+            attachment.finalLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
+            attachment.finalLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL
+        );
+    
+        if (usesOldDepthFormat && isDepthFormat && endsInDepthLayout) {
+            attachment.format = newDepthFormat;
+        }
+        newAttachments.push_back(attachment);
+    }
+    newinfo.pAttachments = newAttachments.data();
+    info = newinfo;
 }

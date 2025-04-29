@@ -5,7 +5,7 @@
         "attachmentType": "color",
         "id": "color0",
         "name": "MainColorAttachment",
-        "format": "VK_FORMAT_B8G8R8A8_UNORM",
+        "format": "VK_FORMAT_B8G8R8A8_SRGB",
         "samples": 1,
         "loadOp": "clear",
         "storeOp": "store",
@@ -20,7 +20,7 @@
         "colorAttachments": [
           {
             "attachment": 0,
-            "layout": "color-attachment-optimal"
+            "layout": "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL"
           }
         ]
       }
@@ -29,9 +29,9 @@
       {
         "srcSubpass": "VK_SUBPASS_EXTERNAL",
         "dstSubpass": "0",
-        "srcStageMask": [],
-        "dstStageMask": ["VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT"],
-        "srcAccessMask": [],
+        "srcStageMask": ["VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT","VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT"],
+        "srcAccessMask": ["0"],
+        "dstStageMask": ["VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT","VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT"],
         "dstAccessMask": ["VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT"],
         "dependencyFlags": []
       }

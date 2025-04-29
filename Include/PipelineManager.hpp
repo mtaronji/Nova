@@ -3,40 +3,55 @@
 #include <vulkan/vulkan.h>
 #include <string>
 #include <vector>
-#include <unordered_map>
+#include <memory>
 #include "GPU.hpp"
-#include "Shader.hpp"
 #include "RenderPassManager.hpp"
-#include "PipelineConfig.hpp"
+#include "GraphicsPipelineLoader.hpp"
+#include "DescriptorAllocator.hpp"
 
 class PipelineManager {
 
     public:
         PipelineManager();
         PipelineManager(
-            GPU& gpu, 
-            RenderPassManager& renderPassManager, 
-            PipelineConfig& pipelineConfig, 
-            std::unordered_map<std::string,Shader> shaders
+            std::shared_ptr<GPU> gpu, 
+            std::shared_ptr<RenderPassManager> renderpassManager,
+            std::shared_ptr<DescriptorAllocator> descriptorAllocator
         );
         
         ~PipelineManager();
         VkPipeline GetPipeline() const { return pipeline; }
         VkPipelineLayout GetPipelineLayout()const {return pipelineLayout;}
-        PipelineConfig GetPipelineInfo() const { return pipelineConfig; }
-        Shader GetShader(std::string shaderName) const {return shaders.at(shaderName);}
+        void LoadConfig(const std::string configFile);
 
 
     protected:
-        GPU& gpu;
+        std::shared_ptr<RenderPassManager> renderpassManager;
+        std::shared_ptr<DescriptorAllocator> descriptorAllocator;
+        std::shared_ptr<GPU> gpu;
+
         VkPipeline pipeline;
-        PipelineConfig pipelineConfig;
         VkPipelineLayout pipelineLayout;
-        std::vector<char> ReadShaderFile(const std::string &location);
-        RenderPassManager& renderPassManager;
-        std::unordered_map<std::string,Shader> shaders;
+        
+        std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
+        std::vector<char> vertexShaderCode;
+        std::vector<char> fragmentShaderCode;
+        std::vector<char> computeShaderCode;
+        std::vector<char> geometryShaderCode;
+        std::vector<VkVertexInputBindingDescription> bdescriptions;
+        std::vector<VkVertexInputAttributeDescription> adescriptions;
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly;
+        VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo;
+        VkPipelineMultisampleStateCreateInfo multisampling;
+        VkPipelineColorBlendStateCreateInfo colorBlending;
+        std::vector<VkPipelineColorBlendAttachmentState> colorblendAttachments;
+        std::vector<VkDynamicState> dynamicStates;
+        std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorSets;
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
 
+        
         void CreateGraphicsPipeline();
+        void CreateDescriptorSetLayout();
+        VkShaderModule CreateShaderModule(const std::vector<char>& code);
 };
-

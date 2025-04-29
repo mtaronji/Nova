@@ -1604,7 +1604,7 @@
 // };
 
 int main() {
-    //MUST delete
+    
     int i = 0;
     int x = i * 3;
     std::unique_ptr<IRenderLoopClient> app = Nova::Builder().Build();

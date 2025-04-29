@@ -1,11 +1,36 @@
 {
     "$schema": "./pipeline.schema.json",
     "shaderStages": [
-        {"stage": "vertex","path": "shaders/identityV.spv"},
-        {"stage": "fragment","path": "shaders/identityF.spv"}
+        {"stage": "vertex","path": "shaders/identity.vert.spv"},
+        {"stage": "fragment","path": "shaders/identity.frag.spv"}
     ],
+    "vertexInput": {
+        "bindings": [
+            {
+                "binding": 0,
+                "bindingData": "vertexpc",
+                "inputRate": "vertex"
+            }
+        ],
+        "attributes": [
+            {
+                "attributeFormat": "VK_FORMAT_R32G32B32_SFLOAT",
+                "binding": 0,
+                "bindingData": "vertexpc",
+                "location": 0
+            },
+            {
+                "attributeFormat": "VK_FORMAT_R32G32B32A32_SFLOAT",
+                "binding": 0,
+                "bindingData": "vertexpc",
+                "location": 1
+            }
+
+        ]
+    },
     "inputAssembly": {
-        "topology": "triangle_list"
+        "topology": "triangle_list",
+        "primitiveRestartEnable": false
     },
     "rasterizer": {
         "depthClampEnable": false,
@@ -13,21 +38,39 @@
         "polygonMode": "fill",
         "cullMode": "back",
         "depthBiasEnable": false,
-        "frontFace": "counter_clockwise"
-
+        "frontFace": "counter_clockwise",
+        "lineWidth": 1.0
     },
     "multisampling": {
         "sampleShadingEnable": false,
         "rasterizationSamples":1
     },
     "colorBlend": {
+        "logicOp": "VK_LOGIC_OP_COPY",
         "logicOpEnable": false,
+        "blendConstants": [0.0, 0.0, 0.0, 0.0],
+        
         "attachments": [
-            
+            {
+                "blendEnable": false,
+                "colorWriteMask": ["r","g","b","a"]
+                
+            }
         ]
     },
     "dynamicStates": [
         "viewport","scissor"
+    ],
+    "descriptorSets": [
+        {
+            "descriptorSetLayout": [
+                {
+                    "descriptorType": "uniformBuffer",
+                    "shaderStage": "vertex",
+                    "descriptorCount": 1
+                }
+            ]
+        }
     ]
         
     

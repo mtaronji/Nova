@@ -11,14 +11,31 @@
 #include "Shader.hpp"
 #include "GPU.hpp"
 #include <memory>
+#include "Data.hpp"
+#include <unordered_set>
 
 class GraphicsPipelineLoader {
     public:
         GraphicsPipelineLoader() = default;
-        static VkGraphicsPipelineCreateInfo LoadFromFile(std::shared_ptr<GPU> gpu, const std::string& filePath);
+        static void LoadFromFile(
+                                const std::string& filePath,
+                                std::vector<char> & vertexShaderCodeOut,
+                                std::vector<char> & fragmentShaderCodeOut,
+                                std::vector<char> & computeShaderCodeOut,
+                                std::vector<char> & geometryShaderCodeOut,
+                                std::vector<VkVertexInputBindingDescription>& bdescriptionsOut,
+                                std::vector<VkVertexInputAttributeDescription>& adescriptionsOut,
+                                VkPipelineInputAssemblyStateCreateInfo& inputAssemblyOut,
+                                VkPipelineRasterizationStateCreateInfo& rasterizerCreateInfoOut,
+                                VkPipelineMultisampleStateCreateInfo& multisamplingOut,
+                                VkPipelineColorBlendStateCreateInfo& colorBlendingOut,
+                                std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,
+                                std::vector<VkDynamicState>& dynamicStatesOut,
+                                std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorSetsOut
+                                );
 
     protected:
-
+                                                        
   
 
 };

@@ -28,10 +28,6 @@ Nova::Nova(
 void Nova::Start(){
     shell->Run(this);
 }
-Nova::Builder::Builder(){
-    //Load our configs
-    RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig.json");
-}
 
 std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
@@ -54,11 +50,4 @@ void Nova::Render() {
 }
 void Nova::Shutdown() {
 
-}
-
-
-void Nova::Builder::InitAttachments(std::vector<AttachmentInfo>& attachmentInfos){
-
-   
-    
 }

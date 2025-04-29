@@ -107,11 +107,11 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
                                 ){
   
     // auto const &renderpass = renderpassmanager->GetRenderPass();
-    auto const &extent = swapchainmanager->GetExtent();
-    // auto const &pipeline = pipelinemanager->GetPipeline();
-    auto const &pipelinelayout = pipelinemanager->GetPipelineLayout();
-    auto const &pipelineinfo = pipelinemanager->GetPipelineInfo();
-    auto const &descriptorSets = pipelineinfo.descriptorSetsPerFrame;
+    // auto const &extent = swapchainmanager->GetExtent();
+    // // auto const &pipeline = pipelinemanager->GetPipeline();
+    // auto const &pipelinelayout = pipelinemanager->GetPipelineLayout();
+    // auto const &pipelineinfo = pipelinemanager->GetPipelineInfo();
+    // auto const &descriptorSets = pipelineinfo.descriptorSetsPerFrame;
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -138,19 +138,19 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinemanager->GetPipeline());
 
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = (float) extent.width;
-        viewport.height = (float) extent.height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        // VkViewport viewport{};
+        // viewport.x = 0.0f;
+        // viewport.y = 0.0f;
+        // viewport.width = (float) extent.width;
+        // viewport.height = (float) extent.height;
+        // viewport.minDepth = 0.0f;
+        // viewport.maxDepth = 1.0f;
+        // vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-        VkRect2D scissor{};
-        scissor.offset = {0, 0};
-        scissor.extent = extent;
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+        // VkRect2D scissor{};
+        // scissor.offset = {0, 0};
+        // scissor.extent = extent;
+        // vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         if (vbuffers != VK_NULL_HANDLE) {
            
@@ -163,7 +163,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
         
 
         
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, descriptorSets[currentFrame].data(), 0, nullptr);
+        // vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, descriptorSets[currentFrame].data(), 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 

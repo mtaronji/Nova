@@ -7,10 +7,8 @@ using json = nlohmann::json;
 static VkFormat ParseFormat(const std::string& str) {
     // Add more as needed
     //COLOR
-    if (str == "VK_FORMAT_B8G8R8A8_UNORM") return VK_FORMAT_B8G8R8A8_UNORM;
-    if (str == "VK_FORMAT_D32_SFLOAT") return VK_FORMAT_D32_SFLOAT;
     if (str =="VK_FORMAT_R8G8B8A8_UNORM") return VK_FORMAT_R8G8B8A8_UNORM;
-    if (str =="VK_FORMAT_B8G8R8A8_UNORM") VK_FORMAT_B8G8R8A8_UNORM;
+    if (str =="VK_FORMAT_B8G8R8A8_UNORM") return VK_FORMAT_B8G8R8A8_UNORM;
     if (str =="VK_FORMAT_R8G8B8A8_SRGB") return VK_FORMAT_R8G8B8A8_SRGB;
     if (str =="VK_FORMAT_B8G8R8A8_SRGB") return VK_FORMAT_B8G8R8A8_SRGB;
     if (str =="VK_FORMAT_R8_UNORM") return VK_FORMAT_R8_UNORM;
@@ -36,19 +34,35 @@ static VkFormat ParseFormat(const std::string& str) {
     if (str =="VK_FORMAT_D32_SFLOAT_S8_UINT") return VK_FORMAT_D32_SFLOAT_S8_UINT;
 
     //DEPTH
-    if("VK_FORMAT_D16_UNORM") return VK_FORMAT_D16_UNORM;
-    if("VK_FORMAT_D24_UNORM_S8_UINT") return VK_FORMAT_D24_UNORM_S8_UINT;
-    if("VK_FORMAT_D32_SFLOAT") return VK_FORMAT_D32_SFLOAT;
-    if("VK_FORMAT_D32_SFLOAT_S8_UINT") return VK_FORMAT_D32_SFLOAT_S8_UINT;
+    if(str =="VK_FORMAT_D16_UNORM") return VK_FORMAT_D16_UNORM;
+    if(str =="VK_FORMAT_D24_UNORM_S8_UINT") return VK_FORMAT_D24_UNORM_S8_UINT;
+    if(str =="VK_FORMAT_D32_SFLOAT") return VK_FORMAT_D32_SFLOAT;
+    if(str =="VK_FORMAT_D32_SFLOAT_S8_UINT") return VK_FORMAT_D32_SFLOAT_S8_UINT;
     throw std::runtime_error("Unsupported format: " + str);
 }
 
-static VkImageLayout ParseLayout(const std::string& str) {
-    if (str == "VK_IMAGE_LAYOUT_UNDEFINED") return VK_IMAGE_LAYOUT_UNDEFINED;
-    if (str == "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR") return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+static VkImageLayout ParseLayoutForAttachmentDescription(const std::string& str) {
     if (str == "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL") return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_GENERAL") return VK_IMAGE_LAYOUT_GENERAL;
+    if (str == "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL") return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL") return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL") return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     if (str == "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL") return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    throw std::runtime_error("Unsupported layout: " + str);
+    if (str == "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL") return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_UNDEFINED") return VK_IMAGE_LAYOUT_UNDEFINED;
+    if (str == "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR") return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ;
+    throw std::runtime_error("Unsupported format: " + str);
+}
+static VkImageLayout ParseLayoutForAttachmentReference(const std::string& str) {
+    if (str == "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL") return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_GENERAL") return VK_IMAGE_LAYOUT_GENERAL;
+    if (str == "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL") return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL") return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL") return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL") return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL") return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_UNDEFINED") return VK_IMAGE_LAYOUT_UNDEFINED;
+    throw std::runtime_error("Unsupported format: " + str);
 }
 
 static VkAttachmentLoadOp ParseLoadOp(const std::string& op) {
@@ -62,59 +76,59 @@ static VkAttachmentStoreOp ParseStoreOp(const std::string& op) {
     return VK_ATTACHMENT_STORE_OP_DONT_CARE;
 }
 VkPipelineStageFlags ParseStageMask(const std::string op){
-    VkPipelineStageFlags out = 0;
-    if("VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT") out |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-    if("VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT") out |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-    if("VK_PIPELINE_STAGE_VERTEX_INPUT_BIT") out |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-    if("VK_PIPELINE_STAGE_VERTEX_SHADER_BIT") out |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-    if("VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT") out |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
-    if("VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT") out |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-    if("VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT") out |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-    if("VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT") out |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    if("VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT") out |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    if("VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT") out |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-    if("VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT") out |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    if("VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT") out |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-    if("VK_PIPELINE_STAGE_TRANSFER_BIT") out |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-    if("VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT") out |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    if("VK_PIPELINE_STAGE_HOST_BIT") out |= VK_PIPELINE_STAGE_HOST_BIT;
-    if("VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT") out |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-    if("VK_PIPELINE_STAGE_ALL_COMMANDS_BIT") out |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    return out;
+
+    if(op == "VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT") return VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    if(op == "VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT") return VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+    if(op == "VK_PIPELINE_STAGE_VERTEX_INPUT_BIT") return VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+    if(op == "VK_PIPELINE_STAGE_VERTEX_SHADER_BIT") return VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    if(op == "VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT") return VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+    if(op == "VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT") return VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+    if(op == "VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT") return VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+    if(op == "VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT") return VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    if(op == "VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT") return VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    if(op == "VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT") return VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    if(op == "VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT") return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    if(op == "VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT") return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    if(op == "VK_PIPELINE_STAGE_TRANSFER_BIT") return VK_PIPELINE_STAGE_TRANSFER_BIT;
+    if(op == "VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT") return VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    if(op == "VK_PIPELINE_STAGE_HOST_BIT") return VK_PIPELINE_STAGE_HOST_BIT;
+    if(op == "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT") return VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+    if(op == "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT") return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    throw std::runtime_error("Unsupported format: " + op);
 }
 
 VkAccessFlags ParseAcessMask(const std::string op){
-    VkAccessFlags out = 0;
-    if("VK_ACCESS_INDIRECT_COMMAND_READ_BIT") out |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-    if("VK_ACCESS_INDEX_READ_BIT") out |= VK_ACCESS_INDEX_READ_BIT;
-    if("VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT") out |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-    if("VK_ACCESS_UNIFORM_READ_BIT") out |= VK_ACCESS_UNIFORM_READ_BIT;
-    if("VK_ACCESS_INPUT_ATTACHMENT_READ_BIT") out |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-    if("VK_ACCESS_SHADER_READ_BIT") out |= VK_ACCESS_SHADER_READ_BIT;
-    if("VK_ACCESS_SHADER_WRITE_BIT") out |= VK_ACCESS_SHADER_WRITE_BIT;
-    if("VK_ACCESS_COLOR_ATTACHMENT_READ_BIT") out |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-    if("VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT") out |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    if("VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT") out |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-    if("VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT") out |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    if("VK_ACCESS_TRANSFER_READ_BIT") out |= VK_ACCESS_TRANSFER_READ_BIT;
-    if("VK_ACCESS_TRANSFER_WRITE_BIT") out |= VK_ACCESS_TRANSFER_WRITE_BIT;
-    if("VK_ACCESS_HOST_READ_BIT") out |= VK_ACCESS_HOST_READ_BIT;
-    if("VK_ACCESS_HOST_WRITE_BIT") out |= VK_ACCESS_HOST_WRITE_BIT;
-    if("VK_ACCESS_MEMORY_READ_BIT") out |= VK_ACCESS_MEMORY_READ_BIT;
-    if("VK_ACCESS_MEMORY_WRITE_BIT") out |= VK_ACCESS_MEMORY_WRITE_BIT;
+    if(op == "0") return 0;
+    if(op == "VK_ACCESS_INDIRECT_COMMAND_READ_BIT") return VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+    if(op == "VK_ACCESS_INDEX_READ_BIT") return VK_ACCESS_INDEX_READ_BIT;
+    if(op == "VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT") return VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+    if(op == "VK_ACCESS_UNIFORM_READ_BIT") return VK_ACCESS_UNIFORM_READ_BIT;
+    if(op == "VK_ACCESS_INPUT_ATTACHMENT_READ_BIT") return VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+    if(op == "VK_ACCESS_SHADER_READ_BIT") return VK_ACCESS_SHADER_READ_BIT;
+    if(op == "VK_ACCESS_SHADER_WRITE_BIT") return VK_ACCESS_SHADER_WRITE_BIT;
+    if(op == "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT") return VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+    if(op == "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT") return VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    if(op == "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT") return VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+    if(op == "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT") return VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    if(op == "VK_ACCESS_TRANSFER_READ_BIT") return VK_ACCESS_TRANSFER_READ_BIT;
+    if(op == "VK_ACCESS_TRANSFER_WRITE_BIT") return VK_ACCESS_TRANSFER_WRITE_BIT;
+    if(op == "VK_ACCESS_HOST_READ_BIT") return VK_ACCESS_HOST_READ_BIT;
+    if(op == "VK_ACCESS_HOST_WRITE_BIT") return VK_ACCESS_HOST_WRITE_BIT;
+    if(op == "VK_ACCESS_MEMORY_READ_BIT") return VK_ACCESS_MEMORY_READ_BIT;
+    if(op == "VK_ACCESS_MEMORY_WRITE_BIT") return VK_ACCESS_MEMORY_WRITE_BIT;
+   
 
-    return out;
+    throw std::runtime_error("Unsupported format: " + op);
 }
 
 VkDependencyFlags ParseDepFlags(const std::string op){
-    VkDependencyFlags out = 0;
+ 
+    if(op == "VK_DEPENDENCY_BY_REGION_BIT") return VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+    if(op == "VK_DEPENDENCY_VIEW_LOCAL_BIT") return VK_ACCESS_INDEX_READ_BIT;
+    if(op == "VK_DEPENDENCY_DEVICE_GROUP_BIT") return VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 
-    if("VK_DEPENDENCY_BY_REGION_BIT") out |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-    if("VK_DEPENDENCY_VIEW_LOCAL_BIT") out |= VK_ACCESS_INDEX_READ_BIT;
-    if("VK_DEPENDENCY_DEVICE_GROUP_BIT") out |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 
-
-    return out;
+    throw std::runtime_error("Unsupported format: " + op);
 }
 
 VkSampleCountFlagBits ParseSamples(const int sampleCountStr) {
@@ -132,7 +146,37 @@ VkSampleCountFlagBits ParseSamples(const int sampleCountStr) {
 
 }
 
-VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePath) {
+uint32_t ParseSubpassIndexStr(const std::string index) {
+    
+    if (index == "VK_SUBPASS_EXTERNAL") {
+        return VK_SUBPASS_EXTERNAL;
+    }
+
+    // fallback: treat string as a number
+    try {
+        return static_cast<uint32_t>(std::stoi(index));
+    } catch (const std::exception& e) {
+        throw std::runtime_error("Invalid subpass index string: " + index);
+    }
+
+}
+
+VkAttachmentDescriptionFlags ParseFlags(const std::string flag) {
+    VkAttachmentDescriptionFlags flags = 0;
+    
+    if (flag == "MAY_ALIAS") {
+        flags |= VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
+    }
+    
+    return flags;
+}
+
+VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePath, 
+                                                        std::vector<VkAttachmentDescription>& attachmentDescriptionsOut,
+                                                        std::vector<VkSubpassDescription>& subpassDescriptionsOut,
+                                                        std::vector<VkSubpassDependency>& subpassdependenciesOut,
+                                                        std::vector<VkAttachmentReference>& colorAtachmentRefs,
+                                                        std::vector<VkAttachmentReference>& depthAtachmentRefs) {
     std::ifstream in(filePath);
     if (!in.is_open()) {
         throw std::runtime_error("Failed to open render pass file: " + filePath);
@@ -140,10 +184,9 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
     json j;
     in >> j;
     
-    VkRenderPassCreateInfo out;
+    VkRenderPassCreateInfo out = {};
     out.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
-    std::vector<VkAttachmentDescription> descriptions;
     for (const auto& a : j["attachments"]) {
         VkAttachmentDescription desc{};
         desc.format = ParseFormat(a["format"]);
@@ -152,23 +195,29 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
         desc.storeOp = ParseStoreOp(a["storeOp"]);
         desc.stencilLoadOp = ParseLoadOp(a.value("stencilLoadOp", "dont_care"));
         desc.stencilStoreOp = ParseStoreOp(a.value("stencilStoreOp", "dont_care"));
-        desc.initialLayout = ParseLayout(a["initialLayout"]);
-        desc.finalLayout = ParseLayout(a["finalLayout"]);
-        descriptions.push_back(desc);
+        desc.initialLayout = ParseLayoutForAttachmentDescription(a["initialLayout"]);
+        desc.finalLayout = ParseLayoutForAttachmentDescription(a["finalLayout"]);
+
+        if(a.contains("flags")){
+            desc.flags = ParseFlags(a["flags"]);
+        }
+        else{
+            desc.flags = 0;
+        }
+        attachmentDescriptionsOut.push_back(desc);
     }
 
-    std::vector<VkSubpassDescription> subpasses;
+
     for (const auto& s : j["subpasses"]) {
         VkSubpassDescription sp{};
+       
         sp.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        std::vector<VkAttachmentReference> colorAtachmentRefs;
-        std::vector<VkAttachmentReference> depthAtachmentRefs;
         
         
         for (const auto& c : s["colorAttachments"]) {
            VkAttachmentReference colorAttachmentRef{};
            auto index = static_cast<uint32_t>(c["attachment"]);
-           auto layout = ParseLayout(c["layout"]);
+           auto layout = ParseLayoutForAttachmentReference(c["layout"]);
            colorAttachmentRef.attachment = index;
            colorAttachmentRef.layout = layout;
            colorAtachmentRefs.push_back(colorAttachmentRef);
@@ -179,7 +228,7 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
             for (const auto& c : s["depthStencilAttachment"]) {
                 VkAttachmentReference depthAttachmentRef{};
                 auto index = static_cast<uint32_t>(c["attachment"]);
-                auto layout = ParseLayout(c["layout"]);
+                auto layout = ParseLayoutForAttachmentReference(c["layout"]);
                 depthAttachmentRef.attachment = index;
                 depthAttachmentRef.layout = layout;
                 depthAtachmentRefs.push_back(depthAttachmentRef);
@@ -192,29 +241,45 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
         if(depthAtachmentRefs.size() > 0){
             sp.pDepthStencilAttachment = &depthAtachmentRefs[0];
         }
-        subpasses.push_back(sp);
+        subpassDescriptionsOut.push_back(sp);
         
     }
-    std::vector<VkSubpassDependency> subpassDependencies;
+ 
     if (j.contains("dependencies")) {
         for (const auto& d : j["dependencies"]) {
             VkSubpassDependency dep{};
-            dep.srcSubpass = d["srcSubpass"];
-            dep.dstSubpass = d["dstSubpass"];
-            dep.srcStageMask = ParseStageMask(d["srcStageMask"]);
-            dep.dstStageMask = ParseStageMask(d["dstStageMask"]);
-            dep.srcAccessMask = ParseAcessMask(d["srcAccessMask"]);
-            dep.dstAccessMask = ParseAcessMask(d["dstAccessMask"]);
-            dep.dependencyFlags = ParseDepFlags( d["dependencyFlags"]);
-            subpassDependencies.push_back(dep);
+            dep.srcSubpass = ParseSubpassIndexStr(d["srcSubpass"]);       
+            dep.dstSubpass = ParseSubpassIndexStr(d["dstSubpass"]);     
+            
+           
+            for (const auto& m : d["srcStageMask"]) {
+                dep.srcStageMask |= ParseStageMask(m);
+            }
+            for (const auto& m : d["srcAccessMask"]) {
+                dep.srcAccessMask |= ParseAcessMask(m);
+            }
+            for (const auto& m : d["dstStageMask"]) {
+                dep.dstStageMask |= ParseStageMask(m);
+            }
+         
+            for (const auto& m : d["dstAccessMask"]) {
+                dep.dstAccessMask |= ParseAcessMask(m);
+            }
+            
+            for (const auto& m : d["dependencyFlags"]) {
+                dep.dependencyFlags |= ParseDepFlags(m);
+            }
+        
+     
+            subpassdependenciesOut.push_back(dep);
         }
     }
-    out.attachmentCount = descriptions.size();
-    out.pAttachments = descriptions.data();
-    out.subpassCount = subpasses.size();
-    out.pSubpasses = subpasses.data();
-    out.dependencyCount = subpassDependencies.size();
-    out.pDependencies = subpassDependencies.data();
+    out.attachmentCount = attachmentDescriptionsOut.size();
+    out.pAttachments = attachmentDescriptionsOut.data();
+    out.subpassCount = subpassDescriptionsOut.size();
+    out.pSubpasses = subpassDescriptionsOut.data();
+    out.dependencyCount = subpassdependenciesOut.size();
+    out.pDependencies = subpassdependenciesOut.data();
 
     return out;
 }

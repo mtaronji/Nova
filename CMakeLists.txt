@@ -14,6 +14,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
+
+
 file(COPY ${CMAKE_SOURCE_DIR}/Pipelines DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_SOURCE_DIR}/RenderPasses DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_BINARY_DIR})
@@ -32,7 +34,7 @@ add_executable(nova
     source/SwapchainManager.cpp 
     source/SyncManager.cpp
     source/Renderer.cpp 
-    
+    source/DescriptorAllocator.cpp
     source/GraphicsPipelineLoader.cpp 
     source/RenderpassLoader.cpp
 )

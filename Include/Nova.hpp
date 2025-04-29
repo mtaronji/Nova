@@ -4,7 +4,6 @@
 #include "Renderer.hpp"
 #include "VulkanEngine.hpp"
 #include "GPU.hpp"
-#include "PipelineConfig.hpp"
 #include "PipelineLibrary.hpp"
 #include "RenderPassManager.hpp"
 #include "SwapchainManager.hpp"
@@ -15,6 +14,7 @@
 #include "SyncManager.hpp"
 #include "RenderpassLoader.hpp"
 #include "GraphicsPipelineLoader.hpp"
+#include "DescriptorAllocator.hpp"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
@@ -45,9 +45,9 @@ class Nova : public IRenderLoopClient{
 
         class Builder{
             public:
-                Builder();
+                Builder() = default;
                 std::unique_ptr<IRenderLoopClient> Build();
-                
+
             protected:
                 std::shared_ptr<Shell> shell = std::make_shared<Shell>();
                 std::shared_ptr<VulkanEngine> engine = std::make_shared<VulkanEngine>(shell->GetWindow());
@@ -59,20 +59,23 @@ class Nova : public IRenderLoopClient{
                                                                     .WithShell(shell)
                                                                     .Build();
 
-                std::shared_ptr<RenderPassManager> renderpassManager = RenderPassManager::Builder().WithGPU(gpu).Build();
+                std::shared_ptr<RenderPassManager> renderpassManager = std::make_shared<RenderPassManager>(gpu);
                 std::shared_ptr<FramebufferGenerator> framebuffersContainer = std::make_shared<FramebufferGenerator>(
                                                                                 gpu->GetVkDevice(), 
                                                                                 renderpassManager->GetRenderPass(),
                                                                                 swapchainManager);
+
+                std::shared_ptr<DescriptorAllocator> descriptorAllocator = std::make_shared<DescriptorAllocator>(gpu);                                
+                std::shared_ptr<PipelineManager> pipelineManager = std::make_shared<PipelineManager>(gpu, renderpassManager, descriptorAllocator);
                 
                 std::shared_ptr<SyncManager> syncManager = std::make_shared<SyncManager>(gpu->GetVkDevice());
                 std::shared_ptr<PipelineLibrary>pipelineLibrary;
 
                 std::shared_ptr<CommandManager> commandManager;
-                std::vector<AttachmentInfo> attachmentInfos;
+                
                 std::unordered_map<std::string, Shader> shaders;
             private:
-                void InitAttachments(std::vector<AttachmentInfo>& attachmentInfos);
+                
                 
 
         };

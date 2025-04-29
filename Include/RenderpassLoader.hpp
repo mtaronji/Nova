@@ -10,5 +10,10 @@
 
 class RenderPassLoader {
 public:
-    static  VkRenderPassCreateInfo LoadFromFile(const std::string& filePath);
+    static  VkRenderPassCreateInfo LoadFromFile(const std::string& filePath,
+                                                std::vector<VkAttachmentDescription>& attachmentDescriptionsOut,
+                                                std::vector<VkSubpassDescription>& subpassDescriptionsOut,
+                                                std::vector<VkSubpassDependency>& subpassdependenciesOut,
+                                                std::vector<VkAttachmentReference>& colorAtachmentRefs,
+                                                std::vector<VkAttachmentReference>& depthAtachmentRefs);
 };

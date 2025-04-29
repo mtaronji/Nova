@@ -46,10 +46,32 @@
               "default": "dont_care"
             },
             "initialLayout": {
-              "type": "string"
+              "type": "string",
+              "enum": ["VK_IMAGE_LAYOUT_UNDEFINED",
+                        "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                        "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                        "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                        "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",            
+                        "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",                      
+                        "VK_IMAGE_LAYOUT_GENERAL" ,     
+                        "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL"]
             },
             "finalLayout": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+                "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",            
+                "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",                     
+                "VK_IMAGE_LAYOUT_GENERAL" ,     
+                "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL"]
+            },
+            "flags":{
+              "type":"string",
+              "enum":["VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT"]
+                             
             }
           },
           "allOf": [
@@ -80,6 +102,38 @@
                       "VK_FORMAT_R32G32B32A32_UINT",
                       "VK_FORMAT_BC3_UNORM_BLOCK"
                     ]
+                  },
+                  "initialLayout":{
+                    "type":"string",
+                    "enum":[
+                      "VK_IMAGE_LAYOUT_UNDEFINED",
+                      "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_GENERAL",
+                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+                      "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                    ]     
+                  },
+                  "finallayout":{
+                    "type":"string",
+                    "enum":[
+                      "VK_IMAGE_LAYOUT_UNDEFINED",
+                      "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_GENERAL",
+                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+                      "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                    ]     
                   }
                 }
               }
@@ -93,11 +147,50 @@
               "then": {
                 "properties": {
                   "format": {
+                    "type":"string",
                     "enum": [
                       "VK_FORMAT_D16_UNORM",
                       "VK_FORMAT_D24_UNORM_S8_UINT",
                       "VK_FORMAT_D32_SFLOAT",
                       "VK_FORMAT_D32_SFLOAT_S8_UINT"
+                    ]
+                  },
+                  "initialLayout":{
+                    "type":"string",
+                    "enum": [
+                      "VK_IMAGE_LAYOUT_UNDEFINED",
+                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_GENERAL",
+                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                    ]
+                  },
+                  "finalLayout":{
+                    "type":"string",
+                    "enum": [
+                      "VK_IMAGE_LAYOUT_UNDEFINED",
+                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_GENERAL",
+                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
                     ]
                   }
                 }
@@ -145,13 +238,14 @@
                   "attachment": { "type": "integer" },
                   "layout": {
                     "type": "string",
-                    "enum": [
-                      "undefined",
-                      "general",
-                      "color-attachment-optimal",
-                      "transfer-src-optimal",
-                      "transfer-dst-optimal"
-                    ]
+                    "enum": 
+                      [
+                        "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                        "VK_IMAGE_LAYOUT_GENERAL",
+                        "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                        "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                        "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
+                      ]
                   }
                 }
               }
@@ -164,12 +258,12 @@
                 "layout": {
                   "type": "string",
                   "enum": [
-                    "undefined",
-                    "general",
-                    "depth-stencil-attachment-optimal",
-                    "depth-stencil-read-only-optimal",
-                    "transfer-src-optimal",
-                    "transfer-dst-optimal"
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
                   ]
                 }
               }
@@ -191,6 +285,7 @@
                 "VK_SUBPASS_EXTERNAL", "0", "1", "2", "3", "4", "5", "6", "7",
                 "8", "9", "10", "11", "12", "13", "14", "15"
               ]
+ 
             },
             "dstSubpass": {
               "type": "string",
@@ -198,6 +293,7 @@
                 "VK_SUBPASS_EXTERNAL", "0", "1", "2", "3", "4", "5", "6", "7",
                 "8", "9", "10", "11", "12", "13", "14", "15"
               ]
+           
             },
             "srcStageMask": {
               "type": "array",
@@ -219,7 +315,9 @@
                   "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT",
                   "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT"
                 ]
-              }
+              },
+              "minItems":1,
+              "description": "All the previous stages in srcSubpass that need to finish before we start dstSubpass"
             },
             "dstStageMask": {
               "type": "array",
@@ -240,14 +338,17 @@
                   "VK_PIPELINE_STAGE_HOST_BIT",
                   "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT",
                   "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT"
-                ]
-              }
+                ]         
+              },
+              "minItems":1,
+              "description": "All the dstsubpass stages we can't start until after srcstages in srcsubpass have finished"
             },
             "srcAccessMask": {
               "type": "array",
               "items": {
                 "type": "string",
                 "enum": [
+                  "0",
                   "VK_ACCESS_INDIRECT_COMMAND_READ_BIT",
                   "VK_ACCESS_INDEX_READ_BIT",
                   "VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT",
@@ -266,7 +367,8 @@
                   "VK_ACCESS_MEMORY_READ_BIT",
                   "VK_ACCESS_MEMORY_WRITE_BIT"
                 ]
-              }
+              },
+              "minItems":1
             },
             "dstAccessMask": {
               "type": "array",
@@ -291,7 +393,8 @@
                   "VK_ACCESS_MEMORY_READ_BIT",
                   "VK_ACCESS_MEMORY_WRITE_BIT"
                 ]
-              }
+              },
+              "minItems":1
             },
             "dependencyFlags": {
               "type": "array",
