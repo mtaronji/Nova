@@ -1607,8 +1607,21 @@ int main() {
     
     int i = 0;
     int x = i * 3;
-    std::unique_ptr<IRenderLoopClient> app = Nova::Builder().Build();
-                            
+    std::unique_ptr<IRenderLoopClient> app = Nova::Builder()
+                                            .WithShell()
+                                            .WithEngine()
+                                            .WithGPU()
+                                            .WithSwapchainManager()
+                                            .WithRenderpass()
+                                            .WithFramebufferGenerator()
+                                            .WithPipelineLibrary()
+                                            .WithDescriptorAllocator()
+                                            .WithPipelineManager()
+                                            .WithSyncManager()
+                                            .WithCommandManager()
+                                            .Build();
+
+    app->Init();
                             
     try {
         app->Start();

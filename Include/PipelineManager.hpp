@@ -46,12 +46,12 @@ class PipelineManager {
         VkPipelineColorBlendStateCreateInfo colorBlending;
         std::vector<VkPipelineColorBlendAttachmentState> colorblendAttachments;
         std::vector<VkDynamicState> dynamicStates;
-        std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorSets;
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-
+        std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet;
 
         
         void CreateGraphicsPipeline();
         void CreateDescriptorSetLayout();
+        void AllocateDescriptorSets();
         VkShaderModule CreateShaderModule(const std::vector<char>& code);
+        void CreateDescriptorSetPool();
 };

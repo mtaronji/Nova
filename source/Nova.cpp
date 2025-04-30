@@ -9,8 +9,7 @@ Nova::Nova(
     std::shared_ptr<SwapchainManager>swapchainManager,
     std::shared_ptr<PipelineLibrary>pipelineLibrary,
     std::shared_ptr<RenderPassManager> renderpassManager,
-    std::shared_ptr<CommandManager> commandManager,
-    std::unordered_map<std::string, Shader>& shaders)
+    std::shared_ptr<CommandManager> commandManagers)
     :engine(engine),
     shell(shell),
     gpu(gpu), 
@@ -19,8 +18,7 @@ Nova::Nova(
     swapchainManager(swapchainManager),
     pipelineLibrary(pipelineLibrary),
     renderpassManager(renderpassManager),
-    commandManager(commandManager),
-    shaders(shaders)
+    commandManager(commandManager)
 {
 
 }
@@ -31,12 +29,16 @@ void Nova::Start(){
 
 std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
-    return std::make_unique<Nova>(engine,shell,gpu,framebuffersContainer,syncManager,swapchainManager,pipelineLibrary,renderpassManager,commandManager,shaders);
+    return std::make_unique<Nova>(engine,shell,gpu,framebuffersContainer,syncManager,swapchainManager,pipelineLibrary,renderpassManager,commandManager);
     
 }
 
+void AllocateBuffers(){
+    
+}
 void Nova::Init() {
-
+   
+                    
     
 }
 void Nova::Load() {
@@ -50,4 +52,67 @@ void Nova::Render() {
 }
 void Nova::Shutdown() {
 
+}
+
+Nova::Builder& Nova::Builder::WithShell(){
+    shell = std::make_shared<Shell>();
+    return *this;
+}
+Nova::Builder& Nova::Builder::WithEngine(){
+    engine = std::make_shared<VulkanEngine>(shell->GetWindow());
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithGPU(){
+    gpu = std::make_shared<GPU>(engine);
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithSwapchainManager(){
+    swapchainManager = SwapchainManager::Builder()
+    .WithGPU(gpu)
+    .WithEngine(engine)
+    .WithShell(shell)
+    .Build();
+
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithRenderpass(){
+    renderpassManager = std::make_shared<RenderPassManager>(gpu);
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithFramebufferGenerator(){
+    framebuffersContainer = std::make_shared<FramebufferGenerator>(
+                                                    gpu->GetVkDevice(), 
+                                                    renderpassManager->GetRenderPass(),
+                                                    swapchainManager);
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithDescriptorAllocator(){
+    descriptorAllocator = std::make_shared<DescriptorAllocator>(gpu);   
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithPipelineManager(){
+    pipelineManager = std::make_shared<PipelineManager>(gpu,renderpassManager,descriptorAllocator);
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithSyncManager(){
+    syncManager = std::make_shared<SyncManager>(gpu->GetVkDevice());
+    return *this;
+
+}
+Nova::Builder& Nova::Builder::WithCommandManager(){
+    commandManager = std::make_shared<CommandManager>(gpu);
+    return *this;
+
+}
+
+Nova::Builder& Nova::Builder::WithPipelineLibrary(){
+    pipelineLibrary = std::make_shared<PipelineLibrary>();
+    return *this;
 }

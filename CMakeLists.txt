@@ -37,6 +37,8 @@ add_executable(nova
     source/DescriptorAllocator.cpp
     source/GraphicsPipelineLoader.cpp 
     source/RenderpassLoader.cpp
+    source/DescriptorAllocator.cpp
+    source/Threadpool.cpp
 )
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include)
 

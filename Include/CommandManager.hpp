@@ -5,13 +5,16 @@
 #include "SwapchainManager.hpp"
 #include "PipelineManager.hpp"
 #include <vector>
+#include <memory>
 #include <stdexcept>
 
 class CommandManager {
     public:
         CommandManager();
-        CommandManager(uint32_t framecount);
-        void Init(VkDevice device, uint32_t queueFamilyIndex);
+        CommandManager(std::shared_ptr<GPU> gpu);
+
+        void CreateCommandPool();
+        void Init();
         void Cleanup();
 
         VkCommandPool GetCommandPool() const { return commandPool; }
@@ -47,8 +50,11 @@ class CommandManager {
         };
 
     protected:
-        VkDevice device = VK_NULL_HANDLE;
+        std::shared_ptr<GPU> gpu;
+
         VkCommandPool commandPool = VK_NULL_HANDLE;
         std::vector<VkCommandBuffer> commandBuffers;
-        const uint32_t FRAME_COUNT;
+
+    private:
+        const uint32_t FRAME_COUNT = 3;
 };

@@ -4,22 +4,34 @@
 #include <vector>
 #include <stdexcept>
 #include <memory>
+#include <unordered_map>
 #include "GPU.hpp"
 
 class DescriptorAllocator {
-public:
-    DescriptorAllocator() = delete;
-    DescriptorAllocator(std::shared_ptr<GPU> gpu);
-    ~DescriptorAllocator();
+    public:
+        DescriptorAllocator() = delete;
+        DescriptorAllocator(std::shared_ptr<GPU> gpu);
+        ~DescriptorAllocator();
 
-    void CreatePool(uint32_t maxSets, const std::vector<VkDescriptorPoolSize>& poolSizes);
-    VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout layout);
-    void resetPool();
+        VkDescriptorPool GetPool()const {return descriptorPool;}
+        std::vector<VkDescriptorSetLayout> GetDescriptorSetLayouts () const {return descriptorSetLayouts;}
+        std::vector<VkDescriptorSet> GetDescriptorSets () const {return descriptorSets;}
 
-    void destroy(); // explicit destruction
+        void CreateDescriptorSetPool(uint32_t maxSets, const std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet);
+        void AllocateDescriptorSets();
+        void CreateDescriptorSetLayout(const std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet);
+        void resetPool();
 
-private:
-    std::shared_ptr<GPU> gpu;
-    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-    
+        void destroy(); // explicit destruction
+
+    protected:
+        std::shared_ptr<GPU> gpu;
+        VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+        std::vector<VkDescriptorSet> descriptorSets;
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+
+    private:
+        const uint32_t MAX_FRAMES = 3;
+
+ 
 };

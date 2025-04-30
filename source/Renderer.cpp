@@ -26,6 +26,7 @@ Renderer::Renderer(
 Renderer::~Renderer() {}
 
 void Renderer::DrawFrame() {
+    
     FrameSync& frame = syncmanager->GetFrame(currentFrame);
     auto device = gpu->GetVkDevice();
     auto graphicsQueue = gpu->GetGraphicsQueue();

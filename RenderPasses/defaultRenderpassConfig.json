@@ -10,8 +10,7 @@
         "loadOp": "clear",
         "storeOp": "store",
         "initialLayout": "VK_IMAGE_LAYOUT_UNDEFINED",
-        "finalLayout": "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR"
-        
+        "finalLayout": "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR"  
       }
     ],
     "subpasses": [

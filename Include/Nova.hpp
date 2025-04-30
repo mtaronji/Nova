@@ -32,8 +32,7 @@ class Nova : public IRenderLoopClient{
         std::shared_ptr<SwapchainManager>swapchainManager,
         std::shared_ptr<PipelineLibrary>pipelineLibrary,
         std::shared_ptr<RenderPassManager> renderpassManager,
-        std::shared_ptr<CommandManager> commandManager,
-        std::unordered_map<std::string, Shader>& shaders);
+        std::shared_ptr<CommandManager> commandManager);
         
         void Start() override;
         
@@ -48,32 +47,39 @@ class Nova : public IRenderLoopClient{
                 Builder() = default;
                 std::unique_ptr<IRenderLoopClient> Build();
 
+         
+                Builder& WithShell();                   Builder& WithShell(std::shared_ptr<Shell> shell){ this->shell = shell; return *this;}
+                Builder& WithEngine();                  Builder& WithEngine(std::shared_ptr<VulkanEngine> engine){this->engine = engine; return *this;}
+                Builder& WithGPU();                     Builder& WithGPU(std::shared_ptr<GPU> gpu){ this->gpu = gpu; return *this;}
+                Builder& WithSwapchainManager();        Builder& WithSwapchainManager(std::shared_ptr<SwapchainManager>swapchainManager){this->swapchainManager = swapchainManager; return *this;}
+                Builder& WithRenderpass();              Builder& WithRenderpass(std::shared_ptr<RenderPassManager> renderpassManager){this->renderpassManager = renderpassManager; return *this;}
+                Builder& WithFramebufferGenerator();    Builder& WithFramebufferGenerator(std::shared_ptr<FramebufferGenerator> framebuffersContainer){this->framebuffersContainer = framebuffersContainer; return *this;}
+                Builder& WithDescriptorAllocator();     Builder& WithDescriptorAllocator(std::shared_ptr<DescriptorAllocator> descriptorAllocator){this->descriptorAllocator = descriptorAllocator; return *this;}
+                Builder& WithPipelineManager();         Builder& WithPipelineManager(std::shared_ptr<PipelineManager> pipelineManager){this->pipelineManager = pipelineManager; return *this;}
+                Builder& WithSyncManager();             Builder& WithSyncManager(std::shared_ptr<SyncManager> syncManager){this->syncManager = syncManager; return *this;}
+                Builder& WithCommandManager();          Builder& WithCommandManager(std::shared_ptr<CommandManager> commandManager){this->commandManager = commandManager; return *this;}
+                Builder& WithPipelineLibrary();         Builder& WithPipelineLibrary(std::shared_ptr<PipelineLibrary> pipelineLibrary){ this->pipelineLibrary = pipelineLibrary; return *this;}
+                Builder& WithVertexData();
+
             protected:
-                std::shared_ptr<Shell> shell = std::make_shared<Shell>();
-                std::shared_ptr<VulkanEngine> engine = std::make_shared<VulkanEngine>(shell->GetWindow());
-                std::shared_ptr<GPU> gpu = std::make_shared<GPU>(engine);
+                std::shared_ptr<Shell> shell;
+                std::shared_ptr<VulkanEngine> engine;
+                std::shared_ptr<GPU> gpu;
 
-                std::shared_ptr<SwapchainManager>swapchainManager = SwapchainManager::Builder()
-                                                                    .WithGPU(gpu)
-                                                                    .WithEngine(engine)
-                                                                    .WithShell(shell)
-                                                                    .Build();
+                std::shared_ptr<SwapchainManager>swapchainManager;
 
-                std::shared_ptr<RenderPassManager> renderpassManager = std::make_shared<RenderPassManager>(gpu);
-                std::shared_ptr<FramebufferGenerator> framebuffersContainer = std::make_shared<FramebufferGenerator>(
-                                                                                gpu->GetVkDevice(), 
-                                                                                renderpassManager->GetRenderPass(),
-                                                                                swapchainManager);
+                std::shared_ptr<RenderPassManager> renderpassManager;
+                std::shared_ptr<FramebufferGenerator> framebuffersContainer;
 
-                std::shared_ptr<DescriptorAllocator> descriptorAllocator = std::make_shared<DescriptorAllocator>(gpu);                                
-                std::shared_ptr<PipelineManager> pipelineManager = std::make_shared<PipelineManager>(gpu, renderpassManager, descriptorAllocator);
+                std::shared_ptr<DescriptorAllocator> descriptorAllocator;                               
+                std::shared_ptr<PipelineManager> pipelineManager;
                 
-                std::shared_ptr<SyncManager> syncManager = std::make_shared<SyncManager>(gpu->GetVkDevice());
+                std::shared_ptr<SyncManager> syncManager;
+
                 std::shared_ptr<PipelineLibrary>pipelineLibrary;
 
                 std::shared_ptr<CommandManager> commandManager;
                 
-                std::unordered_map<std::string, Shader> shaders;
             private:
                 
                 
@@ -93,10 +99,21 @@ class Nova : public IRenderLoopClient{
         std::unordered_map<std::string, Shader> shaders;
         bool initialized = false;
 
+        void AllocateResources();
+
     private:
         std::vector<VkAttachmentDescription> attachmentDescriptions;
+
         
 };
+
+
+//         createIndexBuffer();
+//         createUniformBuffers();
+//         createDescriptorPool();
+//         createDescriptorSets();
+//         createCommandBuffers();
+//         createSyncObjects();
 
 /*
 🛠️ 1. Create the Vulkan Instance

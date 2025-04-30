@@ -7,9 +7,9 @@ PipelineManager::PipelineManager(
     ):gpu(gpu),renderpassManager(renderpassManager),descriptorAllocator(descriptorAllocator){
 
     PipelineManager::LoadConfig("Pipelines/defaultPipelineConfig.json");
-
     PipelineManager::CreateDescriptorSetLayout();
-    PipelineManager:: CreateGraphicsPipeline();
+    PipelineManager::CreateDescriptorSetPool();
+    PipelineManager::CreateGraphicsPipeline();
 
 }
 
@@ -19,20 +19,13 @@ PipelineManager::~PipelineManager() {
 }
 
 void PipelineManager::CreateDescriptorSetLayout(){
-
-    descriptorSetLayouts.resize(descriptorSets.size());
-    for(int i = 0; i < descriptorSets.size(); i++){
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t> (descriptorSets[i].size());
-        layoutInfo.pBindings = descriptorSets[i].data();
-        if (vkCreateDescriptorSetLayout(gpu->GetVkDevice(), &layoutInfo, nullptr, &descriptorSetLayouts[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor set layout!");
-        }
-    }  
-           
+       
 }
 
+
+void PipelineManager::CreateDescriptorSetPool(){
+    descriptorAllocator->CreateDescriptorSetPool(3,descriptorBindingsPerSet);
+}
 
 void PipelineManager::LoadConfig(const std::string configFile) {
     
@@ -50,7 +43,7 @@ void PipelineManager::LoadConfig(const std::string configFile) {
                                         colorBlending,
                                         colorblendAttachments,
                                         dynamicStates,
-                                        descriptorSets
+                                        descriptorBindingsPerSet
     );
     
 }
@@ -124,8 +117,8 @@ void PipelineManager::CreateGraphicsPipeline(){
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-    pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
+    pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorAllocator->GetDescriptorSetLayouts().size());
+    pipelineLayoutInfo.pSetLayouts = descriptorAllocator->GetDescriptorSetLayouts().data();
     pipelineLayoutInfo.pushConstantRangeCount = 0;       // No push constants
     pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -157,9 +150,8 @@ void PipelineManager::CreateGraphicsPipeline(){
     }
 }
 
-void CreateDescriptionSets(){
 
-}
+
 VkShaderModule PipelineManager::CreateShaderModule(const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

@@ -11,7 +11,7 @@
 #include <array>
 #include <cassert>
 #include <memory>
-#include "Data.hpp"
+#include "Vertex.hpp"
 
 class Renderer {
     public:

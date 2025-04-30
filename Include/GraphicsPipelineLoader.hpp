@@ -11,7 +11,7 @@
 #include "Shader.hpp"
 #include "GPU.hpp"
 #include <memory>
-#include "Data.hpp"
+#include "Vertex.hpp"
 #include <unordered_set>
 
 class GraphicsPipelineLoader {
