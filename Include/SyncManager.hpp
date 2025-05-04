@@ -17,8 +17,6 @@ public:
     ~SyncManager();
     void Initialize(uint32_t maxFramesInFlight);
     // Create a semaphore for synchronization
-    VkSemaphore CreateSemaphore();
-    VkFence CreateFence();
     
     FrameSync& GetFrame(uint32_t index) {
         return m_frames[index];
@@ -32,7 +30,6 @@ protected:
     std::vector<FrameSync> m_frames;
 
     // Helper function to create a semaphore
-    VkSemaphore createSemaphoreInternal();
-
-    VkFence createFenceInternal(bool signaled);
+    VkSemaphore CreateSemaphore();
+    VkFence CreateFence(bool signaled);
 };

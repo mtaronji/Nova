@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Nova Pipeline Schema",
     "type": "object",
-    "required": ["shaderStages", "inputAssembly","vertexInput","rasterizer","multisampling","colorBlend"],
+    "required": ["shaderStages", "inputAssembly","rasterizer","multisampling","colorBlend"],
     "properties": { 
         "shaderStages": {
             "type": "array",
@@ -30,63 +30,6 @@
                 "enum": ["point_list", "line_list", "line_strip", "triangle_list", "triangle_strip", "triangle_fan"]
                 },
                 "primitiveRestartEnable": { "type": "boolean" }
-            }
-        },
-
-        "vertexInput":{
-            "type": "object",
-            "required": ["bindings", "attributes"],
-            "properties": {
-              "bindings": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "binding": { "type": "integer", "minimum": 0 },
-                    "bindingData": { 
-                      "type": "string", 
-                      "enum": ["vertexp", "vertexpc", "vertexpn","vertexpt","vertexpnt","vertexpntc"],
-                      "description": "Data type for this binding (you handle alignment internally)" 
-                    },
-                    "inputRate": {
-                      "type": "string",
-                      "enum": ["vertex", "instance"],
-                      "description": "Input rate for this binding, either per vertex or per instance"
-                    }
-                  },
-                  "required": ["binding", "bindingData", "inputRate"]
-                }
-              },
-              "attributes": {
-                "type": "array",
-                "required": ["location", "binding", "attributeFormat","bindingData"],
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "location": { "type": "integer", "minimum": 0 },
-                    "binding": { "type": "integer", "minimum": 0 },
-                    "bindingData": { 
-                      "type": "string", 
-                      "enum": ["vertexp", "vertexpc", "vertexpn","vertexpt","vertexpnt","vertexpntc"],
-                      "description": "Data type for this binding (you handle alignment internally)" 
-                    },
-                    "attributeFormat": { 
-                      "type": "string",
-                      "enum": [
-                        "VK_FORMAT_R32G32B32_SFLOAT", 
-                        "VK_FORMAT_R32G32_SFLOAT", 
-                        "VK_FORMAT_R32_SFLOAT", 
-                        "VK_FORMAT_R32G32B32A32_SFLOAT", 
-                        "VK_FORMAT_R32G32B32_SINT", 
-                        "VK_FORMAT_R32G32B32_UINT", 
-                        "VK_FORMAT_R8G8B8A8_UNORM"
-                      ],
-                      "description": "The Vulkan format type of the vertex attribute, mapped to VkFormat"
-                    }
-                  }
-                 
-                }
-              }
             }
         },
   
@@ -348,26 +291,29 @@
                             },
                             "descriptorCount":{"type":"integer","minimum": 1, "default":1},
                             "shaderStage":{
-                                "type":"string",
-                                "enum": [
-                                    "vertex",
-                                    "fragment",
-                                    "geometry",
-                                    "compute",
-                                    "tessellationControl",
-                                    "tessellationEvaluation",
-                                    "allGraphics",
-                                    "all",
-                                    "raygen",
-                                    "anyHit",
-                                    "closestHit",
-                                    "miss",
-                                    "intersection",
-                                    "callable",
-                                    "task",
-                                    "mesh"
-                                ]
-                            }     
+                                "type":"array",
+                                "items": {
+                                    "type":"string",
+                                    "enum": [
+                                        "vertex",
+                                        "fragment",
+                                        "geometry",
+                                        "compute",
+                                        "tessellationControl",
+                                        "tessellationEvaluation",
+                                        "allGraphics",
+                                        "all",
+                                        "raygen",
+                                        "anyHit",
+                                        "closestHit",
+                                        "miss",
+                                        "intersection",
+                                        "callable",
+                                        "task",
+                                        "mesh"
+                                    ]
+                                }                            
+                            }   
                         }
                     }
                 }

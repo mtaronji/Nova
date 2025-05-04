@@ -9,10 +9,10 @@ SyncManager::~SyncManager() {
 
 void SyncManager::Initialize(uint32_t maxFramesInFlight){
     m_frames.resize(maxFramesInFlight);
-    for (auto& frame : m_frames) {
-        frame.imageAvailable = CreateSemaphore();
-        frame.renderFinished = CreateSemaphore();
-        frame.inFlight = CreateFence(); // Initially signaled
+    for (int i = 0; i < m_frames.size(); i++) {
+        m_frames[i].imageAvailable = CreateSemaphore();
+        m_frames[i].renderFinished = CreateSemaphore();
+        m_frames[i].inFlight = i == 0 ? CreateFence(true) : CreateFence(false); 
     }
 }
 
@@ -29,10 +29,11 @@ VkSemaphore SyncManager::CreateSemaphore() {
     return semaphore;
 }
 
-VkFence SyncManager::CreateFence() {
+VkFence SyncManager::CreateFence(bool signaled) {
     VkFence fence;
     VkFenceCreateInfo fenceInfo = {};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    if(signaled) {fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;}
 
     if (vkCreateFence(m_device, &fenceInfo, nullptr, &fence) != VK_SUCCESS) {
         throw std::runtime_error("failed to create fence!");

@@ -11,7 +11,7 @@
 #include "Shader.hpp"
 #include "GPU.hpp"
 #include <memory>
-#include "Vertex.hpp"
+#include "Mesh.hpp"
 #include <unordered_set>
 
 class GraphicsPipelineLoader {
@@ -23,8 +23,6 @@ class GraphicsPipelineLoader {
                                 std::vector<char> & fragmentShaderCodeOut,
                                 std::vector<char> & computeShaderCodeOut,
                                 std::vector<char> & geometryShaderCodeOut,
-                                std::vector<VkVertexInputBindingDescription>& bdescriptionsOut,
-                                std::vector<VkVertexInputAttributeDescription>& adescriptionsOut,
                                 VkPipelineInputAssemblyStateCreateInfo& inputAssemblyOut,
                                 VkPipelineRasterizationStateCreateInfo& rasterizerCreateInfoOut,
                                 VkPipelineMultisampleStateCreateInfo& multisamplingOut,

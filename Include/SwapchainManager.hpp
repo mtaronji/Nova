@@ -5,6 +5,7 @@
 #include "Shell.hpp"
 #include <stdexcept>
 #include <memory>
+
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;

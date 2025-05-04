@@ -1,11 +1,13 @@
 #include "Renderer.hpp"
-
-
-const std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4
-};
-
+#include "RenderPassManager.hpp"
+#include "PipelineManager.hpp"
+#include "GPU.hpp"
+#include "SwapchainManager.hpp"
+#include "SyncManager.hpp"
+#include "CommandManager.hpp"
+#include "VulkanEngine.hpp"
+#include "FramebufferGenerator.hpp"
+#include "BufferOps.hpp"
 
 Renderer::Renderer(   
     std::shared_ptr<Shell> shell,
@@ -24,6 +26,45 @@ Renderer::Renderer(
     }
 
 Renderer::~Renderer() {}
+
+void Renderer::AddResources(std::unordered_map<std::string, BufferResource>* resourceMap){
+    //as of now, vertices are in one buffer. Indexes another ubos as well
+    //Create all teh buffers for our objects
+    if(resourceMap){
+        if(resourceMap->contains("vertices")){
+            auto& resource = resourceMap->at("vertices");
+            BufferOps::CreateDataBuffer(*gpu,
+                *commandmanager,
+                resource.mappedData,
+                resource.dataSize,
+                resource.GetUsage(), 
+                resource.GetBuffer(), 
+                resource.GetMemory());
+        }
+        if(resourceMap->contains("indices")){
+            auto& resource = resourceMap->at("indices");
+            BufferOps::CreateDataBuffer(*gpu,
+                *commandmanager,
+                resource.mappedData,
+                resource.dataSize,
+                resource.GetUsage(), 
+                resource.GetBuffer(), 
+                resource.GetMemory());
+        }
+        if(resourceMap->contains("camera")){
+            auto& resource = resourceMap->at("camera");
+            BufferOps::CreateDataBuffer(*gpu,
+                *commandmanager,
+                resource.mappedData,
+                resource.dataSize,
+                resource.GetUsage(), 
+                resource.GetBuffer(), 
+                resource.GetMemory());
+        }
+
+        this->resourceMap = resourceMap;
+    }
+}
 
 void Renderer::DrawFrame() {
     
@@ -101,18 +142,26 @@ void Renderer::NotifySwapchainOutOfDate(){
 }
 
 void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer, 
-                                  uint32_t imageIndex, 
-                                  VkBuffer vbuffers[], 
-                                  VkBuffer ibuffer
+                                  uint32_t imageIndex
                                   
                                 ){
   
-    // auto const &renderpass = renderpassmanager->GetRenderPass();
-    // auto const &extent = swapchainmanager->GetExtent();
-    // // auto const &pipeline = pipelinemanager->GetPipeline();
-    // auto const &pipelinelayout = pipelinemanager->GetPipelineLayout();
-    // auto const &pipelineinfo = pipelinemanager->GetPipelineInfo();
-    // auto const &descriptorSets = pipelineinfo.descriptorSetsPerFrame;
+    auto const &renderpass = renderpassmanager->GetRenderPass();
+    auto const &extent = swapchainmanager->GetExtent();
+    VkBuffer vbuffer = VK_NULL_HANDLE;
+    VkBuffer ibuffer = VK_NULL_HANDLE;
+    
+    if(resourceMap){
+        if(resourceMap->contains("vertices")){
+            vbuffer = resourceMap->at("vertices").GetBuffer();
+        }
+        if(resourceMap->contains("indices")){
+            ibuffer = resourceMap->at("indices").GetBuffer();
+        }
+    }
+ 
+
+    // auto const &pipeline = pipelinemanager->GetPipeline();
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -139,40 +188,46 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinemanager->GetPipeline());
 
-        // VkViewport viewport{};
-        // viewport.x = 0.0f;
-        // viewport.y = 0.0f;
-        // viewport.width = (float) extent.width;
-        // viewport.height = (float) extent.height;
-        // viewport.minDepth = 0.0f;
-        // viewport.maxDepth = 1.0f;
-        // vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float) extent.width;
+        viewport.height = (float) extent.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-        // VkRect2D scissor{};
-        // scissor.offset = {0, 0};
-        // scissor.extent = extent;
-        // vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-        if (vbuffers != VK_NULL_HANDLE) {
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = extent;
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+        
+        if (vbuffer != VK_NULL_HANDLE) {
            
             VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbuffer, offsets);
             if(ibuffer != VK_NULL_HANDLE){
-                vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT16);
+                vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT32);
+
+                uint32_t arrayCount = resourceMap->at("indices").arraySize;
+                vkCmdDrawIndexed(commandBuffer, arrayCount, 1, 0, 0, 0);
             }
         }
         
-
+        
         
         // vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, descriptorSets[currentFrame].data(), 0, nullptr);
-
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
     }
+
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+    
+
 }
 
 

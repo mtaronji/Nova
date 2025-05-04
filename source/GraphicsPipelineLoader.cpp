@@ -148,7 +148,7 @@ uint32_t ParseBindingStride(const std::string vertexType){
 }
 
 uint32_t ParseLocationOffset(const std::string vertexType, const int location){
-
+    
     if(vertexType == "vertexp")return VertexP::GetFieldOffset(location); 
     if(vertexType == "vertexpc")return VertexPC::GetFieldOffset(location);
     if(vertexType == "vertexpn") return VertexPN::GetFieldOffset(location);
@@ -213,8 +213,6 @@ void GraphicsPipelineLoader::LoadFromFile(
                                             std::vector<char> & fragmentShaderCodeOut,
                                             std::vector<char> & computeShaderCodeOut,
                                             std::vector<char> & geometryShaderCodeOut,
-                                            std::vector<VkVertexInputBindingDescription>& bdescriptionsOut,
-                                            std::vector<VkVertexInputAttributeDescription>& adescriptionsOut,
                                             VkPipelineInputAssemblyStateCreateInfo& inputAssemblyOut,
                                             VkPipelineRasterizationStateCreateInfo& rasterizerCreateInfoOut,
                                             VkPipelineMultisampleStateCreateInfo& multisamplingOut,
@@ -253,27 +251,6 @@ void GraphicsPipelineLoader::LoadFromFile(
             
         }
         
-    }
-
-    const auto& vi = j["vertexInput"];
-    bdescriptionsOut = {};
-    for(const auto& bd : vi["bindings"]){
-        VkVertexInputBindingDescription bindingdesc = {};
-        bindingdesc.inputRate = ParseInputRate(bd["inputRate"]);
-        bindingdesc.binding = bd["binding"];
-        bindingdesc.stride = ParseBindingStride(bd["bindingData"]);
-        bdescriptionsOut.push_back(bindingdesc);
-    }
-
-    adescriptionsOut = {};
-    for(const auto& ad : vi["attributes"]){
-        VkVertexInputAttributeDescription attributedesc = {};
-        attributedesc.binding = ad["binding"];
-        attributedesc.location = ad["location"];
-        attributedesc.format = ParseAttributeDescriptionFormat(ad["attributeFormat"]);
-        std::string vertexType = ad["bindingData"];
-        attributedesc.offset = ParseLocationOffset(ad["bindingData"], ad["location"]);
-        adescriptionsOut.push_back(attributedesc);
     }
     
     const auto& iassembly = j["inputAssembly"];
@@ -386,7 +363,11 @@ void GraphicsPipelineLoader::LoadFromFile(
                 VkDescriptorSetLayoutBinding desclayoutbinding{};
                 desclayoutbinding.binding = binding;
                 desclayoutbinding.descriptorCount = dsl["descriptorCount"];
-                desclayoutbinding.stageFlags = ParseShaderStage(dsl["shaderStage"]);
+                desclayoutbinding.stageFlags = 0;
+                for(const auto& stage : dsl["shaderStage"]){
+                    desclayoutbinding.stageFlags |= ParseShaderStage(stage);
+                }
+
                 desclayoutbinding.descriptorType = ParseDescriptorType(dsl["descriptorType"]);         
                 descSetLayoutBindings.push_back(desclayoutbinding);
                 binding++;

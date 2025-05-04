@@ -1,5 +1,5 @@
-
 #pragma once
+
 #include <vulkan/vulkan.h>
 #include "json.hpp"
 #include <vector>

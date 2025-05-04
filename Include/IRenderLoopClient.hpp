@@ -1,10 +1,14 @@
 #pragma once
 
+#include <unordered_map>
+#include "BufferOps.hpp"
+#include <string>
+
 class IRenderLoopClient {
     public:
     virtual void Start() = 0;
     virtual void Init() = 0;
-    virtual void Load() = 0;               // Load assets, shaders, pipelines
+    virtual void LoadResourceMap(std::unordered_map<std::string, BufferResource>* resourceMap) = 0;               // Load assets, shaders, pipelines
     virtual void Update(float deltaTime = 0.0f) = 0; // Frame logic (deltaTime optional)
     virtual void Render() = 0;             // Record & submit commands
 

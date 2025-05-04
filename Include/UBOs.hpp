@@ -1,6 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <vulkan/vulkan.h>
+#include <unordered_map>
 
 //The alignas ensures that the memory address for the start of the ubo is at a multiple of 16
 //A breakdown would be something like this:
@@ -20,16 +22,17 @@
 // C++ cares about address alignment — Vulkan cares about memory layout inside.
 //alignas(16) says the struct will always start at a 16 byte boundary
 
+//contingruous array meant for allocating ubo data
 
 struct alignas(16)CameraUBO {
-    glm::mat4 view;         //4 *4 * 4bytes = 64 = 16 * 4             offset = 0
-    glm::mat4 proj;         //4 * 4 bytes = 64 = 16 * 4              offset = 64
-    glm::vec3 cameraPosition;   //4 * 3 bytes = 12 bytes          offset = 128
-    float padding;          //4 bytes plus the 12 bytes above make it 16       offset = 140
+    glm::mat4 view =- glm::mat4(1.0f);                                  //4 *4 * 4bytes = 64 = 16 * 4             offset = 0
+    glm::mat4 proj = glm::mat4(1.0f);                                   //4 * 4 bytes = 64 = 16 * 4              offset = 64
+    glm::vec3 cameraPosition = glm::vec3(0.0f,0.0f, 5.0f);              //4 * 3 bytes = 12 bytes          offset = 128
+    float padding;                                                      //4 bytes plus the 12 bytes above make it 16       offset = 140
 };                                                                      //      offset = 144 for struct = multiple of 16
 
 struct alignas(16) ModelUBO {
-    glm::mat4 model;
+    glm::mat4 model = glm::mat4(1.0f);
 };
 
 struct alignas(16) LightUBO {

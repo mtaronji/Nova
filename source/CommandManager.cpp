@@ -1,12 +1,5 @@
 #include "CommandManager.hpp"
-CommandManager::CommandManager(std::shared_ptr<GPU> gpu) {
-    
-}
-
-CommandManager::CommandManager(){
-    
-}
-
+#include "GPU.hpp"
 
 void CommandManager::CreateCommandPool(){
     VkCommandPoolCreateInfo poolInfo{};
@@ -20,13 +13,13 @@ void CommandManager::CreateCommandPool(){
 }
 
 void CommandManager::AllocateCommandBuffers() {
-    commandBuffers.resize(FRAME_COUNT);
+    commandBuffers.resize(MAX_FRAMES);
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = FRAME_COUNT;
+    allocInfo.commandBufferCount = MAX_FRAMES;
 
     if (vkAllocateCommandBuffers(gpu->GetVkDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("Failed to allocate command buffers!");
@@ -51,7 +44,7 @@ VkCommandBuffer CommandManager::BeginSingleTimeCommands() {
     return commandBuffer;
 }
 
-void CommandManager::EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkQueue graphicsQueue) {
+void CommandManager::EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
@@ -59,8 +52,8 @@ void CommandManager::EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkQueu
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsQueue);
+    vkQueueSubmit(gpu->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(gpu->GetGraphicsQueue());
 
     vkFreeCommandBuffers(gpu->GetVkDevice(), commandPool, 1, &commandBuffer);
 }

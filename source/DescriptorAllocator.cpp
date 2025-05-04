@@ -13,7 +13,7 @@ DescriptorAllocator::DescriptorAllocator(std::shared_ptr<GPU> gpu)
 //If I have a descriptor set for a camera, and I want to have a ubo for each frame, and i want 3 frames(triple buffering)
 //then I will need to specify a pool of { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3 } 
 //I will create one ubo for the camera all ahead of time that you will bind into
-void DescriptorAllocator::CreateDescriptorSetPool(uint32_t maxSets, const std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet) {
+void DescriptorAllocator::CreateDescriptorSetPool(std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet) {
 
     std::unordered_map<VkDescriptorType, uint32_t> descriptorCounts;
 
@@ -21,7 +21,7 @@ void DescriptorAllocator::CreateDescriptorSetPool(uint32_t maxSets, const std::v
     for (const auto& setBindings : descriptorBindingsPerSet) {
         for (const auto& binding : setBindings) {
             // Increment the count for this descriptor type
-            descriptorCounts[binding.descriptorType] += binding.descriptorCount * binding.descriptorCount;
+            descriptorCounts[binding.descriptorType] +=  MAX_FRAMES * binding.descriptorCount;
         }
     }
 
@@ -40,7 +40,7 @@ void DescriptorAllocator::CreateDescriptorSetPool(uint32_t maxSets, const std::v
     
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = maxSets;
+    poolInfo.maxSets = static_cast<uint32_t> (descriptorBindingsPerSet.size() * MAX_FRAMES);
     poolInfo.flags = 0; // Optional: you could add VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
 
     if (vkCreateDescriptorPool(gpu->GetVkDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
@@ -50,8 +50,10 @@ void DescriptorAllocator::CreateDescriptorSetPool(uint32_t maxSets, const std::v
 
 void DescriptorAllocator::CreateDescriptorSetLayout(const std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet){
 
-    descriptorSetLayouts.resize(descriptorSets.size());
-    for(int i = 0; i < descriptorBindingsPerSet.size(); i++){
+    descriptorSetLayouts.resize(descriptorBindingsPerSet.size());  //should be size of sets
+    
+    for(int i = 0; i < descriptorBindingsPerSet.size(); i++){      //for each set
+        descriptorSetLayouts[i] = {};
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t> (descriptorBindingsPerSet[i].size());
@@ -64,16 +66,26 @@ void DescriptorAllocator::CreateDescriptorSetLayout(const std::vector<std::vecto
 
 void DescriptorAllocator::AllocateDescriptorSets() {
 
-    VkDescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-    allocInfo.pSetLayouts = descriptorSetLayouts.data();
+      // Resize descriptorSets for all frames
+      descriptorSets.resize(MAX_FRAMES * descriptorSetLayouts.size());
 
-    if (vkAllocateDescriptorSets(gpu->GetVkDevice(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate descriptor set!");
-    }
+      std::vector<VkDescriptorSetLayout> layouts;
+      for (uint32_t i = 0; i < MAX_FRAMES; ++i) {
+          layouts.insert(layouts.end(), descriptorSetLayouts.begin(), descriptorSetLayouts.end());
+      }
+      
+      VkDescriptorSetAllocateInfo allocInfo = {};
+      allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+      allocInfo.descriptorPool = descriptorPool;
+      allocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
+      allocInfo.pSetLayouts = layouts.data();
+      
+      if (vkAllocateDescriptorSets(gpu->GetVkDevice(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+          throw std::runtime_error("Failed to allocate descriptor sets!");
+      }
 }
+
+
 
 void DescriptorAllocator::resetPool() {
     if (descriptorPool != VK_NULL_HANDLE) {

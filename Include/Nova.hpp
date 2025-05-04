@@ -1,46 +1,52 @@
 #pragma once
 #include "IRenderLoopClient.hpp"
-#include "Shell.hpp"
-#include "Renderer.hpp"
-#include "VulkanEngine.hpp"
-#include "GPU.hpp"
-#include "PipelineLibrary.hpp"
-#include "RenderPassManager.hpp"
-#include "SwapchainManager.hpp"
-#include "UBOs.hpp"
-#include "CommandManager.hpp"
-#include "FramebufferGenerator.hpp"
-#include "Shader.hpp"
-#include "SyncManager.hpp"
-#include "RenderpassLoader.hpp"
-#include "GraphicsPipelineLoader.hpp"
-#include "DescriptorAllocator.hpp"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
 #include <memory>
 
+
+
+class Shell;
+class GPU;
+class VulkanEngine;
+class SwapchainManager;
+class SyncManager;
+class PipelineManager;
+class RenderPassManager;
+class CommandManager;
+class FramebufferGenerator;
+struct BufferResource;
+class Renderer;
+class PipelineLibrary; 
+class DescriptorAllocator;
+class Shader;
 class Nova : public IRenderLoopClient{
     public:
-    Nova() = delete;
-    Nova(
-        std::shared_ptr<VulkanEngine> engine,
-        std::shared_ptr<Shell> shell,
-        std::shared_ptr<GPU> gpu,
-        std::shared_ptr<FramebufferGenerator> framebuffersContainer,
-        std::shared_ptr<SyncManager> syncManager,
-        std::shared_ptr<SwapchainManager>swapchainManager,
-        std::shared_ptr<PipelineLibrary>pipelineLibrary,
-        std::shared_ptr<RenderPassManager> renderpassManager,
-        std::shared_ptr<CommandManager> commandManager);
+        Nova() = delete;
+        Nova(
+            std::shared_ptr<VulkanEngine> engine,
+            std::shared_ptr<Shell> shell,
+            std::shared_ptr<GPU> gpu,
+            std::shared_ptr<FramebufferGenerator> framebuffersContainer,
+            std::shared_ptr<SyncManager> syncManager,
+            std::shared_ptr<SwapchainManager>swapchainManager,
+            std::shared_ptr<PipelineManager> pipelineManager,
+            std::shared_ptr<PipelineLibrary>pipelineLibrary,
+            std::shared_ptr<RenderPassManager> renderpassManager,
+            std::shared_ptr<CommandManager> commandManager,
+            std::shared_ptr<DescriptorAllocator> descriptorAllocator
+        );
         
         void Start() override;
         
         void Init() override;
-        void Load() override;
+        void LoadResourceMap(std::unordered_map<std::string, BufferResource>* resourceMap) override;
         void Update(float deltaTime) override;
         void Render() override;
         void Shutdown() override;
+
+
 
         class Builder{
             public:
@@ -59,7 +65,7 @@ class Nova : public IRenderLoopClient{
                 Builder& WithSyncManager();             Builder& WithSyncManager(std::shared_ptr<SyncManager> syncManager){this->syncManager = syncManager; return *this;}
                 Builder& WithCommandManager();          Builder& WithCommandManager(std::shared_ptr<CommandManager> commandManager){this->commandManager = commandManager; return *this;}
                 Builder& WithPipelineLibrary();         Builder& WithPipelineLibrary(std::shared_ptr<PipelineLibrary> pipelineLibrary){ this->pipelineLibrary = pipelineLibrary; return *this;}
-                Builder& WithVertexData();
+
 
             protected:
                 std::shared_ptr<Shell> shell;
@@ -79,6 +85,8 @@ class Nova : public IRenderLoopClient{
                 std::shared_ptr<PipelineLibrary>pipelineLibrary;
 
                 std::shared_ptr<CommandManager> commandManager;
+
+                
                 
             private:
                 
@@ -94,15 +102,21 @@ class Nova : public IRenderLoopClient{
         std::shared_ptr<SyncManager> syncManager;
         std::shared_ptr<SwapchainManager>swapchainManager;
         std::shared_ptr<PipelineLibrary>pipelineLibrary;
+        std::shared_ptr<PipelineManager> pipelineManager;
         std::shared_ptr<RenderPassManager> renderpassManager;
         std::shared_ptr<CommandManager> commandManager;
         std::unordered_map<std::string, Shader> shaders;
+        std::shared_ptr<DescriptorAllocator> descriptorAllocator;
+        std::shared_ptr<Renderer> renderer;
+           
+
         bool initialized = false;
 
-        void AllocateResources();
+
 
     private:
         std::vector<VkAttachmentDescription> attachmentDescriptions;
+        uint32_t MAX_FRAMES = 3;
 
         
 };

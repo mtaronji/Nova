@@ -1,137 +1,41 @@
-#include <vulkan/vulkan.h>
-#include <vector>
-#include <cassert>
-#include <stdexcept>
-#include <cstring>
-#include "GPU.hpp"
+#pragma once
 
+#include <vulkan/vulkan.h>
+#include <stdexcept>
+#include <cassert>
+#include <cstring>
+// You first create the VkBuffer (saying "I need a buffer 512 bytes long for vertex data").
+
+// Then you get the memory requirements and allocate a block of VkDeviceMemory.
+
+// Finally, you bind the memory to the buffer using:
+
+// vkBindBufferMemory(device, buffer, bufferMemory, 0);
+
+// From that point on, the buffer is “powered” by the actual memory — just like plugging a power cord into a device.
+
+//allocate memory to buffers
+class CommandManager;
+class GPU;
 
 struct BufferOps{
+
  
-    static void CreateBuffer(GPU& gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+    static void CreateBuffer(GPU& gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
-        auto device = gpu.GetVkDevice();
-        auto physicalDevice = gpu.GetPhysicalDevice();
-        VkBufferCreateInfo bufferInfo{};
-        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = size;
-        bufferInfo.usage = usage;
-        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    
-        if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create buffer!");
-        }
 
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-        
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+    static void CopyBuffer(GPU& gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-        if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate buffer memory!");
-        }
+    static void CreateDataBuffer(
+            GPU& gpu,
+            CommandManager& commandManager,
+            void* data,
+            uint64_t datasize,
+            VkBufferUsageFlags usage,
+            VkBuffer& buffer,
+            VkDeviceMemory& memory);
 
-        vkBindBufferMemory(device, buffer, bufferMemory, 0);
-    }
-
-    static void CopyBuffer(GPU& gpu, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-        auto device = gpu.GetVkDevice();
-        auto commandPool = gpu.GetCommandPool();
-        auto queue = gpu.GetGraphicsQueue();
-        VkCommandBuffer commandBuffer = BeginSingleTimeCommands(gpu);
-
-        VkBufferCopy copyRegion{};
-        copyRegion.size = size;
-        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-        EndSingleTimeCommands(gpu,commandBuffer);
-    }
-
-    template <typename T>
-    static void CreateDeviceBuffer(
-        GPU& gpu,
-        const std::vector<T>& data,
-        VkBufferUsageFlags usage,
-        VkBuffer& buffer,
-        VkDeviceMemory& memory) {
-
-        assert(!data.empty());
-        VkDeviceSize bufferSize = sizeof(T) * data.size();
-        auto device = gpu.GetVkDevice();
-
-        // Create staging buffer (host-visible)
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingMemory;
-        CreateBuffer(
-            gpu,
-            bufferSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer,
-            stagingMemory
-        );
-
-        // Upload data
-        void* mapped;
-        vkMapMemory(device, stagingMemory, 0, bufferSize, 0, &mapped);
-        memcpy(mapped, data.data(), (size_t)bufferSize);
-        vkUnmapMemory(device, stagingMemory);
-
-        // Create device-local buffer (actual GPU resource)
-        CreateBuffer(
-            gpu,
-            bufferSize,
-            usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, // Enable transfer dst
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            buffer,
-            memory
-        );
-
-        // Copy staging -> device
-        CopyBuffer(gpu, stagingBuffer, buffer, bufferSize);
-
-        // Cleanup
-        vkDestroyBuffer(device, stagingBuffer, nullptr);
-        vkFreeMemory(device, stagingMemory, nullptr);
-    }
-    static VkCommandBuffer BeginSingleTimeCommands(GPU& gpu) {
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = gpu.GetCommandPool();
-        allocInfo.commandBufferCount = 1;
-
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(gpu.GetVkDevice(), &allocInfo, &commandBuffer);
-
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-        return commandBuffer;
-    }
-
-    static void EndSingleTimeCommands(GPU& gpu,VkCommandBuffer commandBuffer) {
-        auto graphicsQueue = gpu.GetGraphicsQueue();
-        auto device = gpu.GetVkDevice();
-        auto commandPool = gpu.GetCommandPool();
-        vkEndCommandBuffer(commandBuffer);
-
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-
-        vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(graphicsQueue);
-
-        vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-    }
+   
     static uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
         VkPhysicalDeviceMemoryProperties memProperties;
         vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -144,4 +48,48 @@ struct BufferOps{
 
         throw std::runtime_error("failed to find suitable memory type!");
     }
+};
+
+struct BufferResource{
+    
+    BufferResource(VkBufferUsageFlags usage):usage(usage){
+        assert(usage != VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        assert(usage != VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);	
+        assert(usage != VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);	
+        assert(usage != VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT);
+
+    }
+    BufferResource(uint32_t set, uint32_t binding, VkBufferUsageFlags usage)
+        :binding(binding), set(set), buffer(VK_NULL_HANDLE),memory(VK_NULL_HANDLE), size(0),usage(usage){
+
+    }
+    VkBuffer& GetBuffer() {return buffer;}
+    VkBufferUsageFlags GetUsage() const {return usage;}
+    
+
+    VkBuffer buffer;
+    VkDeviceMemory memory;
+    VkDeviceSize size;
+    size_t dataSize;
+    uint32_t offset;
+    uint32_t arraySize;
+
+    std::string name; //camera, lighting, etc
+    bool needsUpdate = true;
+    void* mappedData = nullptr;
+    void UpdateData(void* srcData, size_t dataSize, uint32_t arraySize, uint32_t offset = 0) {
+        mappedData = malloc(dataSize);
+        memcpy(mappedData, srcData,dataSize);
+        this->dataSize = dataSize;
+        this->arraySize = arraySize;
+        this->offset = offset;
+    }
+
+    VkDeviceMemory& GetMemory() {return memory;}
+
+
+    private:
+        uint32_t binding;
+        uint32_t set;
+        VkBufferUsageFlags usage;
 };

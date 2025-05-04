@@ -6,9 +6,11 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <GLFW/glfw3.h>
-#include "IRenderLoopClient.hpp"
 #include <chrono>
 #include <thread>
+
+
+class IRenderLoopClient;
 
 class Shell {
 public:
@@ -17,6 +19,7 @@ public:
     Shell();
 
     GLFWwindow * GetWindow()const {return window;};
+
     void Run(IRenderLoopClient *app);
 
 protected:

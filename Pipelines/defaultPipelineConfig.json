@@ -4,30 +4,6 @@
         {"stage": "vertex","path": "shaders/identity.vert.spv"},
         {"stage": "fragment","path": "shaders/identity.frag.spv"}
     ],
-    "vertexInput": {
-        "bindings": [
-            {
-                "binding": 0,
-                "bindingData": "vertexpc",
-                "inputRate": "vertex"
-            }
-        ],
-        "attributes": [
-            {
-                "attributeFormat": "VK_FORMAT_R32G32B32_SFLOAT",
-                "binding": 0,
-                "bindingData": "vertexpc",
-                "location": 0
-            },
-            {
-                "attributeFormat": "VK_FORMAT_R32G32B32A32_SFLOAT",
-                "binding": 0,
-                "bindingData": "vertexpc",
-                "location": 1
-            }
-
-        ]
-    },
     "inputAssembly": {
         "topology": "triangle_list",
         "primitiveRestartEnable": false
@@ -66,7 +42,7 @@
             "descriptorSetLayout": [
                 {
                     "descriptorType": "uniformBuffer",
-                    "shaderStage": "vertex",
+                    "shaderStage": ["vertex"],
                     "descriptorCount": 1
                 }
             ]

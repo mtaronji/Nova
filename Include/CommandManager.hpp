@@ -8,10 +8,14 @@
 #include <memory>
 #include <stdexcept>
 
+class PipelineManager;
+class RenderPassManager;
+class GPU;
+
 class CommandManager {
     public:
-        CommandManager();
-        CommandManager(std::shared_ptr<GPU> gpu);
+        CommandManager() = delete;
+        CommandManager(std::shared_ptr<GPU> gpu):gpu(gpu){}
 
         void CreateCommandPool();
         void Init();
@@ -20,11 +24,11 @@ class CommandManager {
         VkCommandPool GetCommandPool() const { return commandPool; }
         const std::vector<VkCommandBuffer>& GetCommandBuffers() const { return commandBuffers; }
         const VkCommandBuffer GetCommandBuffer(uint32_t frame) const {return commandBuffers[frame];}
-        uint32_t GetFrameCount()const {return FRAME_COUNT;}
+        uint32_t GetFrameCount()const {return MAX_FRAMES;}
 
         void AllocateCommandBuffers();
         VkCommandBuffer BeginSingleTimeCommands();
-        void EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkQueue graphicsQueue);
+        void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
         void RecordGraphicsPipelineCommandBuffer(VkCommandBuffer commandBuffer, uint32_t currentFrame, RenderPassManager& renderPassManager, PipelineManager& pipelinemanager);
 
         class Builder{
@@ -56,5 +60,5 @@ class CommandManager {
         std::vector<VkCommandBuffer> commandBuffers;
 
     private:
-        const uint32_t FRAME_COUNT = 3;
+        const uint32_t  MAX_FRAMES = 3;
 };
