@@ -6,7 +6,20 @@ VulkanEngine::VulkanEngine(GLFWwindow* window){
     CreateInstance();
     CreateSurface(window);
 }
+void VulkanEngine::Cleanup(){
+    
+    if(surface != VK_NULL_HANDLE){
+        vkDestroySurfaceKHR(instance, surface,nullptr);
+    }
+    
+    if (instance != VK_NULL_HANDLE) {
+        vkDestroyInstance(instance, nullptr);
+        instance = VK_NULL_HANDLE;
+    }
+}
+VulkanEngine::~VulkanEngine(){
 
+}
 VkResult VulkanEngine::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {

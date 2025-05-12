@@ -23,7 +23,7 @@ public:
     }
 
     // Cleanup all semaphores
-    void cleanup();
+    void Cleanup();
 
 protected:
     VkDevice m_device;

@@ -1,5 +1,5 @@
 #include "GPU.hpp"
-
+#include "VulkanEngine.hpp"
 
 GPU::GPU(std::shared_ptr<VulkanEngine> engine) : engine(engine){
     auto instance = engine->GetInstance();

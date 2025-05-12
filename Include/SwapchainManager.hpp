@@ -13,6 +13,7 @@ struct SwapChainSupportDetails {
 };
 class SwapchainManager {
     public:
+        ~SwapchainManager();
         SwapchainManager() = default;
         void CreateSwapchain( GPU& device,
             SwapChainSupportDetails& supportDetails,

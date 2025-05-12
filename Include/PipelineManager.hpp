@@ -5,12 +5,11 @@
 #include <vector>
 #include <memory>
 #include "GPU.hpp"
-#include "RenderPassManager.hpp"
 #include "GraphicsPipelineLoader.hpp"
-#include "DescriptorAllocator.hpp"
 #include "Mesh.hpp"
 #include <type_traits>
-
+#include "DescriptorAllocator.hpp"
+#include "RenderPassManager.hpp"
 
 class PipelineManager {
 
@@ -23,8 +22,10 @@ class PipelineManager {
         );
         
         ~PipelineManager();
+        void Cleanup();
         VkPipeline GetPipeline() const { return pipeline; }
         VkPipelineLayout GetPipelineLayout()const {return pipelineLayout;}
+        std::vector<std::string> GetDescriptorNames() const {return descriptorNames;}
         void LoadConfig(const std::string configFile);
 
   
@@ -50,9 +51,10 @@ class PipelineManager {
             fragShaderStageInfo.module = fragShaderModule;
             fragShaderStageInfo.pName = "main";
             shaderStages.push_back(fragShaderStageInfo);
-        
+            
+            VkShaderModule computeShaderModule{};
             if(computeShaderCode.size() > 0){
-                VkShaderModule computeShaderModule = CreateShaderModule(computeShaderCode);
+                computeShaderModule = CreateShaderModule(computeShaderCode);
                 VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
                 vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                 vertShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
@@ -60,8 +62,9 @@ class PipelineManager {
                 vertShaderStageInfo.pName = "main";
                 shaderStages.push_back(computeShaderStageInfo);
             }
+            VkShaderModule geometryShaderModule{};
             if(geometryShaderCode.size() > 0){
-                VkShaderModule geometryShaderModule = CreateShaderModule(geometryShaderCode);
+                geometryShaderModule = CreateShaderModule(geometryShaderCode);
                 VkPipelineShaderStageCreateInfo geometryShaderStageInfo{};
                 vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                 vertShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
@@ -88,9 +91,6 @@ class PipelineManager {
                 vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
                 vertexInputInfo.vertexBindingDescriptionCount = 1;       
             }
-    
-
-
         
             VkPipelineViewportStateCreateInfo viewportState{};
             viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -120,7 +120,7 @@ class PipelineManager {
             pipelineLayoutInfo.pPushConstantRanges = nullptr;
         
         
-            VkPipelineLayout pipelineLayout = {};
+            pipelineLayout = {};
             if (vkCreatePipelineLayout(gpu->GetVkDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create pipeline layout!");
             }
@@ -146,6 +146,17 @@ class PipelineManager {
             if (vkCreateGraphicsPipelines(gpu->GetVkDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create graphics pipeline!");
             }
+
+            vkDestroyShaderModule(gpu->GetVkDevice(), vertShaderModule, nullptr);
+            vkDestroyShaderModule(gpu->GetVkDevice(), fragShaderModule, nullptr);
+
+            if(computeShaderCode.size()> 0){
+                 vkDestroyShaderModule(gpu->GetVkDevice(), computeShaderModule, nullptr);
+            }
+            if(geometryShaderCode.size() > 0){
+                 vkDestroyShaderModule(gpu->GetVkDevice(), geometryShaderModule, nullptr);            
+            }
+
         }
 
 
@@ -169,6 +180,7 @@ class PipelineManager {
         std::vector<VkPipelineColorBlendAttachmentState> colorblendAttachments;
         std::vector<VkDynamicState> dynamicStates;
         std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet;
+        std::vector<std::string> descriptorNames;
 
         
         void CreateDescriptorSetLayout();

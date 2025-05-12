@@ -12,7 +12,7 @@
         "depthClampEnable": false,
         "rasterizerDiscardEnable": false,
         "polygonMode": "fill",
-        "cullMode": "back",
+        "cullMode": "none",
         "depthBiasEnable": false,
         "frontFace": "counter_clockwise",
         "lineWidth": 1.0
@@ -43,7 +43,8 @@
                 {
                     "descriptorType": "uniformBuffer",
                     "shaderStage": ["vertex"],
-                    "descriptorCount": 1
+                    "descriptorCount": 1,
+                    "name": "camera"
                 }
             ]
         }

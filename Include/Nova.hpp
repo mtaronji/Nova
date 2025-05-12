@@ -1,10 +1,11 @@
 #pragma once
 #include "IRenderLoopClient.hpp"
+#include "UBOs.hpp"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
 #include <memory>
-
+#include <set>
 
 
 class Shell;
@@ -21,6 +22,9 @@ class Renderer;
 class PipelineLibrary; 
 class DescriptorAllocator;
 class Shader;
+class ResourceManager;
+struct Mesh;
+
 class Nova : public IRenderLoopClient{
     public:
         Nova() = delete;
@@ -35,13 +39,14 @@ class Nova : public IRenderLoopClient{
             std::shared_ptr<PipelineLibrary>pipelineLibrary,
             std::shared_ptr<RenderPassManager> renderpassManager,
             std::shared_ptr<CommandManager> commandManager,
-            std::shared_ptr<DescriptorAllocator> descriptorAllocator
+            std::shared_ptr<DescriptorAllocator> descriptorAllocator,
+            ResourceManager* resourceManager
         );
+        ~Nova();
         
         void Start() override;
         
         void Init() override;
-        void LoadResourceMap(std::unordered_map<std::string, BufferResource>* resourceMap) override;
         void Update(float deltaTime) override;
         void Render() override;
         void Shutdown() override;
@@ -65,7 +70,8 @@ class Nova : public IRenderLoopClient{
                 Builder& WithSyncManager();             Builder& WithSyncManager(std::shared_ptr<SyncManager> syncManager){this->syncManager = syncManager; return *this;}
                 Builder& WithCommandManager();          Builder& WithCommandManager(std::shared_ptr<CommandManager> commandManager){this->commandManager = commandManager; return *this;}
                 Builder& WithPipelineLibrary();         Builder& WithPipelineLibrary(std::shared_ptr<PipelineLibrary> pipelineLibrary){ this->pipelineLibrary = pipelineLibrary; return *this;}
-
+                Builder& WithResourceManager();         Builder& WithResourceManager(ResourceManager& manager){ this->resourceManager = resourceManager; return *this;}
+                Builder& WithMeshes(std::unordered_map<std::string, Mesh*> meshMap);
 
             protected:
                 std::shared_ptr<Shell> shell;
@@ -86,7 +92,7 @@ class Nova : public IRenderLoopClient{
 
                 std::shared_ptr<CommandManager> commandManager;
 
-                
+                ResourceManager* resourceManager = nullptr;
                 
             private:
                 
@@ -108,26 +114,24 @@ class Nova : public IRenderLoopClient{
         std::unordered_map<std::string, Shader> shaders;
         std::shared_ptr<DescriptorAllocator> descriptorAllocator;
         std::shared_ptr<Renderer> renderer;
-           
+        std::vector<VkAttachmentDescription> attachmentDescriptions;
+        ResourceManager* resourceManager = nullptr;
+        std::set<std::string> resourcesCPUVisible;
+        std::set<std::string> resourcesOnGPU;
 
         bool initialized = false;
 
 
 
     private:
-        std::vector<VkAttachmentDescription> attachmentDescriptions;
         uint32_t MAX_FRAMES = 3;
+        CameraUBO camera = {};
+
 
         
 };
 
 
-//         createIndexBuffer();
-//         createUniformBuffers();
-//         createDescriptorPool();
-//         createDescriptorSets();
-//         createCommandBuffers();
-//         createSyncObjects();
 
 /*
 🛠️ 1. Create the Vulkan Instance

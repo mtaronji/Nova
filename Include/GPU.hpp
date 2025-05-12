@@ -8,7 +8,6 @@
 #include <optional>
 #include <vulkan/vulkan.h>
 #include <vector>
-#include "VulkanEngine.hpp"
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -24,7 +23,7 @@ struct QueueFamilyIndices {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
-
+class VulkanEngine;
 class GPU {
     public:
         GPU(std::shared_ptr<VulkanEngine> engine);

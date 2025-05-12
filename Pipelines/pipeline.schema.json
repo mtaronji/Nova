@@ -269,7 +269,7 @@
                     "type":"array",
                     "items":{
                         "type":"object",
-                        "required": ["descriptorType", "shaderStage","descriptorCount"],
+                        "required": ["descriptorType", "shaderStage","descriptorCount","name"],
                         "properties": {
                             "descriptorType":{
                                 "type":"string",
@@ -290,6 +290,7 @@
                                 ]
                             },
                             "descriptorCount":{"type":"integer","minimum": 1, "default":1},
+                            "name":{"type":"string"},
                             "shaderStage":{
                                 "type":"array",
                                 "items": {

@@ -1,5 +1,5 @@
 #include "SwapchainManager.hpp"
-
+#include "VulkanEngine.hpp"
 
 // Image type (2D, 3D, cube map, etc.)
 //     // Format (RGBA, depth format, etc.)
@@ -60,6 +60,10 @@ void SwapchainManager::CreateSwapchain( GPU& device,
     this->extent = extent;
     //create image views now
     CreateImageViews(device.GetVkDevice());
+}
+
+SwapchainManager::~SwapchainManager(){
+    
 }
 
 SwapchainManager::Builder& SwapchainManager::Builder::WithGPU(std::shared_ptr<GPU> gpu){
@@ -177,6 +181,7 @@ std::shared_ptr<SwapchainManager> SwapchainManager::Builder::Build(){
     return manager;
 }
 void SwapchainManager::Cleanup(VkDevice device) {
+    vkDeviceWaitIdle(device);
     for (auto view : imageViews)
         vkDestroyImageView(device, view, nullptr);
     imageViews.clear();

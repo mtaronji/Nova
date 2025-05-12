@@ -15,6 +15,7 @@
 #include "GraphicsPipelineLoader.hpp"
 #include "DescriptorAllocator.hpp"
 #include "PipelineManager.hpp"
+#include "ResourceManager.hpp"
 
 Nova::Nova(
     std::shared_ptr<VulkanEngine> engine,
@@ -27,7 +28,8 @@ Nova::Nova(
     std::shared_ptr<PipelineLibrary>pipelineLibrary,
     std::shared_ptr<RenderPassManager> renderpassManager,
     std::shared_ptr<CommandManager> commandManager,
-    std::shared_ptr<DescriptorAllocator> descriptorAllocator)
+    std::shared_ptr<DescriptorAllocator> descriptorAllocator,
+    ResourceManager* resourceManager)
     :engine(engine),
     shell(shell),
     gpu(gpu), 
@@ -38,13 +40,32 @@ Nova::Nova(
     pipelineLibrary(pipelineLibrary),
     renderpassManager(renderpassManager),
     commandManager(commandManager),
-    descriptorAllocator(descriptorAllocator)
+    descriptorAllocator(descriptorAllocator),
+    resourceManager(resourceManager)
 {
 
 }
-void Nova::LoadResourceMap(std::unordered_map<std::string, BufferResource>* resourceMap)  {
-    this->renderer->AddResources(resourceMap);
+Nova::~Nova(){
+
+    this->commandManager->Cleanup();
+    this->framebuffersContainer->Cleanup(this->gpu->GetVkDevice());
+    this->pipelineManager->Cleanup();
+    this->descriptorAllocator->Cleanup();
+    this->syncManager->Cleanup();
+    this->renderpassManager->Cleanup();
+    this->swapchainManager->Cleanup(this->gpu->GetVkDevice());
+    this->resourceManager->Cleanup();
+    this->engine->Cleanup();
+
+    if(resourceManager != nullptr){
+        delete(resourceManager);
+        resourceManager = nullptr;
+    }
+
+
 }
+
+
 void Nova::Start(){
     shell->Run(this);
 }
@@ -52,7 +73,7 @@ void Nova::Start(){
 
 std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
-    return std::make_unique<Nova>(engine,shell,gpu,framebuffersContainer,syncManager,swapchainManager,pipelineManager,pipelineLibrary,renderpassManager,commandManager, descriptorAllocator);
+    return std::make_unique<Nova>(engine,shell,gpu,framebuffersContainer,syncManager,swapchainManager,pipelineManager,pipelineLibrary,renderpassManager,commandManager, descriptorAllocator, resourceManager);
     
 }
 
@@ -70,22 +91,47 @@ void Nova::Init() {
         commandManager,
         framebuffersContainer);
 
-    // pipelineManager->WithDescriptorSetPool();
-    // pipelineManager->WithDescriptorSetLayout();
+    pipelineManager->WithDescriptorSetPool();
+    pipelineManager->WithDescriptorSetLayout();
 
     pipelineManager->CreateGraphicsPipeline<VertexPC>();
     commandManager->CreateCommandPool();
     commandManager->AllocateCommandBuffers();
     syncManager->Initialize(MAX_FRAMES);
-    // descriptorAllocator->AllocateDescriptorSets();
+    descriptorAllocator->AllocateDescriptorSets();
+    resourceManager->CreateGPUResources(gpu.get(), commandManager.get());
+    
+
+      //add the gpu to the resources
+
+    // for (auto& [key, value] : *resourceManager->RetreiveAllResourceBuffers()) {
+    //     value->SetGPU(this->gpu);     
+    // }
+    
+    // auto r1 = resourceManager->RetrieveVulkanResource("vertices");
+    // BufferOps::CreateOnGPUBuffer(*this->gpu,*this->commandManager, r1->GetInitialDataP(),r1->GetDataSize(),r1->GetUsage(), r1->GetBuffer(), r1->GetMemory());
+    // r1->FreeInitialDataMemory();
+
+    // auto r2 = resourceManager->RetrieveVulkanResource("indices");
+    // BufferOps::CreateOnGPUBuffer(*gpu,*commandManager,r2->GetInitialDataP(),r2->GetDataSize(),r2->GetUsage(), r2->GetBuffer(), r2->GetMemory());
+    // r2->FreeInitialDataMemory();
+
+    // auto r3 = resourceManager->RetrieveVulkanResource("camera");
+    // BufferOps::CreateCPUVisibleBuffer(*gpu,*commandManager,r3->GetInitialDataP(),r3->GetDataSize(),r3->GetUsage(), r3->GetBuffer(), r3->GetMemory());
+    // r3->FreeInitialDataMemory();
+     
+    // descriptorAllocator->UpdateDescriptorSets(resourceManager);
 
 }
 
 void Nova::Update(float deltaTime){
 
+    //your updates
+    //auto& camera = resourceMap->at("camera");
+    
 }
 void Nova::Render() {
-    renderer->DrawFrame();
+    renderer->DrawFrame(resourceManager);
 }
 void Nova::Shutdown() {
 
@@ -150,5 +196,17 @@ Nova::Builder& Nova::Builder::WithCommandManager(){
 
 Nova::Builder& Nova::Builder::WithPipelineLibrary(){
     pipelineLibrary = std::make_shared<PipelineLibrary>();
+    return *this;
+}
+Nova::Builder& Nova::Builder::WithResourceManager(){
+    
+    this->resourceManager = new ResourceManager(gpu.get());
+    return *this;
+}
+Nova::Builder& Nova::Builder::WithMeshes(std::unordered_map<std::string, Mesh*> meshMap){
+    
+    for(auto& [key, mesh] : meshMap){
+        resourceManager->AddMesh(key,mesh);
+    }
     return *this;
 }

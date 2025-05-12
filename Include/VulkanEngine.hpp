@@ -26,6 +26,7 @@ class VulkanEngine{
         
         VulkanEngine(GLFWwindow* window);
    
+        ~VulkanEngine();
 
         VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) ;
 
@@ -34,12 +35,14 @@ class VulkanEngine{
         void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     
         void SetupDebugMessenger();
+
+        void Cleanup();
     
         void CreateSurface(GLFWwindow* window);
         std::vector<const char*> GetValidationLayers() const {return validationLayers;}
         std::vector<const char*> GetDeviceExtensions() const {return deviceExtensions;}
 
-
+        
         VkSurfaceKHR GetSurface() const {return surface;}
         VkInstance GetInstance() const {return instance;}
 

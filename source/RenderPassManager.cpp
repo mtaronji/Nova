@@ -1,7 +1,7 @@
 #include "RenderPassManager.hpp"
 
 RenderPassManager::~RenderPassManager() {
-    vkDestroyRenderPass(gpu->GetVkDevice(), renderPass, nullptr);
+    
 }
 
 void RenderPassManager:: NotifyRenderPassOutOfDate(){
@@ -27,7 +27,9 @@ void RenderPassManager::CreateRenderPass() {
         throw std::runtime_error("failed to create render pass!");
     }
 }
-
+void RenderPassManager::Cleanup(){
+    vkDestroyRenderPass(gpu->GetVkDevice(), renderPass, nullptr);
+}
 void RenderPassManager::UpdateColorAttachmentFormats(
     VkFormat oldColorFormat,
     VkFormat newColorFormat

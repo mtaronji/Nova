@@ -14,6 +14,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
+
 
 
 file(COPY ${CMAKE_SOURCE_DIR}/Pipelines DESTINATION ${CMAKE_BINARY_DIR})
@@ -41,10 +44,16 @@ add_executable(nova
     source/Threadpool.cpp
     source/BufferOps.cpp
 )
-target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include)
+target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
+                                        ${CMAKE_SOURCE_DIR}/fontloader/include
+                                        ${Vulkan_INCLUDE_DIRS}
+                                        ${FREETYPE_INCLUDE_DIRS}
+                                        )
 
-if (VULKAN_FOUND)
-    message(STATUS "Found Vulkan,     Including and Linking now")
-    include_directories(${Vulkan_INCLUDE_DIRS})
-    target_link_libraries (${PROJECT_NAME} PRIVATE Vulkan::Vulkan glfw)
-endif (VULKAN_FOUND)
+# Link libraries
+target_link_libraries(nova
+    PRIVATE
+    Vulkan::Vulkan
+    glfw
+    ${FREETYPE_LIBRARIES}
+)

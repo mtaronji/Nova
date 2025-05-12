@@ -27,6 +27,8 @@ class RenderPassManager {
             VkFormat oldDepthFormat,
             VkFormat newDepthFormat
         );
+
+        void Cleanup();
         
 
     protected:

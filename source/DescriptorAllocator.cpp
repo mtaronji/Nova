@@ -1,12 +1,14 @@
 #include "DescriptorAllocator.hpp"
+#include <unordered_map>
+#include <stdexcept>
 
 DescriptorAllocator::DescriptorAllocator(std::shared_ptr<GPU> gpu)
     : gpu(gpu) {
         descriptorSets.resize(MAX_FRAMES);
     }
 
-    DescriptorAllocator::~DescriptorAllocator() {
-    destroy();
+DescriptorAllocator::~DescriptorAllocator() {
+    
 }
 
 //descriptor pools create containers for the ubo objects. They don't actually manage the memory or anything
@@ -93,9 +95,13 @@ void DescriptorAllocator::resetPool() {
     }
 }
 
-void DescriptorAllocator::destroy() {
+void DescriptorAllocator::Cleanup() {
     if (descriptorPool != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(gpu->GetVkDevice(), descriptorPool, nullptr);
         descriptorPool = VK_NULL_HANDLE;
     }
+
+    for(int i = 0; i < descriptorSetLayouts.size(); i++){      //for each set
+        vkDestroyDescriptorSetLayout(gpu->GetVkDevice(), descriptorSetLayouts[i], nullptr);
+    }         
 }

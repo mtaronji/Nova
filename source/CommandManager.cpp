@@ -59,6 +59,7 @@ void CommandManager::EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
 }
 
 void CommandManager::Cleanup() {
+    vkDeviceWaitIdle(gpu->GetVkDevice());
     if (commandPool != VK_NULL_HANDLE) {
         vkDestroyCommandPool(gpu->GetVkDevice(), commandPool, nullptr);
         commandPool = VK_NULL_HANDLE;

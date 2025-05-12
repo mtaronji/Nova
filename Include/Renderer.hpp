@@ -6,6 +6,7 @@
 #include <memory>
 #include <unordered_map>
 
+
 class Shell;
 class GPU;
 class VulkanEngine;
@@ -16,6 +17,7 @@ class RenderPassManager;
 class CommandManager;
 class FramebufferGenerator;
 struct BufferResource;
+class ResourceManager;
 
 class Renderer {
     public:
@@ -33,15 +35,14 @@ class Renderer {
         Renderer() = delete;
         ~Renderer();
 
-        void virtual DrawFrame();
-
-        void virtual AddResources(std::unordered_map<std::string, BufferResource>* resourceMap);
+        void virtual DrawFrame(ResourceManager* resourceManager);
         
         void NotifySwapchainOutOfDate(); 
         
     protected:
         void virtual DrawFrameCommands(VkCommandBuffer commandBuffer, 
-                                        uint32_t imageIndex
+                                        uint32_t imageIndex,
+                                        ResourceManager* resourceManager
                                         );
 
         std::shared_ptr<GPU> gpu;
@@ -64,6 +65,5 @@ class Renderer {
         void DestroyFrameBuffers();
         void CreateFrameBuffers();
 
-        std::unordered_map<std::string, BufferResource>* resourceMap = nullptr;
 
 };

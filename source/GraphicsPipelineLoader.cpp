@@ -219,7 +219,8 @@ void GraphicsPipelineLoader::LoadFromFile(
                                             VkPipelineColorBlendStateCreateInfo& colorBlendingOut,
                                             std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,
                                             std::vector<VkDynamicState>& dynamicStatesOut,
-                                            std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorSetsOut
+                                            std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorSetsOut,
+                                            std::vector<std::string> &descriptorNames
                                         ){
 
     std::ifstream in(filePath);
@@ -354,12 +355,15 @@ void GraphicsPipelineLoader::LoadFromFile(
     descriptorSetsOut = {};
     
     if(j.contains("descriptorSets")){
-        
-        uint32_t set = 0;
+
+
+        descriptorNames.resize(1);
         for(const auto& layout : j["descriptorSets"]){
+         
             std::vector<VkDescriptorSetLayoutBinding> descSetLayoutBindings ={};
             uint32_t binding = 0;
             for (const auto& dsl : layout["descriptorSetLayout"]) {
+                
                 VkDescriptorSetLayoutBinding desclayoutbinding{};
                 desclayoutbinding.binding = binding;
                 desclayoutbinding.descriptorCount = dsl["descriptorCount"];
@@ -368,11 +372,13 @@ void GraphicsPipelineLoader::LoadFromFile(
                     desclayoutbinding.stageFlags |= ParseShaderStage(stage);
                 }
 
-                desclayoutbinding.descriptorType = ParseDescriptorType(dsl["descriptorType"]);         
+                desclayoutbinding.descriptorType = ParseDescriptorType(dsl["descriptorType"]);        
+                descriptorNames.push_back(dsl["name"]);  
                 descSetLayoutBindings.push_back(desclayoutbinding);
                 binding++;
             }
             descriptorSetsOut.push_back(descSetLayoutBindings);
+        
         }
     }
     

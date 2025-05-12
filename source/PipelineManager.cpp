@@ -1,6 +1,20 @@
 #include "PipelineManager.hpp"
 
 
+void PipelineManager::Cleanup(){
+    vkDeviceWaitIdle(gpu->GetVkDevice());
+
+    if(pipelineLayout){
+        vkDestroyPipelineLayout(gpu->GetVkDevice(), pipelineLayout, nullptr);
+    }
+    if(pipeline){
+        vkDestroyPipeline(gpu->GetVkDevice(), pipeline, nullptr);
+    }
+
+}
+PipelineManager::~PipelineManager(){
+
+}
 PipelineManager::PipelineManager(
     std::shared_ptr<GPU> gpu, 
     std::shared_ptr<RenderPassManager> renderpassManager,
@@ -9,12 +23,6 @@ PipelineManager::PipelineManager(
 
     PipelineManager::LoadConfig("Pipelines/defaultPipelineConfig.json");
 
-
-}
-
-PipelineManager::~PipelineManager() {
-    vkDestroyPipeline(gpu->GetVkDevice(), pipeline, nullptr);
-    vkDestroyPipelineLayout(gpu->GetVkDevice(), pipelineLayout, nullptr);
 }
 
 void PipelineManager::WithDescriptorSetLayout(){
@@ -41,7 +49,8 @@ void PipelineManager::LoadConfig(const std::string configFile) {
                                         colorBlending,
                                         colorblendAttachments,
                                         dynamicStates,
-                                        descriptorBindingsPerSet
+                                        descriptorBindingsPerSet,
+                                        descriptorNames
     );
     
 }

@@ -8,6 +8,7 @@
 #include "VulkanEngine.hpp"
 #include "FramebufferGenerator.hpp"
 #include "BufferOps.hpp"
+#include "ResourceManager.hpp"
 
 Renderer::Renderer(   
     std::shared_ptr<Shell> shell,
@@ -19,7 +20,8 @@ Renderer::Renderer(
     std::shared_ptr<RenderPassManager> renderpassmanager,
     std::shared_ptr<CommandManager> commandmanager,
     std::shared_ptr<FramebufferGenerator> framebufferContainer
-    ):shell(shell),gpu(gpu), engine(engine),swapchainmanager(swapchainmanager), syncmanager(syncmanager),renderpassmanager(renderpassmanager),pipelinemanager(pipelinemanager),commandmanager(commandmanager),framebufferContainer(framebufferContainer)
+    ):shell(shell),gpu(gpu), engine(engine),swapchainmanager(swapchainmanager), syncmanager(syncmanager),renderpassmanager(renderpassmanager),pipelinemanager(pipelinemanager),commandmanager(commandmanager),
+    framebufferContainer(framebufferContainer)
     {
         
         
@@ -27,46 +29,9 @@ Renderer::Renderer(
 
 Renderer::~Renderer() {}
 
-void Renderer::AddResources(std::unordered_map<std::string, BufferResource>* resourceMap){
-    //as of now, vertices are in one buffer. Indexes another ubos as well
-    //Create all teh buffers for our objects
-    if(resourceMap){
-        if(resourceMap->contains("vertices")){
-            auto& resource = resourceMap->at("vertices");
-            BufferOps::CreateDataBuffer(*gpu,
-                *commandmanager,
-                resource.mappedData,
-                resource.dataSize,
-                resource.GetUsage(), 
-                resource.GetBuffer(), 
-                resource.GetMemory());
-        }
-        if(resourceMap->contains("indices")){
-            auto& resource = resourceMap->at("indices");
-            BufferOps::CreateDataBuffer(*gpu,
-                *commandmanager,
-                resource.mappedData,
-                resource.dataSize,
-                resource.GetUsage(), 
-                resource.GetBuffer(), 
-                resource.GetMemory());
-        }
-        if(resourceMap->contains("camera")){
-            auto& resource = resourceMap->at("camera");
-            BufferOps::CreateDataBuffer(*gpu,
-                *commandmanager,
-                resource.mappedData,
-                resource.dataSize,
-                resource.GetUsage(), 
-                resource.GetBuffer(), 
-                resource.GetMemory());
-        }
 
-        this->resourceMap = resourceMap;
-    }
-}
 
-void Renderer::DrawFrame() {
+void Renderer::DrawFrame(ResourceManager* resourceManager) {
     
     FrameSync& frame = syncmanager->GetFrame(currentFrame);
     auto device = gpu->GetVkDevice();
@@ -91,7 +56,7 @@ void Renderer::DrawFrame() {
     vkResetFences(device, 1, &frame.inFlight);
 
     vkResetCommandBuffer(commandbuffer, /*VkCommandBufferResetFlagBits*/ 0);
-    DrawFrameCommands(commandbuffer, imageIndex);
+    DrawFrameCommands(commandbuffer, imageIndex, resourceManager);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -142,7 +107,8 @@ void Renderer::NotifySwapchainOutOfDate(){
 }
 
 void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer, 
-                                  uint32_t imageIndex
+                                  uint32_t imageIndex,
+                                  ResourceManager* resourceManager
                                   
                                 ){
   
@@ -151,14 +117,18 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     VkBuffer vbuffer = VK_NULL_HANDLE;
     VkBuffer ibuffer = VK_NULL_HANDLE;
     
-    if(resourceMap){
-        if(resourceMap->contains("vertices")){
-            vbuffer = resourceMap->at("vertices").GetBuffer();
-        }
-        if(resourceMap->contains("indices")){
-            ibuffer = resourceMap->at("indices").GetBuffer();
-        }
-    }
+    auto square = resourceManager->RetrieveMesh("square");
+    vbuffer = square->vertexResource->GetBuffer();
+    ibuffer = square->indiceResource->GetBuffer();
+
+
+        // if(resourceMap->contains("vertices")){
+        //     vbuffer = resourceMap->at("vertices")->GetBuffer();
+        // }
+        // if(resourceMap->contains("indices")){
+        //     ibuffer = resourceMap->at("indices")->GetBuffer();
+        // }
+    
  
 
     // auto const &pipeline = pipelinemanager->GetPipeline();
@@ -208,8 +178,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
             vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbuffer, offsets);
             if(ibuffer != VK_NULL_HANDLE){
                 vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT32);
-
-                uint32_t arrayCount = resourceMap->at("indices").arraySize;
+                uint32_t arrayCount = square->indiceResource->GetArraySize();
                 vkCmdDrawIndexed(commandBuffer, arrayCount, 1, 0, 0, 0);
             }
         }

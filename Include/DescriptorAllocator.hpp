@@ -1,14 +1,11 @@
 #pragma once
 
-
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <stdexcept>
-#include <memory>
-#include <unordered_map>
-#include "GPU.hpp"
-#include "BufferOps.hpp"
 
+#include <memory>
+#include "GPU.hpp"
+#include "ResourceManager.hpp"
 
 
 class DescriptorAllocator {
@@ -31,26 +28,24 @@ class DescriptorAllocator {
         //if you requested data in more than 1 set, it should be reflect here.
         //the order MUST be correct
         //this is where we give the actual buffers, no longer a description. Vkbuffer has the actual data.
-        void UpdateDescriptorSets(std::vector<std::vector<VkBuffer>> buffersPerSet){
-
-            
+        void UpdateDescriptorSets(ResourceManager * manager){
+        
             for (uint32_t frame = 0; frame < MAX_FRAMES; ++frame) {
 
                 for (size_t setIndex = 0; setIndex < descriptorSetLayouts.size(); ++setIndex) {
 
                     const VkDescriptorSet& set = descriptorSets[frame * descriptorSetLayouts.size() + setIndex];
-                    const auto& buffers = buffersPerSet[setIndex];
+                    auto& resources = manager->ReceiveDescriptorSetBuffers(setIndex);
         
                     std::vector<VkWriteDescriptorSet> writes;
                     std::vector<VkDescriptorBufferInfo> bufferInfos;
         
-                    for (uint32_t binding = 0; binding < buffers.size(); ++binding) {
-                        
-        
+                    for (uint32_t binding = 0; binding < resources.size(); ++binding) {
+                         
                         VkDescriptorBufferInfo bufferInfo{};
-                        // bufferInfo.buffer = novaBu;
-                        // bufferInfo.offset = 0;
-                        // bufferInfo.range  = novaBuf.size;
+                        bufferInfo.buffer = resources[binding]->GetBuffer();
+                        bufferInfo.offset = 0;
+                        bufferInfo.range  = resources[binding]->GetDataSize();
         
                         bufferInfos.push_back(bufferInfo);
         
@@ -72,7 +67,7 @@ class DescriptorAllocator {
         }
     
 
-        void destroy(); // explicit destruction
+        void Cleanup(); // explicit destruction
 
 
     protected:
@@ -83,6 +78,7 @@ class DescriptorAllocator {
         VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
         std::vector<VkDescriptorSet> descriptorSets;
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+        std::vector<std::vector<std::string>> descriptorNamesPerSet;
         
 
     private:

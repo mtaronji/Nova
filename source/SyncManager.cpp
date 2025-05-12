@@ -4,7 +4,7 @@
 SyncManager::SyncManager(VkDevice device ) : m_device(device) {}
 
 SyncManager::~SyncManager() {
-    cleanup();
+   
 }
 
 void SyncManager::Initialize(uint32_t maxFramesInFlight){
@@ -43,7 +43,8 @@ VkFence SyncManager::CreateFence(bool signaled) {
 }
 
 
-void SyncManager::cleanup() {
+void SyncManager::Cleanup() {
+    vkDeviceWaitIdle(m_device);
     for (auto& frame : m_frames) {
         vkDestroySemaphore(m_device, frame.imageAvailable, nullptr);
         vkDestroySemaphore(m_device, frame.renderFinished, nullptr);
