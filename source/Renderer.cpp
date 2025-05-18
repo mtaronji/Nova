@@ -9,6 +9,7 @@
 #include "FramebufferGenerator.hpp"
 #include "BufferOps.hpp"
 #include "ResourceManager.hpp"
+#include "DescriptorAllocator.hpp"
 
 Renderer::Renderer(   
     std::shared_ptr<Shell> shell,
@@ -19,9 +20,12 @@ Renderer::Renderer(
     std::shared_ptr<PipelineManager> pipelinemanager,
     std::shared_ptr<RenderPassManager> renderpassmanager,
     std::shared_ptr<CommandManager> commandmanager,
-    std::shared_ptr<FramebufferGenerator> framebufferContainer
-    ):shell(shell),gpu(gpu), engine(engine),swapchainmanager(swapchainmanager), syncmanager(syncmanager),renderpassmanager(renderpassmanager),pipelinemanager(pipelinemanager),commandmanager(commandmanager),
-    framebufferContainer(framebufferContainer)
+    std::shared_ptr<FramebufferGenerator> framebufferContainer,
+    std::shared_ptr<DescriptorAllocator> descriptorAllocator,
+    std::shared_ptr<ResourceManager> resourceManager
+    ):shell(shell), gpu(gpu), engine(engine), swapchainmanager(swapchainmanager), syncmanager(syncmanager), 
+    renderpassmanager(renderpassmanager), pipelinemanager(pipelinemanager), commandmanager(commandmanager),
+    framebufferContainer(framebufferContainer),resourceManager(resourceManager), descriptorAllocator(descriptorAllocator)
     {
         
         
@@ -31,7 +35,7 @@ Renderer::~Renderer() {}
 
 
 
-void Renderer::DrawFrame(ResourceManager* resourceManager) {
+void Renderer::DrawFrame() {
     
     FrameSync& frame = syncmanager->GetFrame(currentFrame);
     auto device = gpu->GetVkDevice();
@@ -56,7 +60,7 @@ void Renderer::DrawFrame(ResourceManager* resourceManager) {
     vkResetFences(device, 1, &frame.inFlight);
 
     vkResetCommandBuffer(commandbuffer, /*VkCommandBufferResetFlagBits*/ 0);
-    DrawFrameCommands(commandbuffer, imageIndex, resourceManager);
+    DrawFrameCommands(commandbuffer, imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -107,30 +111,12 @@ void Renderer::NotifySwapchainOutOfDate(){
 }
 
 void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer, 
-                                  uint32_t imageIndex,
-                                  ResourceManager* resourceManager
-                                  
+                                  uint32_t imageIndex
                                 ){
   
     auto const &renderpass = renderpassmanager->GetRenderPass();
     auto const &extent = swapchainmanager->GetExtent();
-    VkBuffer vbuffer = VK_NULL_HANDLE;
-    VkBuffer ibuffer = VK_NULL_HANDLE;
-    
-    auto square = resourceManager->RetrieveMesh("square");
-    vbuffer = square->vertexResource->GetBuffer();
-    ibuffer = square->indiceResource->GetBuffer();
-
-
-        // if(resourceMap->contains("vertices")){
-        //     vbuffer = resourceMap->at("vertices")->GetBuffer();
-        // }
-        // if(resourceMap->contains("indices")){
-        //     ibuffer = resourceMap->at("indices")->GetBuffer();
-        // }
-    
  
-
     // auto const &pipeline = pipelinemanager->GetPipeline();
 
     VkCommandBufferBeginInfo beginInfo{};
@@ -146,6 +132,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     renderPassInfo.framebuffer = framebufferContainer->GetFramebuffers()[imageIndex];
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapchainmanager->GetExtent();
+
 
     std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
@@ -171,13 +158,18 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
         scissor.offset = {0, 0};
         scissor.extent = extent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    
+        auto square = resourceManager->GetMesh("square");
+        auto vbuffer = square->vertexResource->GetBuffer();
+        auto ibuffer = square->indiceResource->GetBuffer();
         
         if (vbuffer != VK_NULL_HANDLE) {
            
-            VkDeviceSize offsets[] = {0};
+            VkDeviceSize offsets[] = {square->vertexResource->GetOffSet()};
             vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbuffer, offsets);
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinemanager->GetPipelineLayout(), 0, 1, & descriptorAllocator->GetDescriptorSet(0), 0, nullptr);
             if(ibuffer != VK_NULL_HANDLE){
-                vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT32);
+                vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT16);
                 uint32_t arrayCount = square->indiceResource->GetArraySize();
                 vkCmdDrawIndexed(commandBuffer, arrayCount, 1, 0, 0, 0);
             }
@@ -185,9 +177,9 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
         
         
         
-        // vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, descriptorSets[currentFrame].data(), 0, nullptr);
+        
 
-    vkCmdEndRenderPass(commandBuffer);
+      vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");

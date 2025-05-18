@@ -43,6 +43,7 @@ add_executable(nova
     source/DescriptorAllocator.cpp
     source/Threadpool.cpp
     source/BufferOps.cpp
+    source/BufferResource.cpp
 )
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include

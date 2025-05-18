@@ -6,7 +6,8 @@
 #include <unordered_map>
 #include <memory>
 #include <set>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 class Shell;
 class GPU;
@@ -40,7 +41,7 @@ class Nova : public IRenderLoopClient{
             std::shared_ptr<RenderPassManager> renderpassManager,
             std::shared_ptr<CommandManager> commandManager,
             std::shared_ptr<DescriptorAllocator> descriptorAllocator,
-            ResourceManager* resourceManager
+            std::shared_ptr<ResourceManager> resourceManager
         );
         ~Nova();
         
@@ -59,40 +60,44 @@ class Nova : public IRenderLoopClient{
                 std::unique_ptr<IRenderLoopClient> Build();
 
          
-                Builder& WithShell();                   Builder& WithShell(std::shared_ptr<Shell> shell){ this->shell = shell; return *this;}
-                Builder& WithEngine();                  Builder& WithEngine(std::shared_ptr<VulkanEngine> engine){this->engine = engine; return *this;}
-                Builder& WithGPU();                     Builder& WithGPU(std::shared_ptr<GPU> gpu){ this->gpu = gpu; return *this;}
-                Builder& WithSwapchainManager();        Builder& WithSwapchainManager(std::shared_ptr<SwapchainManager>swapchainManager){this->swapchainManager = swapchainManager; return *this;}
-                Builder& WithRenderpass();              Builder& WithRenderpass(std::shared_ptr<RenderPassManager> renderpassManager){this->renderpassManager = renderpassManager; return *this;}
-                Builder& WithFramebufferGenerator();    Builder& WithFramebufferGenerator(std::shared_ptr<FramebufferGenerator> framebuffersContainer){this->framebuffersContainer = framebuffersContainer; return *this;}
-                Builder& WithDescriptorAllocator();     Builder& WithDescriptorAllocator(std::shared_ptr<DescriptorAllocator> descriptorAllocator){this->descriptorAllocator = descriptorAllocator; return *this;}
-                Builder& WithPipelineManager();         Builder& WithPipelineManager(std::shared_ptr<PipelineManager> pipelineManager){this->pipelineManager = pipelineManager; return *this;}
-                Builder& WithSyncManager();             Builder& WithSyncManager(std::shared_ptr<SyncManager> syncManager){this->syncManager = syncManager; return *this;}
-                Builder& WithCommandManager();          Builder& WithCommandManager(std::shared_ptr<CommandManager> commandManager){this->commandManager = commandManager; return *this;}
-                Builder& WithPipelineLibrary();         Builder& WithPipelineLibrary(std::shared_ptr<PipelineLibrary> pipelineLibrary){ this->pipelineLibrary = pipelineLibrary; return *this;}
-                Builder& WithResourceManager();         Builder& WithResourceManager(ResourceManager& manager){ this->resourceManager = resourceManager; return *this;}
-                Builder& WithMeshes(std::unordered_map<std::string, Mesh*> meshMap);
+                virtual Builder& WithShell();                   Builder& WithShell(std::shared_ptr<Shell> shell){ this->shell = shell; return *this;}
+                virtual Builder& WithEngine();                  Builder& WithEngine(std::shared_ptr<VulkanEngine> engine){this->engine = engine; return *this;}
+                virtual Builder& WithGPU();                     Builder& WithGPU(std::shared_ptr<GPU> gpu){ this->gpu = gpu; return *this;}
+                virtual Builder& WithSwapchainManager();        Builder& WithSwapchainManager(std::shared_ptr<SwapchainManager>swapchainManager){this->swapchainManager = swapchainManager; return *this;}
+                virtual Builder& WithRenderpass();              Builder& WithRenderpass(std::shared_ptr<RenderPassManager> renderpassManager){this->renderpassManager = renderpassManager; return *this;}
+                virtual Builder& WithFramebufferGenerator();    Builder& WithFramebufferGenerator(std::shared_ptr<FramebufferGenerator> framebuffersContainer){this->framebuffersContainer = framebuffersContainer; return *this;}
+                virtual Builder& WithDescriptorAllocator();     Builder& WithDescriptorAllocator(std::shared_ptr<DescriptorAllocator> descriptorAllocator){this->descriptorAllocator = descriptorAllocator; return *this;}
+                virtual Builder& WithPipelineManager();         Builder& WithPipelineManager(std::shared_ptr<PipelineManager> pipelineManager){this->pipelineManager = pipelineManager; return *this;}
+                virtual Builder& WithSyncManager();             Builder& WithSyncManager(std::shared_ptr<SyncManager> syncManager){this->syncManager = syncManager; return *this;}
+                virtual Builder& WithCommandManager();          Builder& WithCommandManager(std::shared_ptr<CommandManager> commandManager){this->commandManager = commandManager; return *this;}
+                virtual Builder& WithPipelineLibrary();         Builder& WithPipelineLibrary(std::shared_ptr<PipelineLibrary> pipelineLibrary){ this->pipelineLibrary = pipelineLibrary; return *this;}
+                virtual Builder& WithResourceManager();         Builder& WithResourceManager(std::shared_ptr<ResourceManager> resourceManager){ this->resourceManager = resourceManager; return *this;}
+                virtual Builder& WithMeshes();                  Builder& WithMeshes(std::unordered_map<std::string, Mesh*> meshes);
+                virtual Builder& WithDescriptorSets();          Builder& WithDescriptorSets(std::vector<std::vector<BufferResource*>>& descriptorSets);
+                virtual Builder& WithResourceMap();             Builder& WithResourceMap(std::unordered_map<std::string, BufferResource*> resourceMap);
+                
+                
+                
 
             protected:
                 std::shared_ptr<Shell> shell;
                 std::shared_ptr<VulkanEngine> engine;
                 std::shared_ptr<GPU> gpu;
-
                 std::shared_ptr<SwapchainManager>swapchainManager;
-
                 std::shared_ptr<RenderPassManager> renderpassManager;
                 std::shared_ptr<FramebufferGenerator> framebuffersContainer;
-
                 std::shared_ptr<DescriptorAllocator> descriptorAllocator;                               
-                std::shared_ptr<PipelineManager> pipelineManager;
-                
+                std::shared_ptr<PipelineManager> pipelineManager;            
                 std::shared_ptr<SyncManager> syncManager;
-
                 std::shared_ptr<PipelineLibrary>pipelineLibrary;
-
                 std::shared_ptr<CommandManager> commandManager;
+                std::shared_ptr<ResourceManager> resourceManager;
 
-                ResourceManager* resourceManager = nullptr;
+                CameraUBO camera = {};
+                glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
+                glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
+                glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);           // Up direction
+               
                 
             private:
                 
@@ -115,18 +120,23 @@ class Nova : public IRenderLoopClient{
         std::shared_ptr<DescriptorAllocator> descriptorAllocator;
         std::shared_ptr<Renderer> renderer;
         std::vector<VkAttachmentDescription> attachmentDescriptions;
-        ResourceManager* resourceManager = nullptr;
-        std::set<std::string> resourcesCPUVisible;
-        std::set<std::string> resourcesOnGPU;
+        std::shared_ptr<ResourceManager> resourceManager;
+        CameraUBO camera = {};
+        glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
+        glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
+        glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);                // Up direction
+        
+        
 
-        bool initialized = false;
-
+        virtual void CreateMoniliths();
+        virtual void AllocateToMonoliths();
 
 
     private:
         uint32_t MAX_FRAMES = 3;
-        CameraUBO camera = {};
-
+        float angle = glm::pi<float>() * 1.5f;
+        float cameraspeed = glm::pi<float>() / 20.0f;
+        float oribitalDistance = 5.0f;
 
         
 };

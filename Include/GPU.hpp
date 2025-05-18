@@ -23,6 +23,8 @@ struct QueueFamilyIndices {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
+
+
 class VulkanEngine;
 class GPU {
     public:
@@ -38,6 +40,8 @@ class GPU {
         uint32_t GetGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
         uint32_t GetPresentQueueFamilyIndex() const { return presentQueueFamilyIndex; }
         QueueFamilyIndices FindQueueFamilies();
+
+      
 
     protected:
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

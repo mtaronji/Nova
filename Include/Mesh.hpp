@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <stdexcept>
 #include "BufferOps.hpp"
+#include "BufferResource.hpp"
 
 class CommandManager;
 
@@ -50,14 +51,18 @@ struct BoundingBox {
     glm::vec3 Extents() const {
         return max - min;
     }
+
 };
 
 struct Mesh {
     Mesh() = delete;
     Mesh& operator=(const Mesh&) = delete;
-    Mesh(BufferResource* vertices, BufferResource* indices){this->vertexResource = vertices; this->indiceResource = indices;}
     ~Mesh(){
        
+    }
+
+    static Mesh* Create(BufferResource* vertices, BufferResource* indices){
+        return new Mesh(vertices, indices);
     }
     void Cleanup(GPU *gpu){
         if(vertexResource != nullptr){vertexResource->Cleanup(gpu); vertexResource = nullptr;}
@@ -65,14 +70,29 @@ struct Mesh {
     }
 
     void CreateGPUResources(GPU* gpu, CommandManager* commandManager){
-        BufferOps::CreateOnGPUBuffer(*gpu, *commandManager, vertexResource->GetInitialDataP(), vertexResource->GetDataSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexResource->GetBuffer(), vertexResource->GetMemory());
-        BufferOps::CreateOnGPUBuffer(*gpu, *commandManager, indiceResource->GetInitialDataP(), indiceResource->GetDataSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indiceResource->GetBuffer(), indiceResource->GetMemory());
+        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, vertexResource->GetData(), vertexResource->GetDataSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexResource->GetBuffer(), vertexResource->GetMemory(),verticeOffset, 0);
+        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, indiceResource->GetData(), indiceResource->GetDataSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indiceResource->GetBuffer(), indiceResource->GetMemory(), indiceOffset, 0);
     }
+
+    void Bind(VkCommandBuffer cmdBuffer){
+
+    }
+    void Draw(VkCommandBuffer){
+        
+    }
+
+    
     glm::mat4 modelMatrix;
     BoundingBox aabb;
     BufferResource* vertexResource = nullptr;
     BufferResource* indiceResource = nullptr;
     bool visible = true;
+
+    protected:
+        Mesh(BufferResource* vertices, BufferResource* indices){this->vertexResource = vertices; this->indiceResource = indices;}
+    private:
+        float verticeOffset = 0.0f;
+        float indiceOffset = 0.0f;
 };
 
 

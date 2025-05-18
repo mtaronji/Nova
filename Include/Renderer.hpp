@@ -1,10 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <array>
-#include <cassert>
 #include <memory>
-#include <unordered_map>
 
 
 class Shell;
@@ -18,6 +15,7 @@ class CommandManager;
 class FramebufferGenerator;
 struct BufferResource;
 class ResourceManager;
+class DescriptorAllocator;
 
 class Renderer {
     public:
@@ -30,19 +28,21 @@ class Renderer {
             std::shared_ptr<PipelineManager> pipelinemanager,
             std::shared_ptr<RenderPassManager> renderpassmanager,
             std::shared_ptr<CommandManager> commandmanager,
-            std::shared_ptr<FramebufferGenerator> framebufferContainer
+            std::shared_ptr<FramebufferGenerator> framebufferContainer,
+            std::shared_ptr<DescriptorAllocator> descriptorAllocator,
+            std::shared_ptr<ResourceManager> resourceManager
+
         );
         Renderer() = delete;
         ~Renderer();
 
-        void virtual DrawFrame(ResourceManager* resourceManager);
+        void virtual DrawFrame();
         
         void NotifySwapchainOutOfDate(); 
         
     protected:
         void virtual DrawFrameCommands(VkCommandBuffer commandBuffer, 
-                                        uint32_t imageIndex,
-                                        ResourceManager* resourceManager
+                                        uint32_t imageIndex
                                         );
 
         std::shared_ptr<GPU> gpu;
@@ -54,6 +54,8 @@ class Renderer {
         std::shared_ptr<CommandManager> commandmanager;
         std::shared_ptr<FramebufferGenerator> framebufferContainer;
         std::shared_ptr<Shell> shell;
+        std::shared_ptr<DescriptorAllocator> descriptorAllocator;
+        std::shared_ptr<ResourceManager> resourceManager;
 
 
         uint32_t currentFrame = 0;

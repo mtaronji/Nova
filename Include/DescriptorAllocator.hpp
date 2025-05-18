@@ -2,11 +2,10 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-
 #include <memory>
 #include "GPU.hpp"
 #include "ResourceManager.hpp"
-
+#include "BufferResource.hpp"
 
 class DescriptorAllocator {
     public:
@@ -17,6 +16,14 @@ class DescriptorAllocator {
         VkDescriptorPool GetPool()const {return descriptorPool;}
         std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts () {return descriptorSetLayouts;}
         std::vector<VkDescriptorSet>& GetDescriptorSets () {return descriptorSets;}
+
+        VkDescriptorSet& GetDescriptorSet(uint32_t set){
+            return descriptorSets[set];
+        }
+
+        VkDescriptorSetLayout& GetDescriptorSetLayout(uint32_t set){
+            return descriptorSetLayouts[set];
+        }
 
         void CreateDescriptorSetPool(std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet);
         void AllocateDescriptorSets();
@@ -35,7 +42,7 @@ class DescriptorAllocator {
                 for (size_t setIndex = 0; setIndex < descriptorSetLayouts.size(); ++setIndex) {
 
                     const VkDescriptorSet& set = descriptorSets[frame * descriptorSetLayouts.size() + setIndex];
-                    auto& resources = manager->ReceiveDescriptorSetBuffers(setIndex);
+                    auto& resources = manager->GetDescriptorSet(setIndex);
         
                     std::vector<VkWriteDescriptorSet> writes;
                     std::vector<VkDescriptorBufferInfo> bufferInfos;
@@ -44,8 +51,8 @@ class DescriptorAllocator {
                          
                         VkDescriptorBufferInfo bufferInfo{};
                         bufferInfo.buffer = resources[binding]->GetBuffer();
-                        bufferInfo.offset = 0;
-                        bufferInfo.range  = resources[binding]->GetDataSize();
+                        bufferInfo.offset = resources[binding]->GetOffSet();
+                        bufferInfo.range  = resources[binding]->GetAlignedDataSize(256);
         
                         bufferInfos.push_back(bufferInfo);
         

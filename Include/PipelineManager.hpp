@@ -165,8 +165,8 @@ class PipelineManager {
         std::shared_ptr<DescriptorAllocator> descriptorAllocator;
         std::shared_ptr<GPU> gpu;
 
-        VkPipeline pipeline;
-        VkPipelineLayout pipelineLayout;
+        VkPipeline pipeline = VK_NULL_HANDLE;
+        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
         
         std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
         std::vector<char> vertexShaderCode;
