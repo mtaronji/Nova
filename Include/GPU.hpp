@@ -35,11 +35,23 @@ class GPU {
         VkPhysicalDevice GetPhysicalDevice() const { return physicalDevice; }
         VkQueue GetGraphicsQueue() const { return graphicsQueue; }
         VkQueue GetPresentQueue() const { return presentQueue; }
-        VkCommandPool GetCommandPool()const{return commandPool;}
 
         uint32_t GetGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
         uint32_t GetPresentQueueFamilyIndex() const { return presentQueueFamilyIndex; }
         QueueFamilyIndices FindQueueFamilies();
+
+        void QueryAll();
+
+        VkPhysicalDeviceProperties& GetDeviceProperties();
+        VkPhysicalDeviceFeatures& GetDeviceFeatures();
+        VkPhysicalDeviceMemoryProperties& GetMemoryProperties();
+        std::vector<VkQueueFamilyProperties>& GetQueueFamilies();
+        std::vector<VkFormat> GetSupportedFormats(VkImageTiling tiling, VkFormatFeatureFlags features);
+        std::vector<VkExtensionProperties>& GetDeviceExtensions();
+       
+
+        bool IsFormatSupported(VkFormat format, VkImageTiling tiling, VkFormatFeatureFlags features);
+        uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
       
 
@@ -51,11 +63,17 @@ class GPU {
         uint32_t graphicsQueueFamilyIndex = 0;
         uint32_t presentQueueFamilyIndex = 0;
         std::shared_ptr<VulkanEngine> engine;
-        VkCommandPool commandPool;
+
+        VkPhysicalDeviceProperties deviceProperties{};
+        VkPhysicalDeviceFeatures deviceFeatures{};
+        VkPhysicalDeviceMemoryProperties memoryProperties{};
+        std::vector<VkQueueFamilyProperties> queueFamilies;
+        std::vector<VkExtensionProperties> extensionProperties;
+
+        std::vector<VkFormat> supportedFormats;
 
         void PickPhysicalDevice(VkInstance instance);
         void CreateLogicalDevice();
-        void CreateCommandPool();
         const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation"
         };

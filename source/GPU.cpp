@@ -5,7 +5,7 @@ GPU::GPU(std::shared_ptr<VulkanEngine> engine) : engine(engine){
     auto instance = engine->GetInstance();
     PickPhysicalDevice(instance);
     CreateLogicalDevice();
-    CreateCommandPool();
+    QueryAll();
 }
 
 void GPU::Cleanup() {
@@ -27,12 +27,32 @@ void GPU::PickPhysicalDevice(VkInstance instance) {
     for (const auto& dev : devices) {
         VkPhysicalDeviceProperties props;
         vkGetPhysicalDeviceProperties(dev, &props);
+        std::cout << "Found GPU: " << props.deviceName << std::endl;
 
-        // Simple selection logic for now
-        physicalDevice = dev;
-        break;
+        // Prepare the extended feature structs
+        VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures separateLayoutsFeature{};
+        separateLayoutsFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
+
+        VkPhysicalDeviceFeatures2 features2{};
+        features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        features2.pNext = &separateLayoutsFeature;
+
+        // Query supported features with the extended chain
+        vkGetPhysicalDeviceFeatures2(dev, &features2);
+
+        // Check if the separate layout feature is supported
+        if (separateLayoutsFeature.separateDepthStencilLayouts == VK_TRUE) {
+            std::cout << "  -> separateDepthStencilLayouts supported" << std::endl;
+            physicalDevice = dev;
+        
+            break;  // or choose best candidate
+        } else {
+            std::cout << "  -> separateDepthStencilLayouts NOT supported" << std::endl;
+        }
+       
+                 
     }
-
+  
     if (physicalDevice == VK_NULL_HANDLE)
         throw std::runtime_error("Failed to select a suitable GPU");
 
@@ -67,9 +87,15 @@ void GPU::CreateLogicalDevice() {
         queueCreateInfo.pQueuePriorities = &queuePriority;
         queueCreateInfos.push_back(queueCreateInfo);
     }
-
+    //advanced stencil layouts
+    // VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures separateDSLayoutsEnable{};
+    // separateDSLayoutsEnable.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
+    // separateDSLayoutsEnable.separateDepthStencilLayouts = VK_TRUE;
+    
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
+    deviceFeatures.sampleRateShading = VK_TRUE;
+    
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -81,6 +107,8 @@ void GPU::CreateLogicalDevice() {
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+    //createInfo.pNext = &separateDSLayoutsEnable;
+    createInfo.pNext = nullptr;
 
     if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -130,15 +158,73 @@ QueueFamilyIndices GPU::FindQueueFamilies() {
     return indices;
 }
 
-void GPU::CreateCommandPool() {
-                
-    VkCommandPool commandPool;
-    VkCommandPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    poolInfo.queueFamilyIndex = graphicsQueueFamilyIndex;
+void GPU::QueryAll() {
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+    vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
 
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create graphics command pool!");
+    uint32_t queueCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, nullptr);
+    queueFamilies.resize(queueCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, queueFamilies.data());
+
+    uint32_t extensionCount = 0;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+    extensionProperties.resize(extensionCount);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, extensionProperties.data());
+}
+
+VkPhysicalDeviceProperties& GPU::GetDeviceProperties() {
+    return deviceProperties;
+}
+
+VkPhysicalDeviceFeatures& GPU::GetDeviceFeatures()  {
+    return deviceFeatures;
+}
+
+VkPhysicalDeviceMemoryProperties& GPU::GetMemoryProperties()  {
+    return memoryProperties;
+}
+
+std::vector<VkQueueFamilyProperties>& GPU::GetQueueFamilies()  {
+    return queueFamilies;
+}
+
+std::vector<VkExtensionProperties>& GPU::GetDeviceExtensions()  {
+    return extensionProperties;
+}
+
+bool GPU::IsFormatSupported(VkFormat format, VkImageTiling tiling, VkFormatFeatureFlags features) {
+    VkFormatProperties props;
+    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+    if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+        return true;
     }
+    if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+        return true;
+    }
+    return false;
+}
+
+std::vector<VkFormat> GPU::GetSupportedFormats(VkImageTiling tiling, VkFormatFeatureFlags features) {
+    std::vector<VkFormat> supported;
+
+    for (int format = VK_FORMAT_UNDEFINED + 1; format <= VK_FORMAT_ASTC_12x12_SRGB_BLOCK; ++format) {
+        if (IsFormatSupported(static_cast<VkFormat>(format), tiling, features)) {
+            supported.push_back(static_cast<VkFormat>(format));
+        }
+    }
+
+    return supported;
+}
+
+uint32_t GPU::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)  {
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        if ((typeFilter & (1 << i)) &&
+            (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+    throw std::runtime_error("Failed to find suitable memory type!");
 }

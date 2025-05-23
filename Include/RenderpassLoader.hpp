@@ -14,6 +14,9 @@ public:
                                                 std::vector<VkAttachmentDescription>& attachmentDescriptionsOut,
                                                 std::vector<VkSubpassDescription>& subpassDescriptionsOut,
                                                 std::vector<VkSubpassDependency>& subpassdependenciesOut,
-                                                std::vector<VkAttachmentReference>& colorAtachmentRefs,
-                                                std::vector<VkAttachmentReference>& depthAtachmentRefs);
+                                                std::vector<VkAttachmentReference>& colorAtachmentRefsOut,
+                                                std::vector<VkAttachmentReference>& depthAtachmentRefsOut,
+                                                std::vector<VkAttachmentReference>& resolveAtachmentRefsOut,
+                                                std::vector<VkImageUsageFlags>& imageUsesForAttachmentsOut,
+                                                std::vector<VkImageAspectFlags>& aspectFlagsForAttachmentsOut);
 };

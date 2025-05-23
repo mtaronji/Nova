@@ -21,7 +21,7 @@ PipelineManager::PipelineManager(
     std::shared_ptr<DescriptorAllocator> descriptorAllocator
     ):gpu(gpu),renderpassManager(renderpassManager),descriptorAllocator(descriptorAllocator){
 
-    PipelineManager::LoadConfig("Pipelines/defaultPipelineConfig.json");
+    PipelineManager::LoadConfig("Pipelines/defaultPipelineConfig copy.json");
 
 }
 
@@ -45,6 +45,7 @@ void PipelineManager::LoadConfig(const std::string configFile) {
                                         geometryShaderCode,
                                         inputAssembly,
                                         rasterizerCreateInfo,
+                                        depthStencil,
                                         multisampling,
                                         colorBlending,
                                         colorblendAttachments,

@@ -31,7 +31,7 @@ add_executable(nova
     source/GPU.cpp 
     source/Shader.cpp 
     source/RenderPassManager.cpp
-    source/FramebufferManager.cpp
+    source/FramebufferGenerator.cpp
     source/PipelineManager.cpp
     source/CommandManager.cpp
     source/SwapchainManager.cpp 
@@ -44,6 +44,8 @@ add_executable(nova
     source/Threadpool.cpp
     source/BufferOps.cpp
     source/BufferResource.cpp
+    source/Mesh.cpp
+    source/ImageManager.cpp
 )
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include

@@ -15,19 +15,6 @@
         "imageAspectFlags": ["VK_IMAGE_ASPECT_COLOR_BIT"]
       },
       {
-        "attachmentType": "resolve",
-        "id": "resolve0",
-        "name": "resolveMA",
-        "format": "VK_FORMAT_B8G8R8A8_SRGB",
-        "samples": 1,
-        "loadOp": "clear",
-        "storeOp": "store",
-        "initialLayout": "VK_IMAGE_LAYOUT_UNDEFINED",
-        "finalLayout": "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
-        "imageUsage": ["VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT"],
-        "imageAspectFlags": ["VK_IMAGE_ASPECT_COLOR_BIT"]
-      },
-      {
         "attachmentType": "depth",
         "id": "depth0",
         "name": "depthdefault",
@@ -41,6 +28,19 @@
         "finalLayout": "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
         "imageUsage": ["VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT"],
         "imageAspectFlags": ["VK_IMAGE_ASPECT_DEPTH_BIT"]
+      },
+      {
+        "attachmentType": "resolve",
+        "id": "resolve0",
+        "name": "resolveMA",
+        "format": "VK_FORMAT_B8G8R8A8_SRGB",
+        "samples": 1,
+        "loadOp": "dont_care",
+        "storeOp": "store",
+        "initialLayout": "VK_IMAGE_LAYOUT_UNDEFINED",
+        "finalLayout": "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+        "imageUsage": ["VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT"],
+        "imageAspectFlags": ["VK_IMAGE_ASPECT_COLOR_BIT"]
       }
     ],
     "subpasses": [
@@ -52,16 +52,16 @@
             "layout": "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL"
           }      
         ],
-        "resolveAttachments": [
-          {
-            "attachment": 1,
-            "layout": "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL"
-          }
-        ],
         "depthStencilAttachments": [
           {
-            "attachment": 2,
+            "attachment": 1,
             "layout": "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL"
+          }
+        ],
+        "resolveAttachments": [
+          {
+            "attachment": 2,
+            "layout": "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL"
           }
         ]
         
@@ -74,7 +74,7 @@
         "srcStageMask": ["VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT","VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT"],
         "srcAccessMask": ["0"],
         "dstStageMask": ["VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT","VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT"],
-        "dstAccessMask": ["VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT"],
+        "dstAccessMask": ["VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT","VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT"],
         "dependencyFlags": []
       }
     ]

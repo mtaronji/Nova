@@ -45,6 +45,7 @@ static VkImageLayout ParseLayoutForAttachmentDescription(const std::string& str)
     if (str == "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL") return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     if (str == "VK_IMAGE_LAYOUT_GENERAL") return VK_IMAGE_LAYOUT_GENERAL;
     if (str == "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL") return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    if (str == "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL") return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     if (str == "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL") return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     if (str == "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL") return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     if (str == "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL") return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -63,7 +64,8 @@ static VkImageLayout ParseLayoutForAttachmentReference(const std::string& str) {
     if (str == "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL") return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
     if (str == "VK_IMAGE_LAYOUT_UNDEFINED") return VK_IMAGE_LAYOUT_UNDEFINED;
     throw std::runtime_error("Unsupported format: " + str);
-}
+
+}   
 
 static VkAttachmentLoadOp ParseLoadOp(const std::string& op) {
     if (op == "load") return VK_ATTACHMENT_LOAD_OP_LOAD;
@@ -74,6 +76,28 @@ static VkAttachmentLoadOp ParseLoadOp(const std::string& op) {
 static VkAttachmentStoreOp ParseStoreOp(const std::string& op) {
     if (op == "store") return VK_ATTACHMENT_STORE_OP_STORE;
     return VK_ATTACHMENT_STORE_OP_DONT_CARE;
+}
+
+static VkImageUsageFlags ParseImageUse(const std::string& usage){
+    if(usage == "VK_IMAGE_USAGE_TRANSFER_SRC_BIT") {return VK_IMAGE_USAGE_TRANSFER_SRC_BIT;}
+    if(usage =="VK_IMAGE_USAGE_TRANSFER_DST_BIT"){return VK_IMAGE_USAGE_TRANSFER_DST_BIT;}
+    if(usage =="VK_IMAGE_USAGE_SAMPLED_BIT"){return VK_IMAGE_USAGE_SAMPLED_BIT;}
+    if(usage =="VK_IMAGE_USAGE_STORAGE_BIT"){return VK_IMAGE_USAGE_STORAGE_BIT;}
+    if(usage =="VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT"){return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;}
+    if(usage =="VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT"){return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;}
+    if(usage =="VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT"){return VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;}
+    if(usage =="VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT"){return VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;}
+    if(usage =="VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR"){return VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR;}
+    if(usage =="VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR"){return VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR;}
+    if(usage =="VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR"){return VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;}
+    if(usage =="VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT"){return VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT;}
+    if(usage =="VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR"){return VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
+    if(usage =="VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT"){return VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT;}
+    if(usage =="VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT"){return VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT;}
+    if(usage =="VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI"){return VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI;}
+    if(usage =="VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM"){return VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM;}
+    if(usage =="VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM"){return VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM;}
+    throw std::runtime_error("Unsupported imageUser: " + usage);
 }
 VkPipelineStageFlags ParseStageMask(const std::string op){
 
@@ -170,13 +194,25 @@ VkAttachmentDescriptionFlags ParseFlags(const std::string flag) {
     
     return flags;
 }
+VkImageAspectFlags ParseImageAspectFlags(const std::string flag){
+    if(flag == "VK_IMAGE_ASPECT_COLOR_BIT"){return VK_IMAGE_ASPECT_COLOR_BIT;}
+    if(flag == "VK_IMAGE_ASPECT_DEPTH_BIT"){return VK_IMAGE_ASPECT_DEPTH_BIT;}
+    if(flag == "VK_IMAGE_ASPECT_STENCIL_BIT"){return VK_IMAGE_ASPECT_STENCIL_BIT;}	
+    if(flag == "VK_IMAGE_ASPECT_METADATA_BIT"){return VK_IMAGE_ASPECT_METADATA_BIT;}
+    if(flag == "VK_IMAGE_ASPECT_PLANE_0_BIT "){return VK_IMAGE_ASPECT_PLANE_0_BIT ; }
+    throw std::runtime_error("Invalid parse image aspect: " + flag);
+}
+
 
 VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePath, 
                                                         std::vector<VkAttachmentDescription>& attachmentDescriptionsOut,
                                                         std::vector<VkSubpassDescription>& subpassDescriptionsOut,
                                                         std::vector<VkSubpassDependency>& subpassdependenciesOut,
-                                                        std::vector<VkAttachmentReference>& colorAtachmentRefs,
-                                                        std::vector<VkAttachmentReference>& depthAtachmentRefs) {
+                                                        std::vector<VkAttachmentReference>& colorAtachmentRefsOut,
+                                                        std::vector<VkAttachmentReference>& depthAtachmentRefsOut,
+                                                        std::vector<VkAttachmentReference>& resolveAtachmentRefsOut,
+                                                        std::vector<VkImageUsageFlags>& imageUsesForAttachmentsOut,
+                                                        std::vector<VkImageAspectFlags>& aspectFlagsForAttachmentsOut) {
     std::ifstream in(filePath);
     if (!in.is_open()) {
         throw std::runtime_error("Failed to open render pass file: " + filePath);
@@ -189,6 +225,7 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
 
     for (const auto& a : j["attachments"]) {
         VkAttachmentDescription desc{};
+        
         desc.format = ParseFormat(a["format"]);
         desc.samples = ParseSamples(a["samples"]);
         desc.loadOp = ParseLoadOp(a["loadOp"]);
@@ -204,7 +241,23 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
         else{
             desc.flags = 0;
         }
+        VkImageUsageFlags uses = 0;
+        for (const auto& u : a["imageUsage"]){
+            uses |= ParseImageUse(u);
+        }
+        imageUsesForAttachmentsOut.push_back(uses);
+        VkImageAspectFlags aspectflag = 0;
+        for (const auto& f : a["imageAspectFlags"]){
+            aspectflag |= ParseImageAspectFlags(f);
+        }
+        aspectFlagsForAttachmentsOut.push_back(aspectflag);
         attachmentDescriptionsOut.push_back(desc);
+
+        // if(a["attachmentType"] == "color"){colorAttachmentDescriptionsOut.push_back(desc);} 
+        // if(a["attachmentType"] == "depth"){depthAttachmentDescriptionsOut.push_back(desc);}
+        // if(a["attachmentType"] == "stencil"){stencilAttachmentDescriptionsOut.push_back(desc);}
+        // if(a["attachmentType"] == "input"){inputAttachmentDescriptionsOut.push_back(desc);}
+        // if(a["attachmentType"] == "resolve"){resolveAttachmentDescriptionsOut.push_back(desc);}
     }
 
 
@@ -220,26 +273,40 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
            auto layout = ParseLayoutForAttachmentReference(c["layout"]);
            colorAttachmentRef.attachment = index;
            colorAttachmentRef.layout = layout;
-           colorAtachmentRefs.push_back(colorAttachmentRef);
+           colorAtachmentRefsOut.push_back(colorAttachmentRef);
            
         }
       
-        if(s.contains("depthStencilAttachment")){
-            for (const auto& c : s["depthStencilAttachment"]) {
+        if(s.contains("depthStencilAttachments")){
+            for (const auto& c : s["depthStencilAttachments"]) {
                 VkAttachmentReference depthAttachmentRef{};
                 auto index = static_cast<uint32_t>(c["attachment"]);
                 auto layout = ParseLayoutForAttachmentReference(c["layout"]);
                 depthAttachmentRef.attachment = index;
                 depthAttachmentRef.layout = layout;
-                depthAtachmentRefs.push_back(depthAttachmentRef);
+                depthAtachmentRefsOut.push_back(depthAttachmentRef);
+                    
+            }
+        }
+        if(s.contains("resolveAttachments")){
+            for (const auto& c : s["resolveAttachments"]) {
+                VkAttachmentReference resolveAttachmentRef{};
+                auto index = static_cast<uint32_t>(c["attachment"]);
+                auto layout = ParseLayoutForAttachmentReference(c["layout"]);
+                resolveAttachmentRef.attachment = index;
+                resolveAttachmentRef.layout = layout;
+                resolveAtachmentRefsOut.push_back(resolveAttachmentRef);
                     
             }
         }
       
-        sp.colorAttachmentCount = colorAtachmentRefs.size();
-        sp.pColorAttachments = colorAtachmentRefs.data();
-        if(depthAtachmentRefs.size() > 0){
-            sp.pDepthStencilAttachment = &depthAtachmentRefs[0];
+        sp.colorAttachmentCount = colorAtachmentRefsOut.size();
+        sp.pColorAttachments = colorAtachmentRefsOut.data();
+        if(depthAtachmentRefsOut.size() > 0){
+            sp.pDepthStencilAttachment = &depthAtachmentRefsOut[0];
+        }
+        if(resolveAtachmentRefsOut.size() > 0){
+            sp.pResolveAttachments = resolveAtachmentRefsOut.data();
         }
         subpassDescriptionsOut.push_back(sp);
         
@@ -250,8 +317,7 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
             VkSubpassDependency dep{};
             dep.srcSubpass = ParseSubpassIndexStr(d["srcSubpass"]);       
             dep.dstSubpass = ParseSubpassIndexStr(d["dstSubpass"]);     
-            
-           
+                   
             for (const auto& m : d["srcStageMask"]) {
                 dep.srcStageMask |= ParseStageMask(m);
             }
@@ -269,8 +335,7 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
             for (const auto& m : d["dependencyFlags"]) {
                 dep.dependencyFlags |= ParseDepFlags(m);
             }
-        
-     
+            
             subpassdependenciesOut.push_back(dep);
         }
     }
@@ -311,4 +376,3 @@ static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice, const std::vect
         physicalDevice
     );
 }
-

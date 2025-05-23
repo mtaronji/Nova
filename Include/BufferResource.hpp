@@ -3,8 +3,8 @@
 #include <vulkan/vulkan.hpp>
 #include "BufferOps.hpp"
 #include "GPU.hpp"
+#include "NovaConstants.hpp"
 
-constexpr uint32_t NOT_SET = 0xffffffff;
 struct BufferResource{
 
     BufferResource(const BufferResource&) = delete;
@@ -38,14 +38,14 @@ struct BufferResource{
     void Upload(void* srcData, VkDeviceSize dataSize, uint32_t arraySize = NOT_SET); 
 
     void Cleanup(GPU* gpu){
-        if(buffer){
-            vkDestroyBuffer(gpu->GetVkDevice(), buffer, nullptr);
-            buffer = VK_NULL_HANDLE;
-        }
-        if(memory){
-            vkFreeMemory(gpu->GetVkDevice(), memory, nullptr);
-            memory = VK_NULL_HANDLE;
-        }
+    //    if(buffer){
+    //          vkDestroyBuffer(gpu->GetVkDevice(), buffer, nullptr);
+    //         buffer = VK_NULL_HANDLE;
+    //     }
+    //     if(memory){
+    //         vkFreeMemory(gpu->GetVkDevice(), memory, nullptr);
+    //         memory = VK_NULL_HANDLE;
+    //     }
 
         if(data != nullptr){
             free(data);

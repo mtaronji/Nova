@@ -20,7 +20,7 @@ void SwapchainManager::CreateSwapchain( GPU& device,
     if (supportDetails.capabilities.maxImageCount > 0 && imageCount > supportDetails.capabilities.maxImageCount) {
         imageCount = supportDetails.capabilities.maxImageCount;
     }
-
+    this->imageCount = imageCount;
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = surface;
@@ -182,8 +182,9 @@ std::shared_ptr<SwapchainManager> SwapchainManager::Builder::Build(){
 }
 void SwapchainManager::Cleanup(VkDevice device) {
     vkDeviceWaitIdle(device);
-    for (auto view : imageViews)
-        vkDestroyImageView(device, view, nullptr);
+
+    // for (auto view : imageViews)                                //framebuffer manager cleans these up
+    //     vkDestroyImageView(device, view, nullptr);
     imageViews.clear();
 
     if (swapchain)

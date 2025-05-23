@@ -100,7 +100,11 @@ class Nova : public IRenderLoopClient{
                
                 
             private:
-                
+                std::vector<const char*> deviceExtensions = {
+                    VK_KHR_SWAPCHAIN_EXTENSION_NAME                  // Required for presentation
+                    // VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,         // Enables render pass 2 structures
+                    // VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME // Enables separate depth/stencil layouts
+                };    
                 
 
         };
@@ -109,7 +113,7 @@ class Nova : public IRenderLoopClient{
         std::shared_ptr<VulkanEngine> engine;
         std::shared_ptr<Shell> shell;
         std::shared_ptr<GPU> gpu;
-        std::shared_ptr<FramebufferGenerator> framebuffersContainer;
+        std::shared_ptr<FramebufferGenerator> framebuffersGenerator;
         std::shared_ptr<SyncManager> syncManager;
         std::shared_ptr<SwapchainManager>swapchainManager;
         std::shared_ptr<PipelineLibrary>pipelineLibrary;
@@ -136,7 +140,9 @@ class Nova : public IRenderLoopClient{
         uint32_t MAX_FRAMES = 3;
         float angle = glm::pi<float>() * 1.5f;
         float cameraspeed = glm::pi<float>() / 20.0f;
-        float oribitalDistance = 5.0f;
+        float orbitalDistance = 5.0f;
+
+       
 
         
 };

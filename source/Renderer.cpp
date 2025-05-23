@@ -133,10 +133,17 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapchainmanager->GetExtent();
 
+    
+    std::array<VkClearValue, 3> clearValues{};
 
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    clearValues[1].depthStencil = {1.0f, 0};
+    // Color attachment (attachment 0)
+    clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };  // Black with full alpha
+
+    // Depth attachment (attachment 1)
+    clearValues[1].depthStencil = {1.0f, 0};  // Full depth, no stencil
+
+    //  // Resolve attachment (attachment 2)
+    clearValues[2].color = { {0.0f, 0.0f, 0.0f, 1.0f} }; 
 
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
@@ -197,7 +204,7 @@ void Renderer::RecreateSwapchain(){
     int width = 0, height = 0;
 
     vkDeviceWaitIdle(device);
-    this->framebufferContainer->Cleanup(gpu->GetVkDevice());
+    this->framebufferContainer->Cleanup();
     swapchainmanager->Cleanup(device);
     
     swapchainmanager =  SwapchainManager::Builder()
@@ -206,5 +213,5 @@ void Renderer::RecreateSwapchain(){
                         .WithShell(shell)
                         .Build();
                 
-    this->framebufferContainer->ReCreateFrameBuffers(gpu->GetVkDevice(),renderpassmanager->GetRenderPass(), swapchainmanager);
+    this->framebufferContainer->ReCreateFramebuffers();
 }

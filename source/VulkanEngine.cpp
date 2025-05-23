@@ -1,10 +1,10 @@
 #include "VulkanEngine.hpp"
 
 
-VulkanEngine::VulkanEngine(GLFWwindow* window){
- 
+VulkanEngine::VulkanEngine(GLFWwindow* window, const std::vector<const char*> requestedExtentions):deviceExtensions(requestedExtentions), window(window){
+
     CreateInstance();
-    CreateSurface(window);
+    CreateSurface();
 }
 void VulkanEngine::Cleanup(){
     
@@ -61,7 +61,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanEngine::DebugCallback(VkDebugUtilsMessageSe
     return VK_FALSE;
 }
 
-void VulkanEngine::CreateSurface(GLFWwindow* window) {
+void VulkanEngine::CreateSurface() {
     if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
         throw std::runtime_error("failed to create window surface!");
     }
@@ -74,17 +74,18 @@ void VulkanEngine::CreateInstance() {
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.pApplicationName = "Nova";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "No Engine";
+    appInfo.pEngineName = "Nova 1.0";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_1; 
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
     auto extensions = GetRequiredExtensions();
+ 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 

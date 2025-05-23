@@ -25,6 +25,7 @@ class GraphicsPipelineLoader {
                                 std::vector<char> & geometryShaderCodeOut,
                                 VkPipelineInputAssemblyStateCreateInfo& inputAssemblyOut,
                                 VkPipelineRasterizationStateCreateInfo& rasterizerCreateInfoOut,
+                                VkPipelineDepthStencilStateCreateInfo& depthStencilOut,
                                 VkPipelineMultisampleStateCreateInfo& multisamplingOut,
                                 VkPipelineColorBlendStateCreateInfo& colorBlendingOut,
                                 std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,

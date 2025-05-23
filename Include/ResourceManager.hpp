@@ -12,33 +12,9 @@
 class ResourceManager{
 
     public:
-        enum class BufferType {
-            Vertex,
-            Index,
-            Uniform,
-            Storage,
-            UniformTexel,
-            StorageTexel,
-            Indirect,
-            ShaderDeviceAddress,
-            Unknown
-        };
-
-        VkBufferUsageFlags GetFlag(BufferType t){
-            if(t == BufferType::Vertex){return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;}
-            if(t == BufferType::Index){return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;}
-            if(t == BufferType::Uniform){return VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;}
-            if(t == BufferType::Storage){return VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;}
-            if(t == BufferType::UniformTexel){return VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;}
-            if(t == BufferType::StorageTexel){return VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;}
-            if(t == BufferType::Indirect){return VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;}
-            if(t == BufferType::ShaderDeviceAddress){return VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;}
-
-            throw std::runtime_error("unknown buffer type. Fatal Error");
-        }
 
         ~ResourceManager(){
-            Cleanup();
+            
         }
         ResourceManager(){
         
@@ -222,8 +198,35 @@ class ResourceManager{
         }
 
      
-        void Cleanup(){
+        void Cleanup(GPU * gpu){
 
+            //clean up the monolith buffers
+            for(auto& [key,value] : monoliths){
+                //free monolith memory
+                if(value.buffer != VK_NULL_HANDLE){
+                    vkDestroyBuffer(gpu->GetVkDevice(), value.buffer, nullptr);
+                    value.buffer = VK_NULL_HANDLE;
+                }
+                if(value.memory != VK_NULL_HANDLE){
+                    vkFreeMemory(gpu->GetVkDevice(),value.memory, nullptr);
+                    value.memory = VK_NULL_HANDLE;
+                }
+            }
+
+            //clean up the resources
+            //delete resources allocated with new
+            for(auto& [key,resource] : resourceMap){
+                resource->Cleanup(gpu);
+                delete(resource);  //all buffer resources allocated with new
+            }
+            for(auto& [key,mesh] : meshes){
+                //for meshes we allocated using new for buffer resources for indices and vertexes as well as the encapsulating mesh
+                mesh->indiceResource->Cleanup(gpu);
+                mesh->vertexResource->Cleanup(gpu);
+                delete(mesh->indiceResource);
+                delete(mesh->vertexResource);
+                delete(mesh); // all meshes allocated with new
+            }
                  
         }
 
@@ -239,10 +242,6 @@ class ResourceManager{
         std::unordered_map<std::string, Mesh*> meshes = {};
         std::vector<std::vector<BufferResource*>> descriptorSets = {};
         std::unordered_map<std::string, BufferResource*> resourceMap = {};
-
-   
-
-        GPU * gpu;
 
         VkBuffer tempBuffer = VK_NULL_HANDLE;     //for copying the old buffer
         VkDeviceMemory tempMemory = VK_NULL_HANDLE;

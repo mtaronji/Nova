@@ -28,6 +28,7 @@ class SwapchainManager {
         const std::vector<VkImageView>& GetImageViews() const { return imageViews; }
         VkFormat GetImageFormat() const { return imageFormat; }
         VkExtent2D GetExtent() const { return extent; }
+        uint32_t GetImageCount() const { return imageCount;}
 
       
 
@@ -63,6 +64,7 @@ class SwapchainManager {
         VkFormat imageFormat;
         VkExtent2D extent;
         std::vector<VkImageView> swapChainImageViews;
+        uint32_t imageCount = 0;
 
         void CreateImageViews(VkDevice device);
 };

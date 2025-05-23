@@ -24,7 +24,7 @@ class VulkanEngine{
         //bind the buffer
         //VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT mean you can use the buffer as a src of a transfer or the destination of one respectfully
         
-        VulkanEngine(GLFWwindow* window);
+        VulkanEngine(GLFWwindow* window, const std::vector<const char*> requestedExtentions);
    
         ~VulkanEngine();
 
@@ -38,7 +38,7 @@ class VulkanEngine{
 
         void Cleanup();
     
-        void CreateSurface(GLFWwindow* window);
+        void CreateSurface();
         std::vector<const char*> GetValidationLayers() const {return validationLayers;}
         std::vector<const char*> GetDeviceExtensions() const {return deviceExtensions;}
 
@@ -48,18 +48,18 @@ class VulkanEngine{
 
         VkDebugUtilsMessengerEXT GetDebuggerMessenger() const {return debugMessenger;}
 
+        protected:
+            const std::vector<const char*> validationLayers = {
+                "VK_LAYER_KHRONOS_validation"
+            };
+
         private:
             VkInstance instance;
             VkDebugUtilsMessengerEXT debugMessenger;
             VkSurfaceKHR surface;
-            const std::vector<const char*> validationLayers = {
-                "VK_LAYER_KHRONOS_validation"
-            };
             
-            const std::vector<const char*> deviceExtensions = {
-                VK_KHR_SWAPCHAIN_EXTENSION_NAME
-            };
-
+            
+            const std::vector<const char*> deviceExtensions;
             GLFWwindow *window;
             void CreateInstance();
             bool CheckValidationLayerSupport();

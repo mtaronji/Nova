@@ -99,13 +99,6 @@ class PipelineManager {
             viewportState.pViewports = nullptr;
             viewportState.pScissors = nullptr;
         
-            VkPipelineDepthStencilStateCreateInfo depthStencil{};
-            depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-            depthStencil.depthTestEnable = VK_FALSE;
-            depthStencil.depthWriteEnable = VK_FALSE;
-            depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
-            depthStencil.stencilTestEnable = VK_FALSE;
-        
             VkPipelineDynamicStateCreateInfo dynamicState{};
             dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
             dynamicState.dynamicStateCount = static_cast<uint32_t> (dynamicStates.size());
@@ -173,10 +166,11 @@ class PipelineManager {
         std::vector<char> fragmentShaderCode;
         std::vector<char> computeShaderCode;
         std::vector<char> geometryShaderCode;
-        VkPipelineInputAssemblyStateCreateInfo inputAssembly;
-        VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo;
-        VkPipelineMultisampleStateCreateInfo multisampling;
-        VkPipelineColorBlendStateCreateInfo colorBlending;
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+        VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = {};
+        VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+        VkPipelineMultisampleStateCreateInfo multisampling = {};
+        VkPipelineColorBlendStateCreateInfo colorBlending = {};
         std::vector<VkPipelineColorBlendAttachmentState> colorblendAttachments;
         std::vector<VkDynamicState> dynamicStates;
         std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet;

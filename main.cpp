@@ -1,5 +1,7 @@
 #include "Nova.hpp"
 #include <iostream>
+#include <cstdlib> // randcolor
+#include <ctime>  
 
 int main() {
     srand(static_cast<unsigned>(time(nullptr)));

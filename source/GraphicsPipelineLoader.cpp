@@ -207,6 +207,20 @@ VkDescriptorType ParseDescriptorType(const std::string descriptorType){
     throw std::runtime_error("could not find Descriptor Type in Graphics Config: " + descriptorType);    
 }
 
+VkCompareOp ParseCompareOp(const std::string compareOp){
+  
+    if(compareOp == "never"){return VK_COMPARE_OP_NEVER;}
+    if(compareOp == "less"){return VK_COMPARE_OP_LESS;}
+    if(compareOp == "equal"){return VK_COMPARE_OP_EQUAL;}
+    if(compareOp == "less_or_equal"){return VK_COMPARE_OP_LESS_OR_EQUAL;}
+    if(compareOp == "greater"){return VK_COMPARE_OP_GREATER;}
+    if(compareOp == "not_equal"){return VK_COMPARE_OP_NOT_EQUAL;}
+    if(compareOp == "greater_or_equal"){return VK_COMPARE_OP_GREATER_OR_EQUAL;}
+    if(compareOp == "always"){return VK_COMPARE_OP_ALWAYS;}
+
+    throw std::runtime_error("compare op string not found");
+}
+
 void GraphicsPipelineLoader::LoadFromFile(
                                             const std::string& filePath,
                                             std::vector<char> & vertexShaderCodeOut,
@@ -215,6 +229,7 @@ void GraphicsPipelineLoader::LoadFromFile(
                                             std::vector<char> & geometryShaderCodeOut,
                                             VkPipelineInputAssemblyStateCreateInfo& inputAssemblyOut,
                                             VkPipelineRasterizationStateCreateInfo& rasterizerCreateInfoOut,
+                                            VkPipelineDepthStencilStateCreateInfo& depthStencilOut,
                                             VkPipelineMultisampleStateCreateInfo& multisamplingOut,
                                             VkPipelineColorBlendStateCreateInfo& colorBlendingOut,
                                             std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,
@@ -286,11 +301,23 @@ void GraphicsPipelineLoader::LoadFromFile(
     multisamplingOut.sampleShadingEnable = m["sampleShadingEnable"];
     
 
-    if(j.contains("depthStencil")){
+    depthStencilOut = {};
 
-        for (const auto& a : j["depthStencil"]) {
+    if(j.contains("depthStencil")){
+        depthStencilOut.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        const auto& a = j["depthStencil"];
+        depthStencilOut.depthTestEnable = a["depthTestEnable"];
+        depthStencilOut.depthWriteEnable = a["depthWriteEnable"];
+        depthStencilOut.depthCompareOp = ParseCompareOp(a["depthCompareOp"]);
+        depthStencilOut.stencilTestEnable = a["stencilTestEnable"];
         
-        }
+    }
+    else{
+        depthStencilOut.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencilOut.depthTestEnable = VK_FALSE;
+        depthStencilOut.depthWriteEnable = VK_FALSE;
+        depthStencilOut.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+        depthStencilOut.stencilTestEnable = VK_FALSE;
     }
 
     const auto& cb = j["colorBlend"];

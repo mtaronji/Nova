@@ -18,64 +18,13 @@
 #include "ResourceManager.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Mesh.hpp"
 
-static std::vector<VertexPC> GenerateCubeVertices(bool solidColor = false) {
-    auto randColor = []() -> glm::vec4 {
-        return glm::vec4(
-            static_cast<float>(rand()) / RAND_MAX,
-            static_cast<float>(rand()) / RAND_MAX,
-            static_cast<float>(rand()) / RAND_MAX,
-            1.0f
-        );
-    };
-
-    glm::vec4 colorForAll = randColor(); // used if solidColor == true
-
-    auto getColor = [&]() -> glm::vec4 {
-        return solidColor ? colorForAll : randColor();
-    };
-
-    return {
-        // Front face
-        {{-0.5f, -0.5f,  0.5f}, getColor()}, // 0
-        {{ 0.5f, -0.5f,  0.5f}, getColor()}, // 1
-        {{ 0.5f,  0.5f,  0.5f}, getColor()}, // 2
-        {{-0.5f,  0.5f,  0.5f}, getColor()}, // 3
-
-        // Back face
-        {{-0.5f, -0.5f, -0.5f}, getColor()}, // 4
-        {{ 0.5f, -0.5f, -0.5f}, getColor()}, // 5
-        {{ 0.5f,  0.5f, -0.5f}, getColor()}, // 6
-        {{-0.5f,  0.5f, -0.5f}, getColor()}, // 7
-    };
-}
-
-static std::vector<uint16_t> GetCubeIndices() {
-    return {
-        // Front face
-        0, 1, 2, 2, 3, 0,
-
-        // Right face
-        1, 5, 6, 6, 2, 1,
-
-        // Back face
-        5, 4, 7, 7, 6, 5,
-
-        // Left face
-        4, 0, 3, 3, 7, 4,
-
-        // Top face
-        3, 2, 6, 6, 7, 3,
-
-        // Bottom face
-        4, 5, 1, 1, 0, 4
-    };
-}
 Nova::Nova(
     std::shared_ptr<VulkanEngine> engine,
     std::shared_ptr<Shell> shell,
     std::shared_ptr<GPU> gpu,
-    std::shared_ptr<FramebufferGenerator> framebuffersContainer,
+    std::shared_ptr<FramebufferGenerator> framebuffersGenerator,
     std::shared_ptr<SyncManager> syncManager,
     std::shared_ptr<SwapchainManager>swapchainManager,
     std::shared_ptr<PipelineManager> pipelineManager,
@@ -87,7 +36,7 @@ Nova::Nova(
     :engine(engine),
     shell(shell),
     gpu(gpu), 
-    framebuffersContainer(framebuffersContainer),
+    framebuffersGenerator(framebuffersGenerator),
     syncManager(syncManager),
     swapchainManager(swapchainManager),
     pipelineManager(pipelineManager),
@@ -102,26 +51,17 @@ Nova::Nova(
 Nova::~Nova(){
 
     this->commandManager->Cleanup();
-    this->framebuffersContainer->Cleanup(this->gpu->GetVkDevice());
+    this->framebuffersGenerator->Cleanup();
     this->pipelineManager->Cleanup();
     this->descriptorAllocator->Cleanup();
     this->syncManager->Cleanup();
     this->renderpassManager->Cleanup();
     this->swapchainManager->Cleanup(this->gpu->GetVkDevice());
-    this->resourceManager->Cleanup();
+    this->resourceManager->Cleanup(gpu.get());
+    this->gpu->Cleanup();
     this->engine->Cleanup();
-    this->resourceManager->Cleanup();
+  
 
-    //delete resources allocated with new
-    for(auto& [key,value] : resourceManager->GetResourceMap()){
-        delete(value);
-    }
-    for(auto& [key,value] : resourceManager->GetMeshes()){
-        //for meshes we allocated using new for buffer resources for indices and vertexes as well as the encapsulating mesh
-        delete(value->indiceResource);
-        delete(value->vertexResource);
-        delete(value);
-    }
 }
 
 void Nova::Start(){
@@ -152,11 +92,12 @@ void Nova::Init() {
         pipelineManager,
         renderpassManager,
         commandManager,
-        framebuffersContainer,
+        framebuffersGenerator,
         descriptorAllocator,
         resourceManager
     );
 
+   
     pipelineManager->WithDescriptorSetPool();
     pipelineManager->WithDescriptorSetLayout();
 
@@ -192,14 +133,21 @@ void Nova::AllocateToMonoliths(){
 
 void Nova::Update(float deltaTime){
 
+    deltaTime = glm::clamp(deltaTime, 0.0f, 0.05f); // max ~20 FPS frame
+
     //camera orbiting and looking at the origin
+    float pitch = glm::radians(20.0f); // fixed slight tilt
     angle += cameraspeed * deltaTime;
     angle = glm::mod(angle, glm::two_pi<float>());
 
-    camPos.x = glm::cos(angle) * oribitalDistance;
-    camPos.z = glm::sin(angle) * oribitalDistance;
+    // Calculate camera position in spherical coordinates
+    float x = orbitalDistance * cos(pitch) * cos(angle);
+    float y = orbitalDistance * sin(pitch);
+    float z = orbitalDistance * cos(pitch) * sin(angle);
+    camPos = glm::vec3(x, y, z);
 
-    camera.view = glm::lookAt(camPos, cameraTarget, cameraUp);
+    // Always look at the target with a fixed up direction
+    camera.view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
     auto cameraResource = this->resourceManager->GetResource("camera");
     cameraResource->Upload(&camera, sizeof(camera));
     this->resourceManager->UpdateBufferData(cameraResource, gpu.get(),commandManager.get());
@@ -218,7 +166,7 @@ Nova::Builder& Nova::Builder::WithShell(){
     return *this;
 }
 Nova::Builder& Nova::Builder::WithEngine(){
-    engine = std::make_shared<VulkanEngine>(shell->GetWindow());
+    engine = std::make_shared<VulkanEngine>(shell->GetWindow(), deviceExtensions);
     return *this;
 
 }
@@ -238,14 +186,16 @@ Nova::Builder& Nova::Builder::WithSwapchainManager(){
 
 }
 Nova::Builder& Nova::Builder::WithRenderpass(){
+    auto extensions = engine->GetDeviceExtensions();
+   
     renderpassManager = std::make_shared<RenderPassManager>(gpu);
     return *this;
 
 }
 Nova::Builder& Nova::Builder::WithFramebufferGenerator(){
     framebuffersContainer = std::make_shared<FramebufferGenerator>(
-                                                    gpu->GetVkDevice(), 
-                                                    renderpassManager->GetRenderPass(),
+                                                    gpu, 
+                                                    renderpassManager,
                                                     swapchainManager);
     return *this;
 
@@ -317,8 +267,8 @@ Nova::Builder& Nova::Builder::WithMeshes(){
     
     auto verticesResource = BufferResource::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     auto indicesResource = BufferResource::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-    auto indices = GetCubeIndices();
-    auto vertices = GenerateCubeVertices(true);
+    auto indices = Mesh::GetCubeIndices();
+    auto vertices = Mesh::GenerateCubeVertices(true);
     verticesResource->Upload(vertices.data(),vertices.size() * sizeof(VertexPC), vertices.size());
     indicesResource->Upload(indices.data(), sizeof(uint32_t) * indices.size(),indices.size());
     auto mesh = Mesh::Create(verticesResource, indicesResource);

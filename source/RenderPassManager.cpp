@@ -10,12 +10,28 @@ void RenderPassManager:: NotifyRenderPassOutOfDate(){
 
 RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu){
     this->gpu = gpu;
-    this->info = RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig.json",attachmentDescriptions,subpassDescriptions, subpassdependencies,colorAtachmentRefs,depthAtachmentRefs);
+    this->info = RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig copy.json",
+                                                attachmentDescriptions,
+                                                subpassDescriptions, 
+                                                subpassdependencies,
+                                                colorAtachmentRefs,
+                                                depthAtachmentRefs,
+                                                resolveAtachmentRefs,
+                                                imageUsesForAttachments,
+                                                aspectFlagsForAttachments); 
     RenderPassManager::CreateRenderPass();
 }
 
 VkRenderPassCreateInfo RenderPassManager::LoadRenderpassConfig(const std::string path){
-    return RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig.json",attachmentDescriptions,subpassDescriptions, subpassdependencies,colorAtachmentRefs, depthAtachmentRefs);
+    return RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig copy.json",
+                                            attachmentDescriptions,
+                                            subpassDescriptions, 
+                                            subpassdependencies,
+                                            colorAtachmentRefs, 
+                                            depthAtachmentRefs,
+                                            resolveAtachmentRefs,
+                                            imageUsesForAttachments,
+                                            aspectFlagsForAttachments);
 }
 
 void RenderPassManager::SetPresentColorAttachmentFormat(){

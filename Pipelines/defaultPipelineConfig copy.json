@@ -23,11 +23,10 @@
         "minSampleShading": 0.5
     },
     "depthStencil": {
-        "stencilTestEnable": false,
-        "depthWriteEnable": true,
         "depthCompareOp": "less",
-        "depthTestEnable": false
-        
+        "depthTestEnable": true,
+        "depthWriteEnable": true,
+        "stencilTestEnable": false
     },
     "colorBlend": {
         "logicOp": "VK_LOGIC_OP_COPY",
