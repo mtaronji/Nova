@@ -60,7 +60,6 @@ Nova::~Nova(){
     this->resourceManager->Cleanup(gpu.get());
     this->gpu->Cleanup();
     this->engine->Cleanup();
-  
 
 }
 
@@ -181,7 +180,7 @@ Nova::Builder& Nova::Builder::WithSwapchainManager(){
     .WithEngine(engine)
     .WithShell(shell)
     .Build();
-
+    swapchainManager->CreateSwapchain();
     return *this;
 
 }

@@ -52,8 +52,6 @@ class Nova : public IRenderLoopClient{
         void Render() override;
         void Shutdown() override;
 
-
-
         class Builder{
             public:
                 Builder() = default;
@@ -104,9 +102,7 @@ class Nova : public IRenderLoopClient{
                     VK_KHR_SWAPCHAIN_EXTENSION_NAME                  // Required for presentation
                     // VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,         // Enables render pass 2 structures
                     // VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME // Enables separate depth/stencil layouts
-                };    
-                
-
+                };                  
         };
     
     protected:
@@ -140,11 +136,7 @@ class Nova : public IRenderLoopClient{
         uint32_t MAX_FRAMES = 3;
         float angle = glm::pi<float>() * 1.5f;
         float cameraspeed = glm::pi<float>() / 20.0f;
-        float orbitalDistance = 5.0f;
-
-       
-
-        
+        float orbitalDistance = 5.0f;    
 };
 
 

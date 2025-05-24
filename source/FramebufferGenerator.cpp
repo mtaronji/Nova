@@ -120,5 +120,6 @@ void FramebufferGenerator::Cleanup() {
 }
 
 void FramebufferGenerator::ReCreateFramebuffers(){
+    FramebufferGenerator::CreateRenderPassResources();
     FramebufferGenerator::CreateFramebuffers();
 }

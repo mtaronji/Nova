@@ -133,7 +133,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapchainmanager->GetExtent();
 
-    
+
     std::array<VkClearValue, 3> clearValues{};
 
     // Color attachment (attachment 0)
@@ -186,7 +186,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
         
         
 
-      vkCmdEndRenderPass(commandBuffer);
+    vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
@@ -207,11 +207,8 @@ void Renderer::RecreateSwapchain(){
     this->framebufferContainer->Cleanup();
     swapchainmanager->Cleanup(device);
     
-    swapchainmanager =  SwapchainManager::Builder()
-                        .WithGPU(gpu)
-                        .WithEngine(engine)
-                        .WithShell(shell)
-                        .Build();
-                
+    swapchainmanager->RechooseSwapExtent();
+
+    this->swapchainmanager->CreateSwapchain();
     this->framebufferContainer->ReCreateFramebuffers();
 }

@@ -7,23 +7,17 @@
 //     // Layer or array layers (which specific layers in a 2D array or cube map to sample)
 //     // Aspect (color, depth, or stencil)
 //     // Without an VkImageView, Vulkan wouldn't know how to interpret the image data in the context of a specific rendering operation.
-void SwapchainManager::CreateSwapchain( GPU& device,
-                               SwapChainSupportDetails& supportDetails,
-                               VkSurfaceFormatKHR& surfaceFormat,
-                               VkPresentModeKHR& presentMode,
-                               VkExtent2D& extent,     
-                               VkSurfaceKHR& surface) {
+void SwapchainManager::CreateSwapchain() {
     
-   
-
-    uint32_t imageCount = supportDetails.capabilities.minImageCount + 1;
-    if (supportDetails.capabilities.maxImageCount > 0 && imageCount > supportDetails.capabilities.maxImageCount) {
-        imageCount = supportDetails.capabilities.maxImageCount;
+    
+    uint32_t imageCount = details.capabilities.minImageCount + 1;
+    if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
+        imageCount = details.capabilities.maxImageCount;
     }
     this->imageCount = imageCount;
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = surface;
+    createInfo.surface = engine->GetSurface();
 
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
@@ -32,7 +26,7 @@ void SwapchainManager::CreateSwapchain( GPU& device,
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices = device.FindQueueFamilies();
+    QueueFamilyIndices indices = gpu->FindQueueFamilies();
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
     if (indices.graphicsFamily != indices.presentFamily) {
@@ -43,29 +37,39 @@ void SwapchainManager::CreateSwapchain( GPU& device,
         createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
 
-    createInfo.preTransform = supportDetails.capabilities.currentTransform;
+    createInfo.preTransform = details.capabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode = presentMode;
+    createInfo.presentMode = this->presentMode;
     createInfo.clipped = VK_TRUE;
 
-    if (vkCreateSwapchainKHR(device.GetVkDevice(), &createInfo, nullptr, &swapchain) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(gpu->GetVkDevice(), &createInfo, nullptr, &swapchain) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    vkGetSwapchainImagesKHR(device.GetVkDevice(), swapchain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(gpu->GetVkDevice(), swapchain, &imageCount, nullptr);
     images.resize(imageCount);
-    vkGetSwapchainImagesKHR(device.GetVkDevice(), swapchain, &imageCount, images.data());
+    vkGetSwapchainImagesKHR(gpu->GetVkDevice(), swapchain, &imageCount, images.data());
 
     this->imageFormat = surfaceFormat.format;
     this->extent = extent;
     //create image views now
-    CreateImageViews(device.GetVkDevice());
+    CreateImageViews(gpu->GetVkDevice());
 }
 
 SwapchainManager::~SwapchainManager(){
     
 }
 
+SwapchainManager::SwapchainManager(std::shared_ptr<GPU> gpu, 
+                                   std::shared_ptr<Shell> shell,
+                                   std::shared_ptr<VulkanEngine> engine,
+                                   SwapChainSupportDetails details,
+                                   VkSurfaceFormatKHR surfaceFormat,
+                                   VkPresentModeKHR presentMode,
+                                   VkExtent2D extent)
+                                   :gpu(gpu), shell(shell),engine(engine), details(details),surfaceFormat(surfaceFormat),presentMode(presentMode),extent(extent){
+    
+}
 SwapchainManager::Builder& SwapchainManager::Builder::WithGPU(std::shared_ptr<GPU> gpu){
     this->gpu = gpu;
     return *this;
@@ -98,20 +102,20 @@ void SwapchainManager::CreateImageViews(VkDevice device) {
 }
 
 void SwapchainManager::Builder::ChooseSwapSurfaceFormat() {
-    for (const auto& availableFormat : this->swapChainSupportDetails.formats) {
+    for (const auto& availableFormat : this->details.formats) {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             this->surfaceFormat = availableFormat;
             return;
         }
     }
 
-    this->surfaceFormat = this->swapChainSupportDetails.formats[0];
+    this->surfaceFormat = this->details.formats[0];
     return;
 }
 
 void SwapchainManager::Builder::ChooseSwapPresentMode() {
 
-    for (const auto& availablePresentMode : this->swapChainSupportDetails.presentModes) {
+    for (const auto& availablePresentMode : this->details.presentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
             this->presentMode = availablePresentMode;
             return;
@@ -124,7 +128,46 @@ void SwapchainManager::Builder::ChooseSwapPresentMode() {
     
 void SwapchainManager::Builder::ChooseSwapExtent() {
 
-    auto capabilities = this->swapChainSupportDetails.capabilities;
+    auto capabilities = this->details.capabilities;
+    auto window = shell->GetWindow();
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+        this->extent = capabilities.currentExtent;
+    } else {
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
+        VkExtent2D actualExtent = {
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
+        };
+
+        actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+        this->extent = actualExtent;
+   
+    }
+}
+
+void SwapchainManager::RechooseSwapExtent(){
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->GetPhysicalDevice(), engine->GetSurface(), &details.capabilities);
+
+    uint32_t formatCount;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->GetPhysicalDevice(), engine->GetSurface(), &formatCount, nullptr);
+
+    if (formatCount != 0) {
+        details.formats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(gpu->GetPhysicalDevice(), engine->GetSurface(), &formatCount, details.formats.data());
+    }
+
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->GetPhysicalDevice(), engine->GetSurface(), &presentModeCount, nullptr);
+
+    if (presentModeCount != 0) {
+        details.presentModes.resize(presentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->GetPhysicalDevice(), engine->GetSurface(), &presentModeCount, details.presentModes.data());
+    }
+    auto capabilities = this->details.capabilities;
     auto window = shell->GetWindow();
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         this->extent = capabilities.currentExtent;
@@ -166,7 +209,7 @@ void  SwapchainManager::Builder::QuerySwapChainSupport() {
         vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->GetPhysicalDevice(), engine->GetSurface(), &presentModeCount, details.presentModes.data());
     }
 
-    this->swapChainSupportDetails = details;
+    this->details = details;
 }
 
 std::shared_ptr<SwapchainManager> SwapchainManager::Builder::Build(){
@@ -176,8 +219,8 @@ std::shared_ptr<SwapchainManager> SwapchainManager::Builder::Build(){
     ChooseSwapSurfaceFormat();
 
     auto surface = engine->GetSurface();
-    std::shared_ptr<SwapchainManager> manager = std::make_shared<SwapchainManager>();
-    manager->CreateSwapchain(*gpu, swapChainSupportDetails, surfaceFormat, presentMode, extent, surface);
+    std::shared_ptr<SwapchainManager> manager = std::make_shared<SwapchainManager>(gpu, shell, engine, details, surfaceFormat, presentMode, extent);
+    
     return manager;
 }
 void SwapchainManager::Cleanup(VkDevice device) {

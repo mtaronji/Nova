@@ -14,14 +14,15 @@ struct SwapChainSupportDetails {
 class SwapchainManager {
     public:
         ~SwapchainManager();
-        SwapchainManager() = default;
-        void CreateSwapchain( GPU& device,
-            SwapChainSupportDetails& supportDetails,
-            VkSurfaceFormatKHR& surfaceFormat,
-            VkPresentModeKHR& presentMode,
-            VkExtent2D& extent,     
-            VkSurfaceKHR& surface);
-
+        SwapchainManager(std::shared_ptr<GPU> gpu, 
+                        std::shared_ptr<Shell> shell,
+                        std::shared_ptr<VulkanEngine> engine,
+                        SwapChainSupportDetails details,
+                        VkSurfaceFormatKHR surfaceFormat,
+                        VkPresentModeKHR presentMode,
+                        VkExtent2D extent);
+        void CreateSwapchain();
+      
         void Cleanup(VkDevice device);
 
         VkSwapchainKHR GetSwapchain() const { return swapchain; }
@@ -29,8 +30,7 @@ class SwapchainManager {
         VkFormat GetImageFormat() const { return imageFormat; }
         VkExtent2D GetExtent() const { return extent; }
         uint32_t GetImageCount() const { return imageCount;}
-
-      
+        void RechooseSwapExtent();
 
         class Builder{
             public:
@@ -50,14 +50,16 @@ class SwapchainManager {
                 std::shared_ptr<GPU> gpu;
                 std::shared_ptr<VulkanEngine> engine;
                 std::shared_ptr<Shell> shell;
-                SwapChainSupportDetails swapChainSupportDetails;
                 VkSurfaceFormatKHR surfaceFormat;
                 VkPresentModeKHR presentMode;
-                VkExtent2D extent;        
-            
+                VkExtent2D extent;     
+                SwapChainSupportDetails details;         
         };
 
     protected:
+        std::shared_ptr<GPU> gpu;
+        std::shared_ptr<Shell> shell;
+        std::shared_ptr<VulkanEngine> engine;
         VkSwapchainKHR swapchain = VK_NULL_HANDLE;
         std::vector<VkImage> images;
         std::vector<VkImageView> imageViews;
@@ -65,6 +67,9 @@ class SwapchainManager {
         VkExtent2D extent;
         std::vector<VkImageView> swapChainImageViews;
         uint32_t imageCount = 0;
+        VkPresentModeKHR presentMode;
+        VkSurfaceFormatKHR surfaceFormat;
+        SwapChainSupportDetails details;
 
         void CreateImageViews(VkDevice device);
 };
