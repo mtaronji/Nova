@@ -44,6 +44,13 @@
     "dynamicStates": [
         "viewport","scissor"
     ],
+    "pushConstants": [
+        {
+            "name": "frameinfo",
+            "offset": 0,
+            "stage": "vertex"
+        }
+    ],
     "descriptorSets": [
         {
             "descriptorSetLayout": [

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 
+
 class RenderPassLoader {
 public:
     static  VkRenderPassCreateInfo LoadFromFile(const std::string& filePath,

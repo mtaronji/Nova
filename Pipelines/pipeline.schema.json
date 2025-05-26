@@ -249,14 +249,34 @@
         "type": "array",
         "items": {
           "type": "object",
-          "required": ["stage", "offset", "size"],
+          "required": ["stage", "offset", "name" ],
           "properties": {
             "stage": {
               "type": "string",
-              "enum": ["vertex", "fragment", "geometry", "tessellationControl", "tessellationEvaluation"]
+              "enum": ["vertex",
+                        "fragment",
+                        "geometry",
+                        "compute",
+                        "tessellationControl",
+                        "tessellationEvaluation",
+                        "allGraphics",
+                        "all",
+                        "raygen",
+                        "anyHit",
+                        "closestHit",
+                        "miss",
+                        "intersection",
+                        "callable",
+                        "task",
+                        "mesh"]
             },
             "offset": { "type": "integer" },
-            "size": { "type": "integer" }
+            "name": {
+                "type": "string",
+                "enum": ["frameinfo"],
+                "description": "name of the actual datatype"
+            }
+        
           }
         }
       },

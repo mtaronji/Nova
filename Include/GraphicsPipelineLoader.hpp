@@ -14,6 +14,7 @@
 #include "Mesh.hpp"
 #include <unordered_set>
 
+class ResourceManager;
 class GraphicsPipelineLoader {
     public:
         GraphicsPipelineLoader() = default;
@@ -31,7 +32,8 @@ class GraphicsPipelineLoader {
                                 std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,
                                 std::vector<VkDynamicState>& dynamicStatesOut,
                                 std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorSetsOut,
-                                std::vector<std::string> &descriptorNames
+                                std::vector<std::string> &descriptorNames,
+                                std::vector<VkPushConstantRange>& pushConstantRangesOut
                                 );
 
     protected:

@@ -1,4 +1,6 @@
 #include "GraphicsPipelineLoader.hpp"
+#include "ResourceManager.hpp"
+#include "PushConstants.hpp"
 
 using json = nlohmann::json;
 
@@ -221,6 +223,14 @@ VkCompareOp ParseCompareOp(const std::string compareOp){
     throw std::runtime_error("compare op string not found");
 }
 
+size_t ParsePushConstantSize(const std::string name){
+    if(name == "frameinfo"){
+        return sizeof(FrameInfo);
+    }
+    throw std::runtime_error("push constant not supported: " + name);
+}
+
+
 void GraphicsPipelineLoader::LoadFromFile(
                                             const std::string& filePath,
                                             std::vector<char> & vertexShaderCodeOut,
@@ -235,7 +245,8 @@ void GraphicsPipelineLoader::LoadFromFile(
                                             std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,
                                             std::vector<VkDynamicState>& dynamicStatesOut,
                                             std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorSetsOut,
-                                            std::vector<std::string> &descriptorNames
+                                            std::vector<std::string> &descriptorNames,
+                                            std::vector<VkPushConstantRange>& pushConstantRangesOut
                                         ){
 
     std::ifstream in(filePath);
@@ -378,9 +389,17 @@ void GraphicsPipelineLoader::LoadFromFile(
     // dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     // dynamicState.pDynamicStates = dynamicStates.data();
 
-
-    descriptorSetsOut = {};
     
+    if(j.contains("pushConstants")){
+        for(const auto pc : j["pushConstants"]){
+            VkPushConstantRange pcr = {};
+            pcr.size = ParsePushConstantSize(pc["name"]);
+            pcr.stageFlags = ParseShaderStage(pc["stage"]);
+            pcr.offset = pc["offset"];
+            pushConstantRangesOut.push_back(pcr);
+        } 
+
+    }
     if(j.contains("descriptorSets")){
 
 

@@ -109,8 +109,15 @@ class PipelineManager {
             pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
             pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorAllocator->GetDescriptorSetLayouts().size());
             pipelineLayoutInfo.pSetLayouts = descriptorAllocator->GetDescriptorSetLayouts().data();
-            pipelineLayoutInfo.pushConstantRangeCount = 0;       // No push constants
-            pipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+            if(pushConstantRanges.size() > 0){
+                pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
+                pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
+            }
+            else{
+                pipelineLayoutInfo.pushConstantRangeCount = 0;       // No push constants
+                pipelineLayoutInfo.pPushConstantRanges = nullptr;
+            }
         
         
             pipelineLayout = {};
@@ -175,7 +182,8 @@ class PipelineManager {
         std::vector<VkDynamicState> dynamicStates;
         std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet;
         std::vector<std::string> descriptorNames;
-
+        std::vector<VkPushConstantRange> pushConstantRanges;
+        
         
         void CreateDescriptorSetLayout();
         void AllocateDescriptorSets();

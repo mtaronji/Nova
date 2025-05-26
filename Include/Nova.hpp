@@ -8,6 +8,7 @@
 #include <set>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include "PushConstants.hpp"
 
 class Shell;
 class GPU;
@@ -137,6 +138,8 @@ class Nova : public IRenderLoopClient{
         float angle = glm::pi<float>() * 1.5f;
         float cameraspeed = glm::pi<float>() / 20.0f;
         float orbitalDistance = 5.0f;    
+        FrameInfo frameinfo;
+
 };
 
 

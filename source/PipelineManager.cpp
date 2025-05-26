@@ -51,7 +51,8 @@ void PipelineManager::LoadConfig(const std::string configFile) {
                                         colorblendAttachments,
                                         dynamicStates,
                                         descriptorBindingsPerSet,
-                                        descriptorNames
+                                        descriptorNames,
+                                        pushConstantRanges
     );
     
 }
