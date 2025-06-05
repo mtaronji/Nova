@@ -17,26 +17,48 @@ find_package(glfw3 REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
 
+#COPY SHADERS TO WHERE THE EXECUTABLE IS
 file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_BINARY_DIR})
 
-file(GLOB PIPELINE_FILES "${CMAKE_SOURCE_DIR}/Pipelines/*")
-
+#COPY ALL PIPELINE FILES EXCEPT THE SCHEMA FILE TO THE EXECUTABLE DIRECTORY
+file(GLOB PIPELINE_FILES "${CMAKE_SOURCE_DIR}/pipelines/*")
 foreach(file ${PIPELINE_FILES})
     get_filename_component(FILENAME "${file}" NAME)
 
     if(NOT FILENAME STREQUAL "pipeline.schema.json")
-        file(COPY "${file}" DESTINATION "${CMAKE_BINARY_DIR}/Pipelines")
+        file(COPY "${file}" DESTINATION "${CMAKE_BINARY_DIR}/pipelines")
     endif()
 endforeach()
 
-file(GLOB RENDERPASS_FILES "${CMAKE_SOURCE_DIR}/RenderPasses/*")
+#SAME AS PIPELINE ABOVE
+file(GLOB RENDERPASS_FILES "${CMAKE_SOURCE_DIR}/renderpasses/*")
 foreach(file ${RENDERPASS_FILES})
     get_filename_component(FILENAME "${file}" NAME)
 
     if(NOT FILENAME STREQUAL "renderpass.schema.json")
-        file(COPY "${file}" DESTINATION "${CMAKE_BINARY_DIR}/RenderPasses")
+        file(COPY "${file}" DESTINATION "${CMAKE_BINARY_DIR}/renderpasses")
     endif()
 endforeach()
+
+# Recursively find source and header files
+file(GLOB_RECURSE SOURCES "source/*.cpp" "source/*.c")
+file(GLOB_RECURSE HEADERS "include/*.hpp" "include/*.h")
+file(GLOB_RECURSE SHADERS "shaders/*.vert" "shaders/*.frag")
+file(GLOB_RECURSE PIPELINES "Pipelines/*.json")
+file(GLOB_RECURSE RENDERPASSES "RenderPasses/*.json")
+file(GLOB_RECURSE FONTLOADERHEADERS "fontloader/include/*.h" "fontloader/include/*.hpp")
+file(GLOB_RECURSE FONTLOADERSRC "fontloader/src/*.cpp" "fontloader/src/*.c")
+file(GLOB_RECURSE DESCRIPTORSETS "descriptorsets/*.json")
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" FILES ${SOURCES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/include" FILES ${HEADERS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/include" FILES ${FONTLOADERHEADERS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/src" FILES ${FONTLOADERSRC})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" FILES ${SHADERS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/pipelines" FILES ${PIPELINES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/renderpasses" FILES ${RENDERPASSES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptorsets" FILES ${DESCRIPTORSETS})
+
 
 add_executable(nova 
     main.cpp 
