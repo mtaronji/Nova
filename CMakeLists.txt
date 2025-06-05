@@ -44,8 +44,8 @@ endforeach()
 file(GLOB_RECURSE SOURCES "source/*.cpp" "source/*.c")
 file(GLOB_RECURSE HEADERS "include/*.hpp" "include/*.h")
 file(GLOB_RECURSE SHADERS "shaders/*.vert" "shaders/*.frag")
-file(GLOB_RECURSE PIPELINES "Pipelines/*.json")
-file(GLOB_RECURSE RENDERPASSES "RenderPasses/*.json")
+file(GLOB_RECURSE PIPELINES "pipelines/*.json")
+file(GLOB_RECURSE RENDERPASSES "renderpasses/*.json")
 file(GLOB_RECURSE FONTLOADERHEADERS "fontloader/include/*.h" "fontloader/include/*.hpp")
 file(GLOB_RECURSE FONTLOADERSRC "fontloader/src/*.cpp" "fontloader/src/*.c")
 file(GLOB_RECURSE DESCRIPTORSETS "descriptorsets/*.json")
@@ -60,35 +60,18 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/renderpasses" FILES ${RENDERPASSE
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptorsets" FILES ${DESCRIPTORSETS})
 
 
-add_executable(nova 
-    main.cpp 
-    source/Nova.cpp
-    source/Shell.cpp 
-    source/VulkanEngine.cpp 
-    source/GPU.cpp 
-    source/Shader.cpp 
-    source/RenderPassManager.cpp
-    source/FramebufferGenerator.cpp
-    source/PipelineManager.cpp
-    source/CommandManager.cpp
-    source/SwapchainManager.cpp 
-    source/SyncManager.cpp
-    source/Renderer.cpp 
-    source/DescriptorAllocator.cpp
-    source/GraphicsPipelineLoader.cpp 
-    source/RenderpassLoader.cpp
-    source/DescriptorAllocator.cpp
-    source/Threadpool.cpp
-    source/BufferOps.cpp
-    source/BufferResource.cpp
-    source/Mesh.cpp
-    source/ImageManager.cpp
-    source/PipelineLibrary.cpp
-    source/RenderpassLibrary.cpp
-    source/FramebufferLibrary.cpp
-    source/ResourceManager.cpp
-    source/DescriptorsetLoader.cpp
+set(ALL_SOURCES
+    ${SOURCES}
+    ${HEADERS}
+    ${FONTLOADERHEADERS}
+    ${FONTLOADERSRC}
+    ${SHADERS}
+    ${PIPELINES}
+    ${RENDERPASSES}
+    ${DESCRIPTORSETS}
 )
+
+add_executable(nova ${ALL_SOURCES})
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include
                                         ${Vulkan_INCLUDE_DIRS}
