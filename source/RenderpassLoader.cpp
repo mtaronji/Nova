@@ -1,7 +1,6 @@
 // RenderPassLoader.cpp
 #include "RenderpassLoader.hpp"
 
-#include "ResourceManager.hpp"
 using json = nlohmann::json;
 
 static VkFormat ParseFormat(const std::string& str) {

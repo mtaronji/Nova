@@ -1,5 +1,5 @@
 #include "PipelineManager.hpp"
-
+#include "GraphicsPipelineLoader.hpp"
 
 void PipelineManager::Cleanup(){
     vkDeviceWaitIdle(gpu->GetVkDevice());
@@ -15,25 +15,23 @@ void PipelineManager::Cleanup(){
 PipelineManager::~PipelineManager(){
 
 }
+PipelineManager* PipelineManager::Create(   
+                                std::shared_ptr<GPU> gpu, 
+                                std::shared_ptr<RenderpassLibrary> renderpassLibrary,
+                                std::string pipelineFile){
+
+        return new PipelineManager(gpu,renderpassLibrary, pipelineFile);
+}
 PipelineManager::PipelineManager(
-    std::shared_ptr<GPU> gpu, 
-    std::shared_ptr<RenderPassManager> renderpassManager,
-    std::shared_ptr<DescriptorAllocator> descriptorAllocator
-    ):gpu(gpu),renderpassManager(renderpassManager),descriptorAllocator(descriptorAllocator){
+                                std::shared_ptr<GPU> gpu, 
+                                std::shared_ptr<RenderpassLibrary> renderpassLibrary,
+                                std::string pipelineFile
+                                ):gpu(gpu),renderpassLibrary(renderpassLibrary){
 
-    PipelineManager::LoadConfig("Pipelines/defaultPipelineConfig copy.json");
+    PipelineManager::LoadConfig(pipelineFile);
 
 }
 
-void PipelineManager::WithDescriptorSetLayout(){
-    descriptorAllocator->CreateDescriptorSetLayout(descriptorBindingsPerSet);
-}
-
-
-void PipelineManager::WithDescriptorSetPool(){
-    descriptorAllocator->CreateDescriptorSetPool(descriptorBindingsPerSet);
-  
-}
 
 void PipelineManager::LoadConfig(const std::string configFile) {
     
@@ -52,7 +50,9 @@ void PipelineManager::LoadConfig(const std::string configFile) {
                                         dynamicStates,
                                         descriptorBindingsPerSet,
                                         descriptorNames,
-                                        pushConstantRanges
+                                        pushConstantRanges,
+                                        renderpassKey,
+                                        vertexType
     );
     
 }
@@ -72,5 +72,6 @@ VkShaderModule PipelineManager::CreateShaderModule(const std::vector<char>& code
 
     return shaderModule;
 }
+
 
 

@@ -1,5 +1,4 @@
 #include "Shell.hpp"
-#include "IRenderLoopClient.hpp"
 
 
 Shell::Shell(){
@@ -35,7 +34,7 @@ void Shell::MainLoop(IRenderLoopClient* app) {
         if (targetFrameTime > deltaTime) {
             std::this_thread::sleep_for(std::chrono::duration<float>(targetFrameTime - deltaTime));
         }
-        
+        std::cout<< "FPS : " << 1.0f / deltaTime << std::endl;
     }
 }
 

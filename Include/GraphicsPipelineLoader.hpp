@@ -1,17 +1,15 @@
 // GraphicsPipelineLoader.hpp
 #pragma once
+#include "json.hpp"
 
 #include <vulkan/vulkan.h>
-#include "json.hpp"
 #include <vector>
 #include <string>
 #include <optional>
 #include <fstream>
-#include "json.hpp"
-#include "Shader.hpp"
-#include "GPU.hpp"
+
+
 #include <memory>
-#include "Mesh.hpp"
 #include <unordered_set>
 
 class ResourceManager;
@@ -32,8 +30,10 @@ class GraphicsPipelineLoader {
                                 std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,
                                 std::vector<VkDynamicState>& dynamicStatesOut,
                                 std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorSetsOut,
-                                std::vector<std::string> &descriptorNames,
-                                std::vector<VkPushConstantRange>& pushConstantRangesOut
+                                std::unordered_map<uint32_t, std::vector<std::string>>& descriptorNamesOut,
+                                std::vector<VkPushConstantRange>& pushConstantRangesOut,
+                                std::string& renderpassKeyOut,
+                                std::string& vertexTypeOut
                                 );
 
     protected:

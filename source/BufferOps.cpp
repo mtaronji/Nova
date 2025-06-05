@@ -1,10 +1,6 @@
-#include <vulkan/vulkan.h>
-#include <vector>
-#include <cassert>
-#include <stdexcept>
-#include <cstring>
-#include "CommandManager.hpp"
 #include "BufferOps.hpp"
+#include "CommandManager.hpp"
+#include "GPU.hpp"
 
 void BufferOps::CreateBuffer(GPU gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
 
@@ -35,7 +31,7 @@ void BufferOps::CreateBuffer(GPU gpu, VkDeviceSize size, VkBufferUsageFlags usag
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
 
-void BufferOps::CopyBuffer(GPU gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, uint32_t stagingBufferOffset, uint32_t destinationBufferOffset) {
+void BufferOps::CopyBuffer(GPU gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize stagingBufferOffset, VkDeviceSize destinationBufferOffset) {
 
     VkCommandBuffer commandBuffer = commandManager.BeginSingleTimeCommands();
 
@@ -56,8 +52,8 @@ void BufferOps::EnsureDeviceBuffer(
     VkBufferUsageFlags usage,
     VkBuffer& buffer,
     VkDeviceMemory& memory,
-    uint32_t destinationBufferOffset,
-    uint32_t stagingBufferOffset){
+    VkDeviceSize destinationBufferOffset,
+    VkDeviceSize stagingBufferOffset){
 
     assert(datasize != 0);
     VkDeviceSize memorySize = datasize;
@@ -107,7 +103,7 @@ void BufferOps::EnsureDeviceBuffer(
 
 
     // Copy staging -> device
-    CopyBuffer(gpu,commandManager, stagingBuffer, buffer, paddedSize, destinationBufferOffset, stagingBufferOffset);
+    CopyBuffer(gpu,commandManager, stagingBuffer, buffer, paddedSize, stagingBufferOffset, destinationBufferOffset);
 
     // Cleanup
     vkDestroyBuffer(device, stagingBuffer, nullptr);
@@ -122,7 +118,7 @@ void BufferOps::EnsureHostBuffer(
     VkBufferUsageFlags usage,
     VkBuffer& buffer,
     VkDeviceMemory& memory,
-    uint32_t destinationBufferOffset){
+    VkDeviceSize destinationBufferOffset){
 
     assert(datasize != 0);
     VkDeviceSize memorySize = datasize;
@@ -162,7 +158,7 @@ void BufferOps::UpdateHostBuffer(
         size_t dataSize,
         VkBuffer& buffer,
         VkDeviceMemory& memory,
-        uint32_t destinationBufferOffset){
+        VkDeviceSize destinationBufferOffset){
         
     // Upload data
     

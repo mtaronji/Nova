@@ -2,6 +2,8 @@
 #pragma once
 
 #define GLFW_INCLUDE_VULKAN
+#include "IRenderLoopClient.hpp"
+
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>

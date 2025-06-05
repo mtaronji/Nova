@@ -1,14 +1,18 @@
 #include "FramebufferGenerator.hpp"
-#include <stdexcept>
 #include "SwapchainManager.hpp"
 #include "GPU.hpp"
 #include "RenderPassManager.hpp"
 #include "ImageManager.hpp"
 
+FramebufferGenerator* FramebufferGenerator::Create(std::shared_ptr<GPU> gpu,
+                            RenderPassManager* renderpassManager,
+                            std::shared_ptr<SwapchainManager> swapchainManager){
 
+    return new FramebufferGenerator(gpu,renderpassManager,swapchainManager);
+}
 FramebufferGenerator::  FramebufferGenerator(
                         std::shared_ptr<GPU> gpu,
-                        std::shared_ptr<RenderPassManager> renderpassManager,
+                        RenderPassManager* renderpassManager,
                         std::shared_ptr<SwapchainManager> swapchainManager) : gpu(gpu),renderpassManager(renderpassManager), swapchainManager(swapchainManager)
 {
     CreateRenderPassResources();

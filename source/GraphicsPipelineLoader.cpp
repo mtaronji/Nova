@@ -1,6 +1,8 @@
 #include "GraphicsPipelineLoader.hpp"
-#include "ResourceManager.hpp"
 #include "PushConstants.hpp"
+#include "Shader.hpp"
+#include "GPU.hpp"
+#include "Mesh.hpp"
 
 using json = nlohmann::json;
 
@@ -245,8 +247,10 @@ void GraphicsPipelineLoader::LoadFromFile(
                                             std::vector<VkPipelineColorBlendAttachmentState>& colorblendAttachmentsOut,
                                             std::vector<VkDynamicState>& dynamicStatesOut,
                                             std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorSetsOut,
-                                            std::vector<std::string> &descriptorNames,
-                                            std::vector<VkPushConstantRange>& pushConstantRangesOut
+                                            std::unordered_map<uint32_t, std::vector<std::string>>& descriptorNamesOut,
+                                            std::vector<VkPushConstantRange>& pushConstantRangesOut,
+                                            std::string& renderpassKeyOut,
+                                            std::string& vertexTypeOut
                                         ){
 
     std::ifstream in(filePath);
@@ -311,7 +315,10 @@ void GraphicsPipelineLoader::LoadFromFile(
     multisamplingOut.rasterizationSamples = ParseRasterizationSamples(m["rasterizationSamples"]);
     multisamplingOut.sampleShadingEnable = m["sampleShadingEnable"];
     
+    renderpassKeyOut = j["renderpasskey"];
 
+    vertexTypeOut = j["vertextype"];
+    
     depthStencilOut = {};
 
     if(j.contains("depthStencil")){
@@ -394,7 +401,11 @@ void GraphicsPipelineLoader::LoadFromFile(
         for(const auto pc : j["pushConstants"]){
             VkPushConstantRange pcr = {};
             pcr.size = ParsePushConstantSize(pc["name"]);
-            pcr.stageFlags = ParseShaderStage(pc["stage"]);
+
+            for(const auto s : pc["stage"]){
+                 pcr.stageFlags |= ParseShaderStage(s);
+            }
+
             pcr.offset = pc["offset"];
             pushConstantRangesOut.push_back(pcr);
         } 
@@ -402,12 +413,13 @@ void GraphicsPipelineLoader::LoadFromFile(
     }
     if(j.contains("descriptorSets")){
 
-
-        descriptorNames.resize(1);
+        uint32_t set = 0;
+        
         for(const auto& layout : j["descriptorSets"]){
-         
+            
             std::vector<VkDescriptorSetLayoutBinding> descSetLayoutBindings ={};
             uint32_t binding = 0;
+            std::vector<std::string> descriptorNames;
             for (const auto& dsl : layout["descriptorSetLayout"]) {
                 
                 VkDescriptorSetLayoutBinding desclayoutbinding{};
@@ -424,6 +436,8 @@ void GraphicsPipelineLoader::LoadFromFile(
                 binding++;
             }
             descriptorSetsOut.push_back(descSetLayoutBindings);
+            descriptorNamesOut[set] = descriptorNames;
+            set++;
         
         }
     }

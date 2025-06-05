@@ -1,7 +1,7 @@
 #include "BufferResource.hpp"
-#include <cstring>
-
-BufferResource::BufferResource(VkBufferUsageFlags usage, uint32_t set, uint32_t binding):usage(usage), buffer(VK_NULL_HANDLE), set(set), binding(binding){
+#include "BufferOps.hpp"
+#include "GPU.hpp"
+BufferResource::BufferResource(VkBufferUsageFlags usage, uint32_t copies, uint32_t set, uint32_t binding):usage(usage), buffer(VK_NULL_HANDLE), set(set), binding(binding),copies(copies){
 
     bool hasMoreThanOneBitSet = (usage & (usage - 1)) != 0;
     if(hasMoreThanOneBitSet){throw std::runtime_error("BufferResources should have only 1 usage specified");}
@@ -22,6 +22,17 @@ void BufferResource::Upload(void* srcData, VkDeviceSize dataSize, uint32_t array
     this->previousSize = this->dataSize;
     this->dataSize = dataSize;
     this->arraySize = arraySize;
-    this->offset = offset;
     
+}
+
+size_t BufferResource::GetAlignedDataSize(VkDeviceSize alignment){
+    return BufferOps::AlignUp(dataSize, alignment);
+}
+
+void BufferResource::Cleanup(GPU* gpu){
+
+    if(data != nullptr){
+        free(data);
+        data = nullptr;
+    }      
 }

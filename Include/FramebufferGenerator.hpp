@@ -1,19 +1,25 @@
 #pragma once
+#include <stdexcept>
+#include "NovaConstants.hpp"
+
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <memory>
-#include "NovaConstants.hpp"
 
 class GPU;
 class SwapchainManager;
 class RenderPassManager;
+class ImageManager;
+
 class FramebufferGenerator {
     public:
         FramebufferGenerator() = default;
 
-        FramebufferGenerator(std::shared_ptr<GPU> gpu,
-                            std::shared_ptr<RenderPassManager> renderpassManager,
+        static FramebufferGenerator* Create(std::shared_ptr<GPU> gpu,
+                            RenderPassManager* renderpassManager,
                             std::shared_ptr<SwapchainManager> swapchainManager);
+
+       
 
         void CreateFramebuffers();
         void ReCreateFramebuffers();
@@ -23,8 +29,12 @@ class FramebufferGenerator {
         std::vector<VkFramebuffer> GetFramebuffers() const { return framebuffers; }
 
     protected:
+        FramebufferGenerator(std::shared_ptr<GPU> gpu,
+                            RenderPassManager* renderpassManager,
+                            std::shared_ptr<SwapchainManager> swapchainManager);
+                            
         std::shared_ptr<GPU> gpu;
-        std::shared_ptr<RenderPassManager> renderpassManager;
+        RenderPassManager* renderpassManager;
         std::shared_ptr<SwapchainManager> swapchainManager;
 
         VkFormat depthFormat;

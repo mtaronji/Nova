@@ -5,12 +5,14 @@
 #include <vector>
 #include <memory>
 #include <cassert>
+#include <string>
 #include "RenderpassLoader.hpp"
 
 
 class RenderPassManager {
     public:
-        RenderPassManager(std::shared_ptr<GPU> gpu);
+        static RenderPassManager* Create(std::shared_ptr<GPU> gpu,std::string file);
+       
         RenderPassManager() = delete;
         ~RenderPassManager();
 
@@ -41,6 +43,7 @@ class RenderPassManager {
         
 
     protected:
+        RenderPassManager(std::shared_ptr<GPU> gpu,std::string file);
         std::vector<VkAttachmentDescription> attachmentDescriptions;
         std::vector<VkAttachmentDescription> depthAttachmentDescriptions;
         std::vector<VkAttachmentDescription> resolveAttachmentDescriptions;

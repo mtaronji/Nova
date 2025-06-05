@@ -1,5 +1,4 @@
 #include "SwapchainManager.hpp"
-#include "VulkanEngine.hpp"
 
 // Image type (2D, 3D, cube map, etc.)
 //     // Format (RGBA, depth format, etc.)
@@ -8,7 +7,6 @@
 //     // Aspect (color, depth, or stencil)
 //     // Without an VkImageView, Vulkan wouldn't know how to interpret the image data in the context of a specific rendering operation.
 void SwapchainManager::CreateSwapchain() {
-    
     
     uint32_t imageCount = details.capabilities.minImageCount + 1;
     if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {

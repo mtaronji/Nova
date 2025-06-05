@@ -1,8 +1,10 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-
-
+#include <vector>
+#include <cassert>
+#include <stdexcept>
+#include <cstring>
 
 class CommandManager;
 class GPU;
@@ -11,7 +13,11 @@ struct BufferOps{
 
  
     static void CreateBuffer(GPU gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    static void CopyBuffer(GPU gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, uint32_t soffset, uint32_t doffset);
+
+    //copy from source buffer to destination buffer
+    //if you have a staging buffer that is monolithic, you can use the soffset parameter for it's start
+    //doffset is the destination buffer start offset
+    static void CopyBuffer(GPU gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize soffset, VkDeviceSize doffset);
     
     //vkBuffer
     static void EnsureDeviceBuffer(
@@ -22,8 +28,8 @@ struct BufferOps{
             VkBufferUsageFlags usage,
             VkBuffer& buffer,
             VkDeviceMemory& memory,
-            uint32_t destBufferOffset,
-            uint32_t stagingBufferOffset);
+            VkDeviceSize destBufferOffset,
+            VkDeviceSize stagingBufferOffset);
 
     static void EnsureHostBuffer(
         GPU gpu,
@@ -33,7 +39,7 @@ struct BufferOps{
         VkBufferUsageFlags usage,
         VkBuffer& buffer,
         VkDeviceMemory& memory,
-        uint32_t destBufferOffset);
+        VkDeviceSize destBufferOffset);
 
     static void UpdateHostBuffer(
         GPU gpu,
@@ -42,7 +48,7 @@ struct BufferOps{
         size_t dataSize,
         VkBuffer& buffer,
         VkDeviceMemory& memory,
-        uint32_t destBufferOffset);
+        VkDeviceSize destBufferOffset);
 
     static uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 

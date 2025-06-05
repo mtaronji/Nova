@@ -3,8 +3,10 @@
 #include <vulkan/vulkan.h>
 #include "GPU.hpp"
 #include "Shell.hpp"
+#include "VulkanEngine.hpp"
 #include <stdexcept>
 #include <memory>
+
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -31,6 +33,7 @@ class SwapchainManager {
         VkExtent2D GetExtent() const { return extent; }
         uint32_t GetImageCount() const { return imageCount;}
         void RechooseSwapExtent();
+        
 
         class Builder{
             public:

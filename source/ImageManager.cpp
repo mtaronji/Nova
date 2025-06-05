@@ -1,5 +1,4 @@
 #include "ImageManager.hpp"
-#include "GPU.hpp"
 
 void ImageManager::CreateImage(
     GPU* gpu,

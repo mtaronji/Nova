@@ -12,7 +12,7 @@ void SyncManager::Initialize(uint32_t maxFramesInFlight){
     for (int i = 0; i < m_frames.size(); i++) {
         m_frames[i].imageAvailable = CreateSemaphore();
         m_frames[i].renderFinished = CreateSemaphore();
-        m_frames[i].inFlight = i == 0 ? CreateFence(true) : CreateFence(false); 
+        m_frames[i].inFlight = CreateFence(true);
     }
 }
 

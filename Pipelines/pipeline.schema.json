@@ -19,7 +19,13 @@
                  }
             }
         },
-  
+        "renderpasskey":{
+            "type":"string"
+        },
+        "vertextype":{
+            "type":"string",
+            "enum":["pc","pn","pnt","pt","pntc"]
+        },
         "inputAssembly": {
             "type": "object",
             "required": ["topology","primitiveRestartEnable"],
@@ -252,23 +258,26 @@
           "required": ["stage", "offset", "name" ],
           "properties": {
             "stage": {
-              "type": "string",
-              "enum": ["vertex",
-                        "fragment",
-                        "geometry",
-                        "compute",
-                        "tessellationControl",
-                        "tessellationEvaluation",
-                        "allGraphics",
-                        "all",
-                        "raygen",
-                        "anyHit",
-                        "closestHit",
-                        "miss",
-                        "intersection",
-                        "callable",
-                        "task",
-                        "mesh"]
+              "type": "array",
+              "items":{
+                "type":"string",
+                "enum": ["vertex",
+                            "fragment",
+                            "geometry",
+                            "compute",
+                            "tessellationControl",
+                            "tessellationEvaluation",
+                            "allGraphics",
+                            "all",
+                            "raygen",
+                            "anyHit",
+                            "closestHit",
+                            "miss",
+                            "intersection",
+                            "callable",
+                            "task",
+                            "mesh"]
+              }
             },
             "offset": { "type": "integer" },
             "name": {

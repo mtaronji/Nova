@@ -17,11 +17,26 @@ find_package(glfw3 REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
 
-
-
-file(COPY ${CMAKE_SOURCE_DIR}/Pipelines DESTINATION ${CMAKE_BINARY_DIR})
-file(COPY ${CMAKE_SOURCE_DIR}/RenderPasses DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${CMAKE_BINARY_DIR})
+
+file(GLOB PIPELINE_FILES "${CMAKE_SOURCE_DIR}/Pipelines/*")
+
+foreach(file ${PIPELINE_FILES})
+    get_filename_component(FILENAME "${file}" NAME)
+
+    if(NOT FILENAME STREQUAL "pipeline.schema.json")
+        file(COPY "${file}" DESTINATION "${CMAKE_BINARY_DIR}/Pipelines")
+    endif()
+endforeach()
+
+file(GLOB RENDERPASS_FILES "${CMAKE_SOURCE_DIR}/RenderPasses/*")
+foreach(file ${RENDERPASS_FILES})
+    get_filename_component(FILENAME "${file}" NAME)
+
+    if(NOT FILENAME STREQUAL "renderpass.schema.json")
+        file(COPY "${file}" DESTINATION "${CMAKE_BINARY_DIR}/RenderPasses")
+    endif()
+endforeach()
 
 add_executable(nova 
     main.cpp 
@@ -46,6 +61,11 @@ add_executable(nova
     source/BufferResource.cpp
     source/Mesh.cpp
     source/ImageManager.cpp
+    source/PipelineLibrary.cpp
+    source/RenderpassLibrary.cpp
+    source/FramebufferLibrary.cpp
+    source/ResourceManager.cpp
+    source/DescriptorsetLoader.cpp
 )
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include

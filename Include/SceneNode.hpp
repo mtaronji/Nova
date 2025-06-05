@@ -1,47 +1,51 @@
 #pragma once
-#include <vector>
-#include <memory>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <vulkan/vulkan.hpp>
 
-    class Mesh;
-    class DescriptorAllocator;
-    class PipelineManager;
+// #include "DescriptorAllocator.hpp"
+// #include "PipelineManager.hpp"
 
-    class SceneNode {
-        public:
-            SceneNode();
-            virtual ~SceneNode() = default;
+// #include <vector>
+// #include <memory>
+// #include <glm/glm.hpp>
+// #include <glm/gtc/matrix_transform.hpp>
+// #include <vulkan/vulkan.h>
 
-            void AddChild(std::shared_ptr<SceneNode> child);
-            void SetParent(SceneNode* parent);
+//     class Mesh;
+//     class DescriptorAllocator;
+//     class PipelineManager;
 
-            void SetLocalTransform(const glm::mat4& transform);
-            const glm::mat4& GetWorldTransform() const;
+//     class SceneNode {
+//         public:
+//             SceneNode();
+//             virtual ~SceneNode() = default;
 
-            void Update(const glm::mat4& parentTransform);
-            void DrawGeometry(VkCommandBuffer cmdBuf, uint32_t currentFrame); // needs frame index
-            void DrawUI(VkCommandBuffer cmdBuf, uint32_t currentFrame);
+//             void AddChild(std::shared_ptr<SceneNode> child);
+//             void SetParent(SceneNode* parent);
 
-            void SetMesh(Mesh* m) { mesh = m; }
-            void SetPipelineManager(PipelineManager* p) { pipelineManager = p; }
+//             void SetLocalTransform(const glm::mat4& transform);
+//             const glm::mat4& GetWorldTransform() const;
 
-            void SetDescriptorSetIndex(uint32_t setIndex) { descriptorSetIndex = setIndex; }
-            void SetDescriptorAllocator(DescriptorAllocator *d){descriptorAllocator = d;}
+//             void Update(const glm::mat4& parentTransform);
+//             void DrawGeometry(VkCommandBuffer cmdBuf, uint32_t currentFrame); // needs frame index
+//             void DrawUI(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 
-        protected:
-            glm::mat4 localTransform = glm::mat4(1.0f);
-            glm::mat4 worldTransform = glm::mat4(1.0f);         
-            SceneNode* parent = nullptr;
-            std::vector<std::shared_ptr<SceneNode>> children;
+//             void SetMesh(Mesh* m) { mesh = m; }
+//             void SetPipelineManager(PipelineManager* p) { pipelineManager = p; }
 
-            Mesh* mesh = nullptr;
-            PipelineManager* pipelineManager = nullptr;
-            DescriptorAllocator* descriptorAllocator;
-            // Index into DescriptorAllocator descriptorSets
-            uint32_t descriptorSetIndex = -1;
+//             void SetDescriptorSetIndex(uint32_t setIndex) { descriptorSetIndex = setIndex; }
+//             void SetDescriptorAllocator(DescriptorAllocator *d){descriptorAllocator = d;}
 
-        private:
+//         protected:
+//             glm::mat4 localTransform = glm::mat4(1.0f);
+//             glm::mat4 worldTransform = glm::mat4(1.0f);         
+//             SceneNode* parent = nullptr;
+//             std::vector<std::shared_ptr<SceneNode>> children;
+
+//             Mesh* mesh = nullptr;
+//             PipelineManager* pipelineManager = nullptr;
+//             DescriptorAllocator* descriptorAllocator;
+//             // Index into DescriptorAllocator descriptorSets
+//             uint32_t descriptorSetIndex = -1;
+
+//         private:
     
-    };
+//     };

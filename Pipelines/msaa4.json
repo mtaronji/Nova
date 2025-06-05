@@ -17,6 +17,8 @@
         "frontFace": "counter_clockwise",
         "lineWidth": 1.0
     },
+    "renderpasskey": "msaa4.json",
+    "vertextype": "pc",
     "multisampling": {
         "sampleShadingEnable": true,
         "rasterizationSamples":4,
@@ -44,11 +46,12 @@
     "dynamicStates": [
         "viewport","scissor"
     ],
+   
     "pushConstants": [
         {
             "name": "frameinfo",
             "offset": 0,
-            "stage": "vertex"
+            "stage": ["vertex","fragment"]
         }
     ],
     "descriptorSets": [

@@ -8,9 +8,13 @@ void RenderPassManager:: NotifyRenderPassOutOfDate(){
 
 }
 
-RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu){
+RenderPassManager* RenderPassManager::Create(std::shared_ptr<GPU> gpu,std::string file){
+    return new RenderPassManager(gpu, file);
+}
+
+RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu, std::string file){
     this->gpu = gpu;
-    this->info = RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig copy.json",
+    this->info = RenderPassLoader::LoadFromFile(file,
                                                 attachmentDescriptions,
                                                 subpassDescriptions, 
                                                 subpassdependencies,
@@ -23,7 +27,7 @@ RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu){
 }
 
 VkRenderPassCreateInfo RenderPassManager::LoadRenderpassConfig(const std::string path){
-    return RenderPassLoader::LoadFromFile("RenderPasses/defaultRenderpassConfig copy.json",
+    return RenderPassLoader::LoadFromFile(path,
                                             attachmentDescriptions,
                                             subpassDescriptions, 
                                             subpassdependencies,
@@ -32,7 +36,7 @@ VkRenderPassCreateInfo RenderPassManager::LoadRenderpassConfig(const std::string
                                             resolveAtachmentRefs,
                                             imageUsesForAttachments,
                                             aspectFlagsForAttachments);
-}
+    }
 
 void RenderPassManager::SetPresentColorAttachmentFormat(){
    

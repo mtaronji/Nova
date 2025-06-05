@@ -1,5 +1,4 @@
 #include "CommandManager.hpp"
-#include "GPU.hpp"
 
 void CommandManager::CreateCommandPool(){
     VkCommandPoolCreateInfo poolInfo{};

@@ -2,9 +2,9 @@
 
 #include "BufferOps.hpp"
 #include "BufferResource.hpp"
+#include "CommandManager.hpp"
 #include "Vertex.hpp"
 #include <vector>
-class CommandManager;
 
 struct BoundingBox {
     glm::vec3 min;  // Minimum corner (lowest x, y, z)

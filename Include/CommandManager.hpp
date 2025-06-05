@@ -4,18 +4,16 @@
 #include "RenderPassManager.hpp"
 #include "SwapchainManager.hpp"
 #include "PipelineManager.hpp"
+#include "GPU.hpp"
+
 #include <vector>
 #include <memory>
 #include <stdexcept>
 
-class PipelineManager;
-class RenderPassManager;
-class GPU;
-
 class CommandManager {
     public:
         CommandManager() = delete;
-        CommandManager(std::shared_ptr<GPU> gpu):gpu(gpu){}
+        CommandManager(std::shared_ptr<GPU> gpu, uint32_t MAX_FRAMES):gpu(gpu),MAX_FRAMES(MAX_FRAMES){}
 
         void CreateCommandPool();
         void Init();
@@ -60,5 +58,5 @@ class CommandManager {
         std::vector<VkCommandBuffer> commandBuffers;
 
     private:
-        const uint32_t  MAX_FRAMES = 3;
+        uint32_t MAX_FRAMES;
 };

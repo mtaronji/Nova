@@ -1,7 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
+#include "GPU.hpp"
 
-class GPU;
+
 class ImageManager{
 
     ImageManager() = delete;

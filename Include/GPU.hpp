@@ -1,5 +1,7 @@
 #pragma once
 
+#include "VulkanEngine.hpp"
+
 #include <fstream>
 #include <stdexcept>
 #include <vector>
