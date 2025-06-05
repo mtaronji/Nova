@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.02)  # CMake version check
+cmake_minimum_required(VERSION 4.0.2)  # CMake version check
 project(nova)               # Create project "magus"
 set(CMAKE_CXX_STANDARD 23)         # Enable c++23 standard
 
