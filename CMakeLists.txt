@@ -71,7 +71,7 @@ set(ALL_SOURCES
     ${DESCRIPTORSETS}
 )
 
-add_executable(nova ${ALL_SOURCES})
+add_executable(nova ${FONTLOADERSRC} ${SOURCES})
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include
                                         ${Vulkan_INCLUDE_DIRS}
