@@ -50,14 +50,14 @@ file(GLOB_RECURSE FONTLOADERHEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "font
 file(GLOB_RECURSE FONTLOADERSRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/src/*.cpp" "fontloader/src/*.c")
 file(GLOB_RECURSE DESCRIPTORSETS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "descriptorsets/*.json")
 
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" FILES ${SOURCES})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/include" FILES ${HEADERS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/include" FILES ${FONTLOADERHEADERS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/src" FILES ${FONTLOADERSRC})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" FILES ${SHADERS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/pipelines" FILES ${PIPELINES})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/renderpasses" FILES ${RENDERPASSES})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptorsets" FILES ${DESCRIPTORSETS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${SOURCES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/include" PREFIX "include" FILES ${HEADERS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/include" PREFIX "fontloader/include" FILES ${FONTLOADERHEADERS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/src" PREFIX "fontloader/source" FILES ${FONTLOADERSRC})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "shaders" FILES ${SHADERS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/pipelines" PREFIX "pipelines" FILES ${PIPELINES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/renderpasses" PREFIX "renderpasses" FILES ${RENDERPASSES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptorsets" PREFIX "descriptorsets" FILES ${DESCRIPTORSETS})
 
 
 set(ALL_SOURCES
@@ -71,7 +71,9 @@ set(ALL_SOURCES
     ${DESCRIPTORSETS}
 )
 
-add_executable(nova ${ALL_SOURCES})
+add_executable(nova)
+target_sources(nova PRIVATE ${SOURCES} ${FONTLOADERSRC})
+
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include
                                         ${Vulkan_INCLUDE_DIRS}
