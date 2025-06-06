@@ -11,8 +11,8 @@ This project has been tested on:
 💻 Getting Started
 1. Clone the Repository
 
-git clone https://github.com/mtaronji/nova.git
-cd nova
+        git clone https://github.com/mtaronji/nova.git
+        cd nova
 
 2. Install Dependencies
 Option A: Use vcpkg (Recommended on Windows)
@@ -21,30 +21,30 @@ vcpkg manages dependencies and integrates automatically with CMake and Visual St
 Setup vcpkg
 
 # Clone vcpkg
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
+    git clone https://github.com/microsoft/vcpkg.git
+    cd vcpkg
 
 # Bootstrap (build) vcpkg executable
-.\bootstrap-vcpkg.bat          # Windows PowerShell
+    .\bootstrap-vcpkg.bat          # Windows PowerShell
 # or
-./bootstrap-vcpkg.sh           # Linux / macOS
+    ./bootstrap-vcpkg.sh           # Linux / macOS
 
 Install packages
 
-.\vcpkg install glfw3 glm freetype
+    .\vcpkg install package
 # You can install multiple packages simultaneously:
-.\vcpkg install glfw3 glm freetype
+    .\vcpkg install glfw3 glm freetype vulkan
 
 Integrate with build system (run once)
 
-.\vcpkg integrate install
+    .\vcpkg integrate install
 
 Build your project with vcpkg toolchain
 
 Replace the path below with your vcpkg location:
 
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022"
-cmake --build build --config Debug
+    cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022"
+    cmake --build build --config Debug
 
 Open the solution:
 
@@ -56,29 +56,29 @@ If you don’t want to use vcpkg:
 
     Clone and build each dependency yourself:
 
-git clone https://github.com/glfw/glfw.git
-cd glfw
-cmake -B build -DCMAKE_INSTALL_PREFIX=C:/libs/glfw
-cmake --build build --target install
+    git clone https://github.com/glfw/glfw.git
+    cd glfw
+    cmake -B build -DCMAKE_INSTALL_PREFIX=C:/libs/glfw
+    cmake --build build --target install
 
 Repeat for GLM, FreeType, etc.
 
-    When building Nova, specify the dependencies locations:
+When building Nova, specify the dependencies locations:
 
-cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype" -G "Visual Studio 17 2022"
-cmake --build build --config Debug
+    cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype" -G "Visual Studio 17 2022"
+    cmake --build build --config Debug
 
 📝 Important Notes
 
-    Use forward slashes (/) or escaped backslashes (\\) in CMake paths on Windows.
+Use forward slashes (/) or escaped backslashes (\\) in CMake paths on Windows.
 
-    Change "Visual Studio 17 2022" to your installed VS version if different.
+Change "Visual Studio 17 2022" to your installed VS version if different.
 
-    The -G argument in CMake specifies the generator (e.g., Visual Studio, Ninja).
+The -G argument in CMake specifies the generator (e.g., Visual Studio, Ninja).
 
-    Toolchain files like vcpkg keep your CMakeLists.txt clean and cross-platform.
+Toolchain files like vcpkg keep your CMakeLists.txt clean and cross-platform.
 
-    The build system automatically copies shaders, pipeline JSON files, and renderpasses to the output folder.
+The build system automatically copies shaders, pipeline JSON files, and renderpasses to the output folder.
 
 🐧 Linux Instructions
 
@@ -86,14 +86,14 @@ Ensure all dependencies (GLFW, GLM, FreeType) are installed via your package man
 
 Build the project:
 
-git clone https://github.com/mtaronji/nova.git
-cd nova
-cmake -B build -S .
-cmake --build build --config Debug
+    git clone https://github.com/mtaronji/nova.git
+    cd nova
+    cmake -B build -S .
+    cmake --build build --config Debug
 
 If dependencies are in custom locations, specify:
 
-cmake -B build -S . -DCMAKE_PREFIX_PATH="/opt/glfw;/opt/glm;/opt/freetype"
+    cmake -B build -S . -DCMAKE_PREFIX_PATH="/opt/glfw;/opt/glm;/opt/freetype"
 
 🔧 Build System Overview
 
