@@ -1,137 +1,120 @@
-# Building the Nova Project
+🚀 Building the Nova Project
 
 This project has been tested on:
 
-- ✅ **Visual Studio 2022 (Windows)**  
-- ✅ **Linux (with GCC/Clang and CMake)**
+    ✅ Visual Studio 2022 (Windows)
 
-> ⚠️ Other environments may work but are untested.
+    ✅ Linux (GCC/Clang + CMake)
 
----
+    ⚠️ Other platforms may work but are untested.
 
-## 🚀 Getting Started (Windows - Visual Studio)
+💻 Getting Started
+1. Clone the Repository
 
-### 📥 Clone the Repository
-
-```powershell
 git clone https://github.com/mtaronji/nova.git
-cd repo
+cd nova
 
-📦 Option 1: Use vcpkg for Dependencies
+2. Install Dependencies
+Option A: Use vcpkg (Recommended on Windows)
 
-    This is the recommended method on Windows if you want find_package(...) to work out-of-the-box.
-    1. Install vcpkg
+vcpkg manages dependencies and integrates automatically with CMake and Visual Studio.
+Setup vcpkg
 
-    If you don’t have vcpkg installed yet, here’s how to get it:
-    
-    # Clone vcpkg repo
-    git clone https://github.com/microsoft/vcpkg.git
-    
-    # Go into the vcpkg folder
-    cd vcpkg
-    
-    # Bootstrap vcpkg (build the executable)
-    .\bootstrap-vcpkg.bat   # on Windows PowerShell
-    # or
-    ./bootstrap-vcpkg.sh    # on Linux / macOS
-    
-    2. Install packages
-    
-    To install a library, just run:
-    
-    .\vcpkg install glfw3
-    .\vcpkg install glm
-    .\vcpkg install freetype
-    
-        You can install multiple packages at once:
-    
-    .\vcpkg install glfw3 glm freetype
-    
-    3. Integrate vcpkg with your build system
-    
-    Run this once (only need to do it once per user/machine):
-    
-    .\vcpkg integrate install
-    
-        This lets Visual Studio and CMake automatically find the installed packages.
-    
-    4. Using vcpkg with CMake
-    
-    When running CMake, specify the vcpkg toolchain file:
-    
-    cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=C:/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022"
-    
-    Replace C:/path/to/vcpkg with your actual path.
-    
-    This tells CMake to use libraries installed via vcpkg, so your find_package() calls work correctly.
-    
-    Assuming vcpkg is installed at C:/tools/vcpkg:
-    
-    cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022"
-    
-    Then build the solution:
-    
-    cmake --build build --config Debug
-    
-    Open the solution in Visual Studio:
-    
-    build/Nova.sln
+# Clone vcpkg
+git clone https://github.com/microsoft/vcpkg.git
+cd vcpkg
 
-⚙️ Option 2: Manual Dependencies (Without vcpkg)
+# Bootstrap (build) vcpkg executable
+.\bootstrap-vcpkg.bat          # Windows PowerShell
+# or
+./bootstrap-vcpkg.sh           # Linux / macOS
 
-    If you're not using vcpkg, CMake's find_package(...) will fail unless you manually build and install your dependencies:
+Install packages
 
-    Clone and build libraries like GLFW, GLM, and FreeType using CMake:
+.\vcpkg install glfw3 glm freetype
+# You can install multiple packages simultaneously:
+.\vcpkg install glfw3 glm freetype
 
-    git clone https://github.com/glfw/glfw
-    cmake -B build -DCMAKE_INSTALL_PREFIX=C:/libs/glfw
-    cmake --build build --target install
-    
-    Repeat for GLM, FreeType, etc.
-    
-        Then add them to your CMAKE_PREFIX_PATH:
-    
-    cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype" -G "Visual Studio 17 2022"
+Integrate with build system (run once)
 
-🔍 Notes on Windows
+.\vcpkg integrate install
 
-    Use forward slashes (/) or escaped backslashes (\\) in all CMake paths.
+Build your project with vcpkg toolchain
 
-    Change "Visual Studio 17 2022" if you're using a different version.
+Replace the path below with your vcpkg location:
 
-    Toolchain files (like vcpkg) make your CMakeLists.txt cleaner and portable.
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022"
+cmake --build build --config Debug
 
-    -G specifies the CMake generator, i.e., what kind of project files to generate (Visual Studio, Ninja, Makefiles, etc.).
+Open the solution:
+
+build\Nova.sln
+
+Option B: Manual Dependency Setup (Without vcpkg)
+
+If you don’t want to use vcpkg:
+
+    Clone and build each dependency yourself:
+
+git clone https://github.com/glfw/glfw.git
+cd glfw
+cmake -B build -DCMAKE_INSTALL_PREFIX=C:/libs/glfw
+cmake --build build --target install
+
+Repeat for GLM, FreeType, etc.
+
+    When building Nova, specify the dependencies locations:
+
+cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype" -G "Visual Studio 17 2022"
+cmake --build build --config Debug
+
+📝 Important Notes
+
+    Use forward slashes (/) or escaped backslashes (\\) in CMake paths on Windows.
+
+    Change "Visual Studio 17 2022" to your installed VS version if different.
+
+    The -G argument in CMake specifies the generator (e.g., Visual Studio, Ninja).
+
+    Toolchain files like vcpkg keep your CMakeLists.txt clean and cross-platform.
+
+    The build system automatically copies shaders, pipeline JSON files, and renderpasses to the output folder.
 
 🐧 Linux Instructions
 
-    Make sure all dependencies (GLFW, GLM, Freetype, etc.) are installed via your package manager or built manually and installed using CMake.
-    
-    Then build:
-    
-    git clone https://github.com/user/repo.git
-    cd repo
-    cmake -B build -S .
-    cmake --build build --config Debug
+Ensure all dependencies (GLFW, GLM, FreeType) are installed via your package manager or built manually.
 
-    If dependencies were installed manually to a custom location, specify it like so:
+Build the project:
 
-    cmake -B build -S . -DCMAKE_PREFIX_PATH="/opt/glfw;/opt/glm;/opt/freetype"
+git clone https://github.com/mtaronji/nova.git
+cd nova
+cmake -B build -S .
+cmake --build build --config Debug
 
-🔨 How the Build System Works
+If dependencies are in custom locations, specify:
 
-    CMakeLists.txt automatically copies shaders, pipeline JSONs, and renderpasses to the output directory.
+cmake -B build -S . -DCMAKE_PREFIX_PATH="/opt/glfw;/opt/glm;/opt/freetype"
 
-    If you're using Visual Studio, it may default to running ALL_BUILD — this is a meta target that builds all other targets.
+🔧 Build System Overview
 
-    You can configure a specific project as the startup target inside Visual Studio (Right-click → Set as Startup Project).
+    ALL_BUILD is a meta target Visual Studio creates to build all projects in the solution.
 
-🔁 Cross-Platform Support
+    Set your desired startup project by right-clicking it → Set as Startup Project in Visual Studio.
 
-    This project supports both Visual Studio and Linux builds. However, shader compilation (e.g., via glslangValidator) is not enforced automatically — the app assumes compiled .spv files exist.
+    The app expects compiled shaders (.spv) to exist. Shader compilation is not forced.
 
-    If you'd like to compile shaders manually:
+    For shader compilation:
 
-    On Linux, you can configure CMake or a shell script to do it.
+        On Linux, you can add shell scripts or CMake custom commands.
 
-    On Windows, you can create a custom pre-build PowerShell task in Visual Studio.
+        On Windows, add a PowerShell pre-build task in Visual Studio to compile shaders if desired.
+
+🎯 Summary
+
+    Use vcpkg on Windows for easiest dependency management.
+
+    You can manually install libraries if preferred.
+
+    Tested on Visual Studio 2022 and Linux.
+
+    Cross-platform build support, but shader compilation is left to users.
