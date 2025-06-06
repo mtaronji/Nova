@@ -65,7 +65,7 @@ Repeat for GLM, FreeType, etc.
 
 When building Nova, specify the dependencies locations:
 
-    cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype" -G "Visual Studio 17 2022"
+    cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype;C:/VulkanSDK/1.3.283.0/Lib;" -G "Visual Studio 17 2022"
     cmake --build build --config Debug
 
 📝 Important Notes
