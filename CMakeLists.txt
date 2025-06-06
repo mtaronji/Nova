@@ -41,8 +41,8 @@ foreach(file ${RENDERPASS_FILES})
 endforeach()
 
 # Recursively find source and header files
-file(GLOB_RECURSE SOURCES "source/*.cpp" "source/*.c")
-file(GLOB_RECURSE HEADERS "include/*.hpp" "include/*.h")
+file(GLOB_RECURSE SOURCES RELATIVE "source/*.cpp" "source/*.c")
+file(GLOB_RECURSE HEADERS RELATIVE "include/*.hpp" "include/*.h")
 file(GLOB_RECURSE SHADERS "shaders/*.vert" "shaders/*.frag")
 file(GLOB_RECURSE PIPELINES "pipelines/*.json")
 file(GLOB_RECURSE RENDERPASSES "renderpasses/*.json")
