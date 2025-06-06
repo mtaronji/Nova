@@ -60,7 +60,7 @@ endforeach()
 # Recursively find source and header files
 file(GLOB_RECURSE SOURCES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "source/*.cpp" "source/*.c")
 file(GLOB_RECURSE HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/*.hpp" "include/*.h")
-file(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "shaders/*.vert" "shaders/*.frag")
+file(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "shaders/*.vert" "shaders/*.frag" "shaders/*.sh" "shaders/*.ps1")
 file(GLOB_RECURSE PIPELINES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "pipelines/*.json")
 file(GLOB_RECURSE RENDERPASSES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "renderpasses/*.json")
 file(GLOB_RECURSE FONTLOADERHEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/include/*.h" "fontloader/include/*.hpp")
