@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 #include <stdexcept>
+#include <string>
 
 struct alignas(16) VertexP {
     glm::vec3 pos;
@@ -40,9 +41,7 @@ struct alignas(16) VertexPC {
         return {0, sizeof(VertexPC), VK_VERTEX_INPUT_RATE_VERTEX};
     }
 
-    static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions() {
-        VkVertexInputAttributeDescription vd;
-        
+    static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions() {  
         return {
             {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexPC, pos)},     // pos at offset 0      //location 0
             {1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(VertexPC, color)} // color at offset 16   //location 1

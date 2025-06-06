@@ -80,8 +80,8 @@ void Renderer::BindPipeline(std::string pipelineKey){
 void Renderer::AllocateDescriptorSets(std::string pipelineKey){
     
     auto pipelineManager = pipelineLibrary->GetPipeline(pipelineKey);
-    auto layouts = pipelineManager->GetDescriptorSetLayouts();
-    auto pipelineBindings = pipelineManager->GetDescriptorSetBindings();
+    auto& layouts = pipelineManager->GetDescriptorSetLayouts();
+    auto& pipelineBindings = pipelineManager->GetDescriptorSetBindings();
     assert(pipelineBindings.size() == layouts.size());
 
     //create the sizes
@@ -91,7 +91,7 @@ void Renderer::AllocateDescriptorSets(std::string pipelineKey){
     for(auto& v : pipelineDescriptorSets[pipelineKey]){
         v.resize(layouts.size());
     }
-    auto descriptorSetResources = resourceManager->GetDescriptorSets(pipelineKey);      //[set][binding]
+    auto& descriptorSetResources = resourceManager->GetDescriptorSets(pipelineKey);      //[set][binding]
 
     assert(descriptorSetResources.size() == layouts.size());
 
@@ -100,9 +100,9 @@ void Renderer::AllocateDescriptorSets(std::string pipelineKey){
     //all descriptors from a set should request the same number of resources
     //set 0 might have 4 copies
     //set 1 might have just 1 copy for all it's resources, etc
-    std::vector<uint32_t> descriptorSetCopies;
+    std::vector<uint32_t> descriptorSetCopies = {};
     for(uint32_t set = 0; set < descriptorSetResources.size(); set++){
-        auto resources = descriptorSetResources[set];
+        auto& resources = descriptorSetResources[set];
         auto copies = resources[0]->GetCopyCount();
         descriptorSetCopies.push_back(copies);
         for(uint32_t binding = 0; binding < resources.size(); binding++){
@@ -110,7 +110,6 @@ void Renderer::AllocateDescriptorSets(std::string pipelineKey){
         }
     }
     for(uint32_t i = 0; i < layouts.size(); i++){
-        
         auto copies = descriptorSetCopies[i];
         //if the descriptor set is only requesting 1 copy, we will copy what we allocate multiple times. Each frame requests the same descriptor set
         //please note anything that might change per frame should not be allocated this way
@@ -347,4 +346,11 @@ void Renderer::RecreateSwapchain(){
 
     auto extent = swapchainmanager->GetExtent();
     frameinfo.iResolution = {extent.width, extent.height};
+}
+
+void Renderer::DestroyFrameBuffers() {
+
+}
+void Renderer::CreateFrameBuffers() {
+
 }

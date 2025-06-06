@@ -2,9 +2,9 @@
 
 #include <memory>
 #include <unordered_map>
+#include <string>
 
 class FramebufferGenerator;
-
 class FramebufferLibrary {
     public:
         FramebufferLibrary() = default;

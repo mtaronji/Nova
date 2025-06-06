@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 4.0.2)  # CMake version check
 project(nova)               # Create project "magus"
 set(CMAKE_CXX_STANDARD 23)         # Enable c++23 standard
 
+if(CMAKE_CONFIGURATION_TYPES)
+    # Multi-config generators like Visual Studio
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/x64/$<CONFIG>")
+else()
+    # Single-config generators like Make/Ninja on Linux
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/x64/${CMAKE_BUILD_TYPE}")
+endif()
+
 
 # Set default build type if not specified
 if(NOT CMAKE_BUILD_TYPE)
@@ -9,8 +17,17 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Set compiler flags for each build type
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+if(MSVC)
+    # MSVC debug flags: /Zi = debug info, /Od = disable optimizations for debugging
+    set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Od")
+    # MSVC release flags: optimize, no debug info
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /DNDEBUG")
+else()
+    # GCC/Clang debug flags: -g for debug info, -O0 disables optimization
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+    # GCC/Clang release flags: optimize, no debug info
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+endif()
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -49,8 +66,14 @@ file(GLOB_RECURSE RENDERPASSES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "renderpas
 file(GLOB_RECURSE FONTLOADERHEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/include/*.h" "fontloader/include/*.hpp")
 file(GLOB_RECURSE FONTLOADERSRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/src/*.cpp" "fontloader/src/*.c")
 file(GLOB_RECURSE DESCRIPTORSETS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "descriptorsets/*.json")
+file(GLOB_RECURSE SCRIPTS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "scripts/*.ps1" "scripts/*.sh")
 
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${SOURCES})
+#want the main.cpp in the root
+set(ROOT_SOURCES main.cpp)
+
+#this will add the same directory structure we have in the github project
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ROOT_SOURCES}) # no prefix we want it at the root
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${SOURCES})   
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/include" PREFIX "include" FILES ${HEADERS})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/include" PREFIX "fontloader/include" FILES ${FONTLOADERHEADERS})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/src" PREFIX "fontloader/source" FILES ${FONTLOADERSRC})
@@ -58,30 +81,22 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "shaders" FILES $
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/pipelines" PREFIX "pipelines" FILES ${PIPELINES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/renderpasses" PREFIX "renderpasses" FILES ${RENDERPASSES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptorsets" PREFIX "descriptorsets" FILES ${DESCRIPTORSETS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/scripts" PREFIX "scripts" FILES ${SCRIPTS})
 
-
-set(ALL_SOURCES
-    ${SOURCES}
-    ${HEADERS}
-    ${FONTLOADERHEADERS}
-    ${FONTLOADERSRC}
-    ${SHADERS}
-    ${PIPELINES}
-    ${RENDERPASSES}
-    ${DESCRIPTORSETS}
-)
 
 add_executable(nova)
 # Add both sources AND headers (optional but helps IDE indexing)
 target_sources(nova PRIVATE 
+    main.cpp  # explicitly add the root main.cpp file
     ${SOURCES}
     ${FONTLOADERSRC}
-    ${HEADERS}          # Optional: Helps IDE recognize headers
-    ${FONTLOADERHEADERS}
+    ${HEADERS}          # add so ide can create directory strucure
+    ${FONTLOADERHEADERS}  # add so ide can create directory strucure 
     ${SHADERS}         # Optional (shaders are also assets)
     ${PIPELINES}       # Adds pipeline JSON files to IDE
     ${RENDERPASSES}    # Adds renderpass JSON files to IDE
     ${DESCRIPTORSETS}  # Adds descriptor set JSON files to IDE
+    ${SCRIPTS}         # adds scripts folder to the ide
 )
 
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/include
@@ -96,4 +111,16 @@ target_link_libraries(nova
     Vulkan::Vulkan
     glfw
     ${FREETYPE_LIBRARIES}
+)
+
+# Post-build command to copy shaders and other files to output directory
+add_custom_command(TARGET nova POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:nova>/shaders
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/pipelines $<TARGET_FILE_DIR:nova>/pipelines
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/renderpasses $<TARGET_FILE_DIR:nova>/renderpasses
+     COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/descriptorsets $<TARGET_FILE_DIR:nova>/descriptorsets
 )

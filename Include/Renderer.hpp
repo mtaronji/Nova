@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <memory>
 #include "PushConstants.hpp"
+#include <string>
 
 class Shell;
 class GPU;
@@ -52,7 +53,7 @@ class Renderer {
         VkDescriptorSet& GetPipelineDescriptorSet(std::string pipelineKey, uint32_t frame, uint32_t set); //the descriptorset for the set index and frame
         std::vector<VkDescriptorSet>& GetPipelineDescriptorSetsFrame(std::string pipelineKey, uint32_t frame); //the descriptorset for the frame
 
-        uint32_t GetFrameIndex() {return currentFrame;}
+        uint32_t GetFrameIndex() const {return currentFrame;}
 
         void AllocateDescriptorSets(std::string pipelineKey);
 

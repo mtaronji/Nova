@@ -6,7 +6,7 @@
 #include "VulkanEngine.hpp"
 #include <stdexcept>
 #include <memory>
-
+#include <algorithm>
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
