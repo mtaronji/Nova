@@ -78,6 +78,10 @@ target_sources(nova PRIVATE
     ${FONTLOADERSRC}
     ${HEADERS}          # Optional: Helps IDE recognize headers
     ${FONTLOADERHEADERS}
+    ${SHADERS}         # Optional (shaders are also assets)
+    ${PIPELINES}       # Adds pipeline JSON files to IDE
+    ${RENDERPASSES}    # Adds renderpass JSON files to IDE
+    ${DESCRIPTORSETS}  # Adds descriptor set JSON files to IDE
 )
 
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/include
