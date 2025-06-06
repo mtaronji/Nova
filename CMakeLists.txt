@@ -72,9 +72,15 @@ set(ALL_SOURCES
 )
 
 add_executable(nova)
-target_sources(nova PRIVATE ${SOURCES} ${FONTLOADERSRC})
+# Add both sources AND headers (optional but helps IDE indexing)
+target_sources(nova PRIVATE 
+    ${SOURCES}
+    ${FONTLOADERSRC}
+    ${HEADERS}          # Optional: Helps IDE recognize headers
+    ${FONTLOADERHEADERS}
+)
 
-target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/Include
+target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include
                                         ${Vulkan_INCLUDE_DIRS}
                                         ${FREETYPE_INCLUDE_DIRS}
