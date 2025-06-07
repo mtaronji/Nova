@@ -15,74 +15,77 @@ This project has been tested on:
         cd nova
 
 2. Install Dependencies
-Option A: Use vcpkg (Recommended on Windows)
+🔹 Option A: Use vcpkg (Recommended for Windows)
 
-vcpkg manages dependencies and integrates automatically with CMake and Visual Studio.
-Setup vcpkg
+vcpkg manages C++ libraries and integrates well with CMake and Visual Studio.
 
-# Clone vcpkg
+Setup vcpkg:
+
     git clone https://github.com/microsoft/vcpkg.git
     cd vcpkg
+    .\bootstrap-vcpkg.bat          # On Windows
+OR:
 
-# Bootstrap (build) vcpkg executable
-    .\bootstrap-vcpkg.bat          # Windows PowerShell
-# or
-    ./bootstrap-vcpkg.sh           # Linux / macOS
+    ./bootstrap-vcpkg.sh           # On Linux/macOS
 
-Install packages
+Install dependencies:
 
-    .\vcpkg install package
-# You can install multiple packages simultaneously:
     .\vcpkg install glfw3 glm freetype vulkan
 
-Integrate with build system (run once)
+Integrate with build system:
 
     .\vcpkg integrate install
 
-Build your project with vcpkg toolchain
+Build the project with vcpkg toolchain:
 
-Replace the path below with your vcpkg location:
+Replace the path with your actual vcpkg path:
 
     cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022"
     cmake --build build --config Debug
 
-Open the solution:
+Open the generated solution:
 
-build\Nova.sln
+build/Nova.sln
 
-Option B: Manual Dependency Setup (Without vcpkg)
+🔹 Option B: Manual Dependency Setup
 
-If you don’t want to use vcpkg:
-
-    Clone and build each dependency yourself:
+Build each dependency manually and set their paths:
 
     git clone https://github.com/glfw/glfw.git
     cd glfw
     cmake -B build -DCMAKE_INSTALL_PREFIX=C:/libs/glfw
     cmake --build build --target install
 
-Repeat for GLM, FreeType, etc.
+Repeat for GLM, FreeType, and others.
 
-When building Nova, specify the dependencies locations:
+Build Nova with paths specified:
 
-    cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype;C:/VulkanSDK/1.3.283.0/Lib;" -G "Visual Studio 17 2022"
+    cmake -B build -S . -DCMAKE_PREFIX_PATH="C:/libs/glfw;C:/libs/glm;C:/libs/freetype;C:/VulkanSDK/1.3.283.0" -G "Visual Studio 17 2022"
     cmake --build build --config Debug
 
-📝 Important Notes
+🧠 Important Notes
 
-Use forward slashes (/) or escaped backslashes (\\) in CMake paths on Windows.
+    Use forward slashes (/) or escaped backslashes (\\) in Windows paths.
 
-Change "Visual Studio 17 2022" to your installed VS version if different.
+    Change "Visual Studio 17 2022" to your version if needed.
 
-The -G argument in CMake specifies the generator (e.g., Visual Studio, Ninja).
+    The build system will automatically:
 
-Toolchain files like vcpkg keep your CMakeLists.txt clean and cross-platform.
+        Compile all .vert and .frag shaders in the shaders/ directory using glslangValidator.
 
-The build system automatically copies shaders, pipeline JSON files, and renderpasses to the output folder.
+        Copy compiled .spv shader files, pipeline configs, and renderpass configs to your runtime directory.
 
-🐧 Linux Instructions
+🧪 Linux Instructions
 
-Ensure all dependencies (GLFW, GLM, FreeType) are installed via your package manager or built manually.
+Ensure you install these via your package manager or manually:
+
+    glfw
+
+    glm
+
+    freetype
+
+    Vulkan SDK
 
 Build the project:
 
@@ -91,30 +94,46 @@ Build the project:
     cmake -B build -S .
     cmake --build build --config Debug
 
-If dependencies are in custom locations, specify:
+If dependencies are in non-default locations:
 
     cmake -B build -S . -DCMAKE_PREFIX_PATH="/opt/glfw;/opt/glm;/opt/freetype"
 
 🔧 Build System Overview
 
-    ALL_BUILD is a meta target Visual Studio creates to build all projects in the solution.
+    ALL_BUILD: A Visual Studio meta-target that builds all components.
 
-    Set your desired startup project by right-clicking it → Set as Startup Project in Visual Studio.
+    nova: Your main executable project.
 
-    The app expects compiled shaders (.spv) to exist. Shader compilation is not forced.
+    compile_shaders: A custom CMake target that:
 
-    For shader compilation:
+        Automatically finds and compiles all GLSL shaders (.vert, .frag) to SPIR-V.
 
-        On Linux, you can add shell scripts or CMake custom commands.
+        Places output into the appropriate runtime /shaders folder.
 
-        On Windows, add a PowerShell pre-build task in Visual Studio to compile shaders if desired.
+To build shaders manually:
+
+    cmake --build build --target compile_shaders --config Debug
+
+📁 Runtime Directory Layout
+
+At runtime, the following will be copied to your binary directory (build/x64/Debug or similar):
+
+    nova.exe
+    /shaders/            → compiled .spv files
+    /pipelines/          → JSON pipeline configurations
+    /renderpasses/       → JSON renderpass configs
+    /descriptorsets/     → descriptor set JSONs
+    /config/             → app-specific config
 
 🎯 Summary
 
-    Use vcpkg on Windows for easiest dependency management.
+    ✅ Use vcpkg on Windows for the easiest setup.
 
-    You can manually install libraries if preferred.
+    🛠️ Manual dependency setup also supported.
 
-    Tested on Visual Studio 2022 and Linux.
+    🔁 Shaders auto-compile using a CMake target.
+
+    🐧 Fully compatible with Linux and Visual Studio 2022.
+
 
     Cross-platform build support, but shader compilation is left to users.
