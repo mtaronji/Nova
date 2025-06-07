@@ -9,7 +9,6 @@
 #include <memory>
 #include <optional>
 #include <vulkan/vulkan.h>
-#include <vector>
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -21,7 +20,7 @@ struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
 
-    bool isComplete() {
+    bool isComplete() const {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };

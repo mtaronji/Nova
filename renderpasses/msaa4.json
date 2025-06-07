@@ -1,5 +1,5 @@
 {
-    "$schema": "./renderpass.schema.json",
+    "$schema": "../config/renderpass.schema.json",
     "attachments": [
       {
         "attachmentType": "color",

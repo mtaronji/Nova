@@ -1,0 +1,5 @@
+// Config.hpp.in
+#pragma once
+
+#define OUTPUT_DIRECTORY "@CMAKE_RUNTIME_OUTPUT_DIRECTORY@"
+#define BUILD_TYPE "@CMAKE_BUILD_TYPE@"

@@ -115,6 +115,7 @@ VkColorComponentFlags ParseColorComponents(const std::string str){
     throw std::runtime_error("Unsupported Color component Mask: " + str);
 }
 std::vector<char> ReadFile(const std::string& path) {
+    
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
         throw std::runtime_error("Failed to open shader file:  in Graphics Config " + path);
@@ -263,22 +264,30 @@ void GraphicsPipelineLoader::LoadFromFile(
     vertexShaderCodeOut = {}; fragmentShaderCodeOut = {}; computeShaderCodeOut = {}; geometryShaderCodeOut = {};
     for (const auto& a : j["shaderStages"]) {
         
-        if(a["stage"].is_string() && a["stage"] == "vertex" && a["path"].is_string()){          
-            vertexShaderCodeOut = ReadFile(a["path"]);                  
+        if(a["stage"].is_string() && a["stage"] == "vertex" && a["path"].is_string()){  
+            std::string path = a["path"];
+            vertexShaderCodeOut = ReadFile(std::string(OUTPUT_DIRECTORY "/") + path);
         }
         if(a["stage"].is_string() && a["stage"] == "fragment"){
-            fragmentShaderCodeOut = ReadFile(a["path"]);   
+            std::string path = a["path"];
+            fragmentShaderCodeOut = ReadFile(std::string(OUTPUT_DIRECTORY "/") + path);
         }
         if(a["stage"].is_string() && a["stage"] == "geometry"){
-            geometryShaderCodeOut = ReadFile(a["path"]);   
+            std::string path = a["path"];
+            geometryShaderCodeOut = ReadFile(std::string(OUTPUT_DIRECTORY "/") + path);
         }
         if(a["stage"].is_string() && a["stage"] == "computeShader"){
-            computeShaderCodeOut = ReadFile(a["path"]);   
+            std::string path = a["path"];
+            computeShaderCodeOut = ReadFile(std::string(OUTPUT_DIRECTORY "/") + path);
         }   
         if(a["stage"].is_string() && a["stage"] == "tessellationControlShader"){
+            std::string path = a["path"];
+            ReadFile(std::string(OUTPUT_DIRECTORY "/") + path);
             
         }
         if(a["stage"].is_string() && a["stage"] == "tessellationEvaluationShader"){
+            std::string path = a["path"];
+            ReadFile(std::string(OUTPUT_DIRECTORY "/") + path);
             
         }
         

@@ -1,34 +1,26 @@
 
 # Path to glslangValidator (adjust if needed)
-$glslangValidator = "${env:VULKAN_SDK}\Bin\glslangValidator.exe"
+$SHADER_COMPILER_PATH = "${env:VULKAN_SDK}\Bin\glslangValidator.exe"
 
-# Verify the validator exists
-if (-not (Test-Path $glslangValidator)) {
-    Write-Error "glslangValidator not found. Make sure Vulkan SDK is installed and VULKAN_SDK environment variable is set."
-    exit 1
+# Get the directory where this script is located
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# Get all .vert and .frag files in the same directory as this script
+$VERT_FILES = Get-ChildItem -Path $SCRIPT_DIR -Filter *.vert
+$FRAG_FILES = Get-ChildItem -Path $SCRIPT_DIR -Filter *.frag
+
+# Compile each vertex shader
+foreach ($VERT_FILE in $VERT_FILES) {
+    $OUTPUT_FILE = "$($VERT_FILE.FullName).spv"
+    Write-Host "Compiling vertex shader: $($VERT_FILE.FullName) -> $OUTPUT_FILE"
+    & $SHADER_COMPILER_PATH -V $VERT_FILE.FullName -o $OUTPUT_FILE
 }
 
-# Define source and destination directories
-$shaderDir = "shaders"
-$outputDir = "build/compiled_shaders"
-
-# Create output directory if it doesn't exist
-if (-not (Test-Path $outputDir)) {
-    New-Item -ItemType Directory -Path $outputDir | Out-Null
+# Compile each fragment shader
+foreach ($FRAG_FILE in $FRAG_FILES) {
+    $OUTPUT_FILE = "$($FRAG_FILE.FullName).spv"
+    Write-Host "Compiling fragment shader: $($FRAG_FILE.FullName) -> $OUTPUT_FILE"
+    & $SHADER_COMPILER_PATH -V $FRAG_FILE.FullName -o $OUTPUT_FILE
 }
 
-# Compile all .vert and .frag shaders
-Get-ChildItem -Path $shaderDir -Recurse -Include *.vert, *.frag | ForEach-Object {
-    $inputPath = $_.FullName
-    $fileName = $_.BaseName + $_.Extension + ".spv"
-    $outputPath = Join-Path $outputDir $fileName
-
-    Write-Output "Compiling $inputPath to $outputPath"
-
-    & $glslangValidator -V $inputPath -o $outputPath
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Failed to compile $inputPath"
-        exit $LASTEXITCODE
-    }
-}
+Write-Host "Shader compilation complete."

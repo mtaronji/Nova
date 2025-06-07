@@ -25,7 +25,6 @@ class Shader;
 #include <unordered_map>
 #include <memory>
 #include <set>
-#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <filesystem>
 
@@ -107,8 +106,9 @@ class Nova : public IRenderLoopClient{
                     // VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,         // Enables render pass 2 structures
                     // VK_KHR_SEPARATE_DEPTH_STENCIL_LAYOUTS_EXTENSION_NAME // Enables separate depth/stencil layouts
                 };         
-                const std::string RENDER_PASS_FILES_DIRECTORY = "renderpasses"; //relative to build
-                const std::string PIPELINE_FILES_DIRECTORY = "pipelines";  //relative to build         
+               
+                const std::string RENDER_PASS_FILES_DIRECTORY = OUTPUT_DIRECTORY "/renderpasses"; //relative to build
+                const std::string PIPELINE_FILES_DIRECTORY = OUTPUT_DIRECTORY "/pipelines";  //relative to build           
         };
     
     protected:

@@ -261,10 +261,11 @@ Nova::Builder& Nova::Builder::WithCommandManager(){
 
 }
 
-//this gets all the locations of the files for a given directory
+//this gets all the locations of the fil0es for a given directory
 std::vector<std::filesystem::path>  Nova::Builder::GetAllFiles(std::string repository) {
     std::vector<std::filesystem::path> files;
     const auto directory = fs::path(repository); 
+    std::cout << "Looking in: " << fs::absolute(directory) << "\n";
     for (const auto& entry : fs::directory_iterator(directory)) {
         if (entry.is_regular_file()) {
             // Get the filename only
