@@ -135,8 +135,8 @@ add_custom_command(TARGET nova POST_BUILD
         ${CMAKE_SOURCE_DIR}/pipelines $<TARGET_FILE_DIR:nova>/pipelines
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/renderpasses $<TARGET_FILE_DIR:nova>/renderpasses
-     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/descriptorsets $<TARGET_FILE_DIR:nova>/descriptorsets
+    #  COMMAND ${CMAKE_COMMAND} -E copy_directory
+    #     ${CMAKE_SOURCE_DIR}/descriptorsets $<TARGET_FILE_DIR:nova>/descriptorsets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/config $<TARGET_FILE_DIR:nova>/config
 )
@@ -150,8 +150,8 @@ if(CMAKE_CONFIGURATION_TYPES)
 else()
     # Single-config generators like Make/Ninja on Linux
     target_compile_definitions(nova PRIVATE
-        $<$<CONFIG:Debug>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/debug\">
-        $<$<CONFIG:Release>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/release\">
+        $<$<CONFIG:Debug>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/$<CONFIG>\">
+        $<$<CONFIG:Release>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/$<CONFIG>\">
 )
 endif()
 
