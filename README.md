@@ -136,4 +136,4 @@ At runtime, the following will be copied to your binary directory (build/x64/Deb
     🐧 Fully compatible with Linux and Visual Studio 2022.
 
 
-    Cross-platform build support, but shader compilation is left to users.
+    
