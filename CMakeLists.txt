@@ -86,6 +86,7 @@ foreach(SHADER ${SHADERS})
 
     set(SPIRV "${SHADER_OUTPUT_DIR}/${FILE_NAME}.spv")
 
+    #defining output commands that execute when the target is built
     add_custom_command(
         OUTPUT "${SPIRV}"
         COMMAND ${CMAKE_COMMAND} -E echo "Running: ${GLSLANG_VALIDATOR} -V ${CMAKE_SOURCE_DIR}/${SHADER} -o ${SPIRV}"
@@ -97,6 +98,7 @@ foreach(SHADER ${SHADERS})
     list(APPEND SPIRV_FILES "${SPIRV}")
 endforeach()
 
+#add a custom target to add more control to shader compile
 add_custom_target(compile_shaders ALL DEPENDS ${SPIRV_FILES})
 # Add both sources AND headers (optional but helps IDE indexing)
 target_sources(nova PRIVATE 
@@ -110,7 +112,8 @@ target_sources(nova PRIVATE
     ${RENDERPASSES}       # Adds renderpass JSON files to IDE
     ${DESCRIPTORSETS}     # Adds descriptor set JSON files to IDE
     ${SCRIPTS}            # adds scripts folder to the ide
-    ${CONFIG_GENERATION}   #generated data for cross platform paths, etc
+    ${CONFIG_GENERATION}  #generated data for cross platform paths, etc
+    ${CONFIG}             #for config schema files for pipeline render pass, etc to add to IDE
 )
 
 target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/include
@@ -143,8 +146,8 @@ add_custom_command(TARGET nova POST_BUILD
 if(CMAKE_CONFIGURATION_TYPES)
     # Multi-config generators like Visual Studio
     target_compile_definitions(nova PRIVATE
-        $<$<CONFIG:Debug>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/x64/debug\">
-        $<$<CONFIG:Release>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/x64/release\">
+        $<$<CONFIG:Debug>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/x64/$<CONFIG>\">
+        $<$<CONFIG:Release>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/x64/$<CONFIG>\">
 )
  
 else()

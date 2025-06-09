@@ -45,7 +45,7 @@ Nova::Nova(
     descriptorAllocator(descriptorAllocator),
     resourceManager(resourceManager)
 {
-    
+    MAX_FRAMES = swapchainManager->GetImageCount();
 }
 Nova::~Nova(){
 
@@ -139,7 +139,7 @@ void Nova::Init() {
     //get all bindings for each pipeline to create our pool
     std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet;
     for(auto& [key, pipelineManager] : pipelineLibrary->GetPipelines()){
-        auto bindings = pipelineManager->GetDescriptorSetBindings();
+        auto& bindings = pipelineManager->GetDescriptorSetBindings();
         descriptorBindingsPerSet.insert(descriptorBindingsPerSet.begin(), bindings.begin(), bindings.end());
     }
 
@@ -165,9 +165,10 @@ void Nova::Init() {
 void Nova::CreateMoniliths(){
     //monoliths will be created with transfers for the vertex buffer usage and index buffer usage. This is so they can be staged
     //ubo like camera don't need it
+
     VkBufferUsageFlags transfer = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 256 * 1000); 
-    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | transfer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 256 * 1000); 
+    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000)); 
+    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | transfer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000));
 }
 
 void Nova::AllocateMeshes(){
@@ -193,7 +194,7 @@ void Nova::Update(float deltaTime){
     deltaTime = glm::clamp(deltaTime, 0.0f, 0.05f); // max ~20 FPS frame
 
     //camera orbiting and looking at the origin
-    float pitch = glm::radians(20.0f); // fixed slight tilt
+    constexpr float pitch = glm::radians(20.0f); // fixed slight tilt
     angle += cameraspeed * deltaTime;
     angle = glm::mod(angle, glm::two_pi<float>());
 

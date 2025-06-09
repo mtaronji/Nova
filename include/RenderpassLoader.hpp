@@ -20,7 +20,8 @@ class RenderPassLoader {
                                                     std::vector<VkAttachmentReference>& depthAtachmentRefsOut,
                                                     std::vector<VkAttachmentReference>& resolveAtachmentRefsOut,
                                                     std::vector<VkImageUsageFlags>& imageUsesForAttachmentsOut,
-                                                    std::vector<VkImageAspectFlags>& aspectFlagsForAttachmentsOut);
+                                                    std::vector<VkImageAspectFlags>& aspectFlagsForAttachmentsOut,
+                                                    std::vector<VkClearValue>& clearValuesOut);
 
         protected:
             RenderPassLoader() = default;

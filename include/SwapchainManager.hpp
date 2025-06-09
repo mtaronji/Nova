@@ -49,14 +49,14 @@ class SwapchainManager {
                 std::shared_ptr<SwapchainManager> Build();
                 
 
-            private:
-                std::shared_ptr<GPU> gpu;
-                std::shared_ptr<VulkanEngine> engine;
-                std::shared_ptr<Shell> shell;
-                VkSurfaceFormatKHR surfaceFormat;
-                VkPresentModeKHR presentMode;
-                VkExtent2D extent;     
-                SwapChainSupportDetails details;         
+            protected:
+                std::shared_ptr<GPU> gpu = nullptr;
+                std::shared_ptr<VulkanEngine> engine = nullptr;
+                std::shared_ptr<Shell> shell = nullptr;
+                VkSurfaceFormatKHR surfaceFormat = {};
+                VkPresentModeKHR presentMode = {};
+                VkExtent2D extent = {};
+                SwapChainSupportDetails details = { .capabilities = {}, .formats = {}, .presentModes = {} };
         };
 
     protected:

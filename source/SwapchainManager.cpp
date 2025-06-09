@@ -66,7 +66,11 @@ SwapchainManager::SwapchainManager(std::shared_ptr<GPU> gpu,
                                    VkPresentModeKHR presentMode,
                                    VkExtent2D extent)
                                    :gpu(gpu), shell(shell),engine(engine), details(details),surfaceFormat(surfaceFormat),presentMode(presentMode),extent(extent){
-    
+ 
+    details = { .capabilities = {}, .formats = {}, .presentModes = {} };
+    imageFormat = {};
+
+
 }
 SwapchainManager::Builder& SwapchainManager::Builder::WithGPU(std::shared_ptr<GPU> gpu){
     this->gpu = gpu;

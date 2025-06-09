@@ -22,7 +22,8 @@ RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu, std::string file)
                                                 depthAtachmentRefs,
                                                 resolveAtachmentRefs,
                                                 imageUsesForAttachments,
-                                                aspectFlagsForAttachments); 
+                                                aspectFlagsForAttachments,
+                                                clearValues);
     RenderPassManager::CreateRenderPass();
 }
 
@@ -35,7 +36,8 @@ VkRenderPassCreateInfo RenderPassManager::LoadRenderpassConfig(const std::string
                                             depthAtachmentRefs,
                                             resolveAtachmentRefs,
                                             imageUsesForAttachments,
-                                            aspectFlagsForAttachments);
+                                            aspectFlagsForAttachments,
+                                            clearValues);
     }
 
 void RenderPassManager::SetPresentColorAttachmentFormat(){

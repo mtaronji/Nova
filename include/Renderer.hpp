@@ -79,10 +79,10 @@ class Renderer {
 
         std::unordered_map<std::string, std::vector<std::vector<VkDescriptorSet>>> pipelineDescriptorSets;  ////[frame][set] //we set it like this when we allocate
    
-        
-        RenderPassManager* renderpassmanager;
-        PipelineManager* pipelineManager;
-        FramebufferGenerator* framebufferContainer;
+        //the following 3 variables are initially null. Must bind a pipeline to set them
+        RenderPassManager* renderpassmanager = nullptr;
+        PipelineManager* pipelineManager = nullptr;
+        FramebufferGenerator* framebufferContainer = nullptr;
 
         uint32_t currentFrame = 0;
         uint32_t  MAX_FRAMES;

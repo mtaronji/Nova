@@ -7,14 +7,16 @@
 using json = nlohmann::json;
 
 
-VkPolygonMode ParsePolygonMode(const std::string str){
+
+static VkPolygonMode ParsePolygonMode(const std::string str){
     if(str == "fill") return VK_POLYGON_MODE_FILL;
     if(str == "line") return VK_POLYGON_MODE_LINE;
     if(str == "point") return VK_POLYGON_MODE_POINT;
     throw std::runtime_error("Failed to find polygon mode in Graphics Config  for: " + str);
 
 }
-VkCullModeFlags ParseCullMode(const std::string str){
+
+static VkCullModeFlags ParseCullMode(const std::string str){
     if(str == "none") return VK_CULL_MODE_NONE;
     if(str == "front") return VK_CULL_MODE_FRONT_BIT;
     if(str == "back") return VK_CULL_MODE_BACK_BIT;
@@ -22,12 +24,14 @@ VkCullModeFlags ParseCullMode(const std::string str){
     throw std::runtime_error("Failed to find cull mode  in Graphics Config for: " + str);
 }
 
-VkFrontFace ParseFrontFace(const std::string str){
+
+static VkFrontFace ParseFrontFace(const std::string str){
     if(str == "clockwise") return VK_FRONT_FACE_CLOCKWISE;
     if(str == "counter_clockwise") return VK_FRONT_FACE_COUNTER_CLOCKWISE;
     throw std::runtime_error("Failed to find Front face settings in Graphics Config  for: " + str);
 }
-VkSampleCountFlagBits ParseRasterizationSamples(const int number){
+
+static VkSampleCountFlagBits ParseRasterizationSamples(const int number){
     if(number == 1) return VK_SAMPLE_COUNT_1_BIT;
     if(number == 2) return VK_SAMPLE_COUNT_2_BIT;
     if(number == 4) return VK_SAMPLE_COUNT_4_BIT;
@@ -39,7 +43,8 @@ VkSampleCountFlagBits ParseRasterizationSamples(const int number){
     throw std::runtime_error("Unsupported Sample count: in Graphics Config  " + number);
 
 }
-VkDynamicState ParseDynamicState(const std::string str){
+
+static VkDynamicState ParseDynamicState(const std::string str){
     if(str == "viewport") return VK_DYNAMIC_STATE_VIEWPORT;
     if(str == "scissor") return VK_DYNAMIC_STATE_SCISSOR;
     if(str == "lineWidth") return VK_DYNAMIC_STATE_LINE_WIDTH;
@@ -52,7 +57,8 @@ VkDynamicState ParseDynamicState(const std::string str){
     throw std::runtime_error("Unsupported dynamic state:  in Graphics Config  " + str);
 }
 
-VkLogicOp ParseLogicOp(const std::string str){
+
+static VkLogicOp ParseLogicOp(const std::string str){
     if (str == "VK_LOGIC_OP_CLEAR") return VK_LOGIC_OP_CLEAR;
     else if (str == "VK_LOGIC_OP_AND") return VK_LOGIC_OP_AND;
     else if (str == "VK_LOGIC_OP_AND_REVERSE") return VK_LOGIC_OP_AND_REVERSE;
@@ -74,7 +80,8 @@ VkLogicOp ParseLogicOp(const std::string str){
     }
 }
 
-VkBlendFactor ParseBlendFactor(const std::string str){
+
+static VkBlendFactor ParseBlendFactor(const std::string str){
     if(str == "VK_BLEND_FACTOR_ZERO") return VK_BLEND_FACTOR_ZERO;
     if(str == "VK_BLEND_FACTOR_ONE") return VK_BLEND_FACTOR_ONE;	
     if(str == "VK_BLEND_FACTOR_SRC_COLOR") return VK_BLEND_FACTOR_SRC_COLOR;	
@@ -97,7 +104,8 @@ VkBlendFactor ParseBlendFactor(const std::string str){
     throw std::runtime_error("Unsupported Blend Factor:  in Graphics Config " + str);
 }
 
-VkBlendOp ParseBlendOp(const std::string str){
+
+static VkBlendOp ParseBlendOp(const std::string str){
    
     if(str == "VK_BLEND_OP_ADD") return VK_BLEND_OP_ADD;
     if(str == "VK_BLEND_OP_SUBTRACT") return VK_BLEND_OP_SUBTRACT;	
@@ -107,14 +115,15 @@ VkBlendOp ParseBlendOp(const std::string str){
     throw std::runtime_error("Unsupported Parse Blend Op: " + str);
 }
 
-VkColorComponentFlags ParseColorComponents(const std::string str){
+
+static VkColorComponentFlags ParseColorComponents(const std::string str){
     if(str == "g") return VK_COLOR_COMPONENT_G_BIT;
     if(str == "r") return VK_COLOR_COMPONENT_R_BIT;
     if(str == "b") return VK_COLOR_COMPONENT_B_BIT;
     if(str == "a") return VK_COLOR_COMPONENT_A_BIT;
     throw std::runtime_error("Unsupported Color component Mask: " + str);
 }
-std::vector<char> ReadFile(const std::string& path) {
+static std::vector<char> ReadFile(const std::string& path) {
     
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
@@ -126,7 +135,7 @@ std::vector<char> ReadFile(const std::string& path) {
     file.read(buffer.data(), size);
     return buffer;
 }
-VkPrimitiveTopology ParseToplogy(const std::string str){
+static VkPrimitiveTopology ParseToplogy(const std::string str){
   
     if(str == "point_list") return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
     if(str == "line_list") return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
@@ -137,12 +146,14 @@ VkPrimitiveTopology ParseToplogy(const std::string str){
     throw std::runtime_error("Unsupported toplogy: in Graphics Config  " + str);
 }
 
-VkVertexInputRate ParseInputRate(const std::string str){
+
+static VkVertexInputRate ParseInputRate(const std::string str){
     if(str == "vertex") return VK_VERTEX_INPUT_RATE_VERTEX;
     if(str == "instance") return VK_VERTEX_INPUT_RATE_INSTANCE;
     throw std::runtime_error("Unsupported vertex input rate: " + str);
 }
-uint32_t ParseBindingStride(const std::string vertexType){
+
+static uint32_t ParseBindingStride(const std::string vertexType){
     if(vertexType == "vertexp") return sizeof(VertexP);   
     if(vertexType == "vertexpc") return sizeof(VertexPC);   
     if(vertexType == "vertexpn") return sizeof(VertexPN);  
@@ -152,7 +163,8 @@ uint32_t ParseBindingStride(const std::string vertexType){
     throw std::runtime_error("Unsupported binding data in Graphics Config : " + vertexType);
 }
 
-uint32_t ParseLocationOffset(const std::string vertexType, const int location){
+
+static uint32_t ParseLocationOffset(const std::string vertexType, const int location){
     
     if(vertexType == "vertexp")return VertexP::GetFieldOffset(location); 
     if(vertexType == "vertexpc")return VertexPC::GetFieldOffset(location);
@@ -163,7 +175,8 @@ uint32_t ParseLocationOffset(const std::string vertexType, const int location){
     throw std::runtime_error("Unsupported binding data: in Graphics Config  " + vertexType);
 }
 
-VkFormat ParseAttributeDescriptionFormat(const std::string format){
+
+static VkFormat ParseAttributeDescriptionFormat(const std::string format){
     if(format == "VK_FORMAT_R32G32B32_SFLOAT") return VK_FORMAT_R32G32B32_SFLOAT;
     if(format == "VK_FORMAT_R32_SFLOAT") return VK_FORMAT_R32_SFLOAT;
     if(format == "VK_FORMAT_R32G32B32A32_SFLOAT") return VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -174,7 +187,8 @@ VkFormat ParseAttributeDescriptionFormat(const std::string format){
     throw std::runtime_error("Unsupported format for attribute description in Graphics Config  " + format);                            
 }
 
-VkShaderStageFlags ParseShaderStage(const std::string stage){
+
+static VkShaderStageFlags ParseShaderStage(const std::string stage){
     if("vertex") return	VK_SHADER_STAGE_VERTEX_BIT;
     if("fragment") return VK_SHADER_STAGE_FRAGMENT_BIT;
     if("geometry") return VK_SHADER_STAGE_GEOMETRY_BIT;
@@ -195,7 +209,8 @@ VkShaderStageFlags ParseShaderStage(const std::string stage){
     throw std::runtime_error("Unsupported Shader stage in Graphics Config " + stage);       
 }
 
-VkDescriptorType ParseDescriptorType(const std::string descriptorType){
+
+static VkDescriptorType ParseDescriptorType(const std::string descriptorType){
     if("uniformBuffer") return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     if("uniformBufferDynamic") return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     if("storageBuffer") return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -212,7 +227,8 @@ VkDescriptorType ParseDescriptorType(const std::string descriptorType){
     throw std::runtime_error("could not find Descriptor Type in Graphics Config: " + descriptorType);    
 }
 
-VkCompareOp ParseCompareOp(const std::string compareOp){
+
+static VkCompareOp ParseCompareOp(const std::string compareOp){
   
     if(compareOp == "never"){return VK_COMPARE_OP_NEVER;}
     if(compareOp == "less"){return VK_COMPARE_OP_LESS;}
@@ -226,7 +242,8 @@ VkCompareOp ParseCompareOp(const std::string compareOp){
     throw std::runtime_error("compare op string not found");
 }
 
-size_t ParsePushConstantSize(const std::string name){
+
+static size_t ParsePushConstantSize(const std::string name){
     if(name == "frameinfo"){
         return sizeof(FrameInfo);
     }
@@ -307,7 +324,7 @@ void GraphicsPipelineLoader::LoadFromFile(
         
     // }
 
-    const auto r = j["rasterizer"];
+    const auto &r = j["rasterizer"];
     rasterizerCreateInfoOut = {};
     rasterizerCreateInfoOut.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     if (r.contains("depthClampEnable"))rasterizerCreateInfoOut.depthBiasClamp = r["depthClampEnable"];
@@ -407,11 +424,11 @@ void GraphicsPipelineLoader::LoadFromFile(
 
     
     if(j.contains("pushConstants")){
-        for(const auto pc : j["pushConstants"]){
+        for(const auto& pc : j["pushConstants"]){
             VkPushConstantRange pcr = {};
             pcr.size = ParsePushConstantSize(pc["name"]);
 
-            for(const auto s : pc["stage"]){
+            for(const auto& s : pc["stage"]){
                  pcr.stageFlags |= ParseShaderStage(s);
             }
 

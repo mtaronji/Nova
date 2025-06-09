@@ -22,7 +22,8 @@ class RenderPassManager {
 
         std::vector<VkAttachmentDescription>& GetAttachmentDescriptions(){return attachmentDescriptions;}
         std::vector<VkImageUsageFlags> & GetImageUseFlags(){return imageUsesForAttachments;}
-         std::vector<VkImageAspectFlags> & GetImageAspectFlags(){return aspectFlagsForAttachments;}
+        std::vector<VkImageAspectFlags> & GetImageAspectFlags(){return aspectFlagsForAttachments;}
+        std::vector<VkClearValue>& GetClearValues() { return clearValues; }
         // std::vector<VkAttachmentDescription>& GetResolveAttachmentDescriptions(){return resolveAttachmentDescriptions;}
         // std::vector<VkAttachmentDescription>& GetInputAttachmentDescriptions(){return inputAttachmentDescriptions;}
         // std::vector<VkAttachmentDescription>& GetStencilAttachmentDescriptions(){return stencilAttachmentDescriptions;}
@@ -57,6 +58,7 @@ class RenderPassManager {
         std::vector<VkAttachmentReference> resolveAtachmentRefs;
         std::vector<VkImageUsageFlags> imageUsesForAttachments;
         std::vector<VkImageAspectFlags> aspectFlagsForAttachments;
+        std::vector<VkClearValue> clearValues;
         VkRenderPass renderPass;
         std::shared_ptr<GPU> gpu;
         void CreateRenderPass();

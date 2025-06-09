@@ -43,6 +43,7 @@ Renderer::Renderer(
         this->MAX_FRAMES = swapchainmanager->GetImageCount();
         imagesInFlight.resize(MAX_FRAMES, VK_NULL_HANDLE);
         
+        
 }
 
 void Renderer::SetFrameTime(float deltaTime){
@@ -251,20 +252,8 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapchainmanager->GetExtent();
 
-
-    std::array<VkClearValue, 3> clearValues{};
-
-    // Color attachment (attachment 0)
-    clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };  // Black with full alpha
-
-    // Depth attachment (attachment 1)
-    clearValues[1].depthStencil = {1.0f, 0};  // Full depth, no stencil
-
-    //  // Resolve attachment (attachment 2)
-    clearValues[2].color = { {0.0f, 0.0f, 0.0f, 1.0f} }; 
-
-    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-    renderPassInfo.pClearValues = clearValues.data();
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(renderpassmanager->GetClearValues().size());
+    renderPassInfo.pClearValues = renderpassmanager->GetClearValues().data();
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 

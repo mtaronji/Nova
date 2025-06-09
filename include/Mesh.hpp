@@ -52,14 +52,17 @@ struct BoundingBox {
 };
 
 struct Mesh {
+
     Mesh() = delete;
+
     Mesh& operator=(const Mesh&) = delete;
+
     ~Mesh(){
        
     }
 
-    static Mesh* Create(BufferResource* vertices, BufferResource* indices){
-        return new Mesh(vertices, indices);
+    static Mesh* Create(BufferResource* vertices, BufferResource* indices, glm::mat4 modelMatrix =  glm::mat4(1.0f)){
+        return new Mesh(vertices, indices, modelMatrix);
     }
     void Cleanup(GPU *gpu){
         if(vertexResource != nullptr){vertexResource->Cleanup(gpu); vertexResource = nullptr;}
@@ -85,12 +88,12 @@ struct Mesh {
     
     glm::mat4 modelMatrix;
     BoundingBox aabb;
-    BufferResource* vertexResource = nullptr;
-    BufferResource* indiceResource = nullptr;
+    BufferResource* vertexResource = nullptr;  // represents the vertices
+    BufferResource* indiceResource = nullptr;  // represents the order you draw them in
     bool visible = true;
 
     protected:
-        Mesh(BufferResource* vertices, BufferResource* indices){this->vertexResource = vertices; this->indiceResource = indices;}
+        Mesh(BufferResource* vertices, BufferResource* indices, glm::mat4 modelMatrix) { this->vertexResource = vertices; this->indiceResource = indices; this->modelMatrix = modelMatrix; }
     private:
         float verticeOffset = 0.0f;
         float indiceOffset = 0.0f;

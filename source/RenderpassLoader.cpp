@@ -1,5 +1,6 @@
 // RenderPassLoader.cpp
 #include "RenderpassLoader.hpp"
+#include <unordered_set>
 
 using json = nlohmann::json;
 
@@ -144,6 +145,42 @@ VkAccessFlags ParseAcessMask(const std::string op){
     throw std::runtime_error("Unsupported format: " + op);
 }
 
+static void CreateClearValues(const std::vector<VkAttachmentDescription>& attachments, std::vector<VkClearValue>& clearValuesOut) {
+ 
+
+    // List of depth/stencil formats
+    const std::unordered_set<VkFormat> depthStencilFormats = {
+        VK_FORMAT_D16_UNORM,
+        VK_FORMAT_X8_D24_UNORM_PACK32,
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT
+    };
+
+    for (const auto& attachment : attachments) {
+        VkClearValue clearValue = {};
+
+        if (attachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR) {
+            if (depthStencilFormats.count(attachment.format)) {
+                // Depth/stencil
+                clearValue.depthStencil.depth = 1.0f;
+                clearValue.depthStencil.stencil = 0;
+            }
+            else {
+                // Color
+                clearValue.color = { {0.0f, 0.0f, 0.0f, 1.0f} };  // Black, fully opaque
+            }
+        }
+        else {
+            // If not clearing, no clear value is needed, but Vulkan requires a value, so use default zero
+            clearValue = {};
+        }
+
+        clearValuesOut.push_back(clearValue);
+    }
+}
+
 VkDependencyFlags ParseDepFlags(const std::string op){
  
     if(op == "VK_DEPENDENCY_BY_REGION_BIT") return VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
@@ -211,7 +248,8 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
                                                         std::vector<VkAttachmentReference>& depthAtachmentRefsOut,
                                                         std::vector<VkAttachmentReference>& resolveAtachmentRefsOut,
                                                         std::vector<VkImageUsageFlags>& imageUsesForAttachmentsOut,
-                                                        std::vector<VkImageAspectFlags>& aspectFlagsForAttachmentsOut) {
+                                                        std::vector<VkImageAspectFlags>& aspectFlagsForAttachmentsOut,
+                                                        std::vector<VkClearValue>& clearValuesOut) {
     std::ifstream in(filePath);
     if (!in.is_open()) {
         throw std::runtime_error("Failed to open render pass file: " + filePath);
@@ -258,7 +296,7 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
         // if(a["attachmentType"] == "input"){inputAttachmentDescriptionsOut.push_back(desc);}
         // if(a["attachmentType"] == "resolve"){resolveAttachmentDescriptionsOut.push_back(desc);}
     }
-
+    CreateClearValues(attachmentDescriptionsOut, clearValuesOut);
 
     for (const auto& s : j["subpasses"]) {
         VkSubpassDescription sp{};
