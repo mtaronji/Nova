@@ -19,22 +19,31 @@ void Shell::InitWindow() {
 }
 
 void Shell::MainLoop(IRenderLoopClient* app) {
-    previousTime = Clock::now();
+    const float fixedDeltaTime = 1.0f / 60.0f;
+    const float targetFrameTime = 1.0f / 144.0f; // 144 FPS cap
+    TimePoint previousTime = Clock::now();
+    float accumulator = 0.0f;
+
     while (!glfwWindowShouldClose(this->window)) {
         glfwPollEvents();
-        TimePoint currentFrameTime = Clock::now();
-        std::chrono::duration<float> elapsed = currentFrameTime - previousTime;
-        float deltaTime = elapsed.count(); // in seconds
-        previousTime = currentFrameTime;
 
-        app->Update(deltaTime);
+        TimePoint currentTime = Clock::now();
+        std::chrono::duration<float> elapsed = currentTime - previousTime;
+        float deltaTime = elapsed.count();
+
+        app->Update(fixedDeltaTime); 
         app->Render();
 
-        const float targetFrameTime = 1.0f / 144.0f; // 144 FPS cap
-        if (targetFrameTime > deltaTime) {
+        // Print FPS based on full frame time (including update+render+sleep)
+        std::cout << "FPS : " << 1.0f / deltaTime << std::endl;
+
+        // Sleep if frame is faster than target
+        if (deltaTime < targetFrameTime) {
             std::this_thread::sleep_for(std::chrono::duration<float>(targetFrameTime - deltaTime));
         }
-        std::cout<< "FPS : " << 1.0f / deltaTime << std::endl;
+
+        // Update previousTime to after sleep to measure full frame time next iteration
+        previousTime = Clock::now();
     }
 }
 

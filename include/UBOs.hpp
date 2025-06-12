@@ -28,7 +28,7 @@ struct alignas(16)CameraUBO {
     glm::mat4 view =- glm::mat4(1.0f);                                  //4 *4 * 4bytes = 64 = 16 * 4             offset = 0
     glm::mat4 proj = glm::mat4(1.0f);                                   //4 * 4 bytes = 64 = 16 * 4              offset = 64
     glm::vec3 cameraPosition = glm::vec3(0.0f,0.0f, 5.0f);              //4 * 3 bytes = 12 bytes          offset = 128
-    float padding;                                                      //4 bytes plus the 12 bytes above make it 16       offset = 140
+    float padding = 0.0f;                                                    //4 bytes plus the 12 bytes above make it 16       offset = 140
 };                                                                      //      offset = 144 for struct = multiple of 16
 
 struct alignas(16) ModelUBO {
@@ -39,21 +39,21 @@ struct alignas(16) LightUBO {
     glm::vec3 lightDirection;
     float intensity;         // could also be used for attenuation
     glm::vec3 lightColor;
-    float padding2;          // pad to 16 bytes again
+    float padding2 = 0.0f;         // pad to 16 bytes again
 };
 
 struct alignas(16) MaterialUBO {
     glm::vec4 baseColor;    // vec4 to match alignment
     float roughness;
     float metallic;
-    float padding[2];      // pad to 16-byte boundary
+    float padding[2] = { 0.0f,0.0f };    // pad to 16-byte boundary
 };
 
 struct alignas(16) TimeUBO {
     float time;
     float deltaTime;
     int frame;
-    float padding; // pad to 16 bytes
+    float padding = 0.0f;// pad to 16 bytes
 };
 
 

@@ -13,9 +13,9 @@
 #include <unordered_set>
 
 class ResourceManager;
-class GraphicsPipelineLoader {
+class PipelineLoader {
     public:
-        GraphicsPipelineLoader() = default;
+        PipelineLoader() = default;
         static void LoadFromFile(
                                 const std::string& filePath,
                                 std::vector<char> & vertexShaderCodeOut,
@@ -33,7 +33,8 @@ class GraphicsPipelineLoader {
                                 std::unordered_map<uint32_t, std::vector<std::string>>& descriptorNamesOut,
                                 std::vector<VkPushConstantRange>& pushConstantRangesOut,
                                 std::string& renderpassKeyOut,
-                                std::string& vertexTypeOut
+                                std::string& vertexTypeOut,
+                                std::string& descriptorFile
                                 );
 
     protected:

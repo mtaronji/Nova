@@ -1,0 +1,16 @@
+{
+  "$schema": "../config/descriptorsets.schema.json",
+  "descriptorSets": [
+    {
+      "descriptorSetLayout": [
+        {
+          "descriptorType": "uniformBuffer",
+          "shaderStage": [ "vertex" ],
+          "descriptorCount": 1,
+          "name": "camera"
+        }
+      ],
+      "usageScope": "perFrame"
+    }
+  ]
+}

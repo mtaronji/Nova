@@ -1,4 +1,4 @@
-#include "GraphicsPipelineLoader.hpp"
+#include "PipelineLoader.hpp"
 #include "PushConstants.hpp"
 #include "Shader.hpp"
 #include "GPU.hpp"
@@ -251,7 +251,7 @@ static size_t ParsePushConstantSize(const std::string name){
 }
 
 
-void GraphicsPipelineLoader::LoadFromFile(
+void PipelineLoader::LoadFromFile(
                                             const std::string& filePath,
                                             std::vector<char> & vertexShaderCodeOut,
                                             std::vector<char> & fragmentShaderCodeOut,
@@ -268,7 +268,8 @@ void GraphicsPipelineLoader::LoadFromFile(
                                             std::unordered_map<uint32_t, std::vector<std::string>>& descriptorNamesOut,
                                             std::vector<VkPushConstantRange>& pushConstantRangesOut,
                                             std::string& renderpassKeyOut,
-                                            std::string& vertexTypeOut
+                                            std::string& vertexTypeOut,
+                                            std::string& descriptorFileName
                                         ){
 
     std::ifstream in(filePath);
@@ -437,35 +438,8 @@ void GraphicsPipelineLoader::LoadFromFile(
         } 
 
     }
-    if(j.contains("descriptorSets")){
-
-        uint32_t set = 0;
-        
-        for(const auto& layout : j["descriptorSets"]){
-            
-            std::vector<VkDescriptorSetLayoutBinding> descSetLayoutBindings ={};
-            uint32_t binding = 0;
-            std::vector<std::string> descriptorNames;
-            for (const auto& dsl : layout["descriptorSetLayout"]) {
-                
-                VkDescriptorSetLayoutBinding desclayoutbinding{};
-                desclayoutbinding.binding = binding;
-                desclayoutbinding.descriptorCount = dsl["descriptorCount"];
-                desclayoutbinding.stageFlags = 0;
-                for(const auto& stage : dsl["shaderStage"]){
-                    desclayoutbinding.stageFlags |= ParseShaderStage(stage);
-                }
-
-                desclayoutbinding.descriptorType = ParseDescriptorType(dsl["descriptorType"]);        
-                descriptorNames.push_back(dsl["name"]);  
-                descSetLayoutBindings.push_back(desclayoutbinding);
-                binding++;
-            }
-            descriptorSetsOut.push_back(descSetLayoutBindings);
-            descriptorNamesOut[set] = descriptorNames;
-            set++;
-        
-        }
+    if (j.contains("descriptorFile")) {
+        descriptorFileName = j["descriptorFile"];;
     }
     
 }

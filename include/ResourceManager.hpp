@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "DescriptorsetLoader.hpp"
 
 class CommandManager;
 class BufferResource;
@@ -41,6 +42,10 @@ class ResourceManager{
         BufferResource* GetResource(std::string key);
 
         void SetResource(std::string key, BufferResource* r);
+
+        void SetDescriptorFiles(std::unordered_map<std::string, DescriptorFile>& descriptorFiles) {
+            this->descriptorFiles = descriptorFiles;
+        }
 
         //this fills the descriptor map below. We aredn't creating new resources, just another way to access them
         //this creates a map to access descriptor set resources by set and binding and pipeline based on the names specified in the pipeline config
@@ -95,6 +100,8 @@ class ResourceManager{
         //it's indexed as [set][binding] so each pipelinedescriptorsets is a 2d array of buffer resources
         std::unordered_map<std::string, std::vector<std::vector<BufferResource*>>> pipelineDescriptorSets = {}; 
         std::unordered_map<std::string, BufferResource*> resourceMap = {}; // all resources of the app
+
+        std::unordered_map<std::string, DescriptorFile> descriptorFiles; //descriptor files from the descriptorsets files
 
         VkBuffer tempBuffer = VK_NULL_HANDLE;     //for copying the old buffer
         VkDeviceMemory tempMemory = VK_NULL_HANDLE;

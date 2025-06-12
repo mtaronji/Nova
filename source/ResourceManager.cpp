@@ -60,11 +60,13 @@ void ResourceManager::InitializeDescriptorSetsResources(std::shared_ptr<Pipeline
 
     for(auto& [pipelineName, manager] : pipelineManagers){
         std::vector<std::vector<BufferResource*>> descriptorSets;
-        auto descriptorNames = manager->GetDescriptorNames();
-        for(auto & [set, names] : descriptorNames){
+        auto descriptorFileName = manager->GetDescriptorFileName();
+        auto descriptorFile = descriptorFiles[descriptorFileName];
+        auto descriptorNames = descriptorFile.descriptorNames;
+        for (int i = 0; i < descriptorNames.size(); i++) {
 
             std::vector<BufferResource*> bindings;          
-            for(auto name : names){
+            for(auto name : descriptorNames[i]) {
                 bindings.push_back(resourceMap.at(name));
             }
             descriptorSets.push_back(bindings);

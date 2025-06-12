@@ -1,9 +1,14 @@
 #include "PipelineManager.hpp"
-#include "GraphicsPipelineLoader.hpp"
+#include "PipelineLoader.hpp"
 
 void PipelineManager::Cleanup(){
     vkDeviceWaitIdle(gpu->GetVkDevice());
-
+    
+    for (auto& layout : descriptorSetLayouts) {
+        if (layout) {
+            vkDestroyDescriptorSetLayout(gpu->GetVkDevice(), layout, nullptr);
+        }
+    }
     if(pipelineLayout){
         vkDestroyPipelineLayout(gpu->GetVkDevice(), pipelineLayout, nullptr);
     }
@@ -32,10 +37,9 @@ PipelineManager::PipelineManager(
 
 }
 
-
 void PipelineManager::LoadConfig(const std::string configFile) {
     
-    GraphicsPipelineLoader::LoadFromFile(
+    PipelineLoader::LoadFromFile(
                                         configFile,
                                         vertexShaderCode,
                                         fragmentShaderCode,
@@ -52,7 +56,8 @@ void PipelineManager::LoadConfig(const std::string configFile) {
                                         descriptorNames,
                                         pushConstantRanges,
                                         renderpassKey,
-                                        vertexType
+                                        vertexType,
+                                        descriptorFileName                          
     );
     
 }

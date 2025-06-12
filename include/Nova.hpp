@@ -17,6 +17,7 @@ class Mesh;
 class BufferResource;
 class Shader;
 
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -30,6 +31,7 @@ class Shader;
 
 #include "UBOs.hpp"
 #include "IRenderLoopClient.hpp"
+#include "DescriptorsetLoader.hpp"
 
 class Nova : public IRenderLoopClient{
     public:
@@ -45,7 +47,8 @@ class Nova : public IRenderLoopClient{
             std::shared_ptr<RenderpassLibrary> renderpassLibrary,
             std::shared_ptr<CommandManager> commandManager,
             std::shared_ptr<DescriptorAllocator> descriptorAllocator,
-            std::shared_ptr<ResourceManager> resourceManager
+            std::shared_ptr<ResourceManager> resourceManager,
+            std::unordered_map<std::string, DescriptorFile> descriptorFiles
         );
         ~Nova();
         
@@ -91,7 +94,7 @@ class Nova : public IRenderLoopClient{
                 std::shared_ptr<FramebufferLibrary> framebufferLibrary;
                 std::shared_ptr<CommandManager> commandManager;
                 std::shared_ptr<ResourceManager> resourceManager;
-               
+                std::unordered_map<std::string, DescriptorFile> descriptorFiles;
 
                 CameraUBO camera;
                 glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
@@ -108,7 +111,8 @@ class Nova : public IRenderLoopClient{
                 };         
                
                 const std::string RENDER_PASS_FILES_DIRECTORY = OUTPUT_DIRECTORY "/renderpasses"; //relative to build
-                const std::string PIPELINE_FILES_DIRECTORY = OUTPUT_DIRECTORY "/pipelines";  //relative to build           
+                const std::string PIPELINE_FILES_DIRECTORY = OUTPUT_DIRECTORY "/pipelines";  //relative to build         
+                const std::string DESCRIPTOR_FILES_DIRECTORY = OUTPUT_DIRECTORY "/descriptors";  //relative to build       
         };
     
     protected:
@@ -126,6 +130,7 @@ class Nova : public IRenderLoopClient{
         std::shared_ptr<Renderer> renderer;
         std::vector<VkAttachmentDescription> attachmentDescriptions;
         std::shared_ptr<ResourceManager> resourceManager;
+        std::unordered_map<std::string, DescriptorFile> descriptorFiles;
         std::vector<CameraUBO> camera;  //per frame
         glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
         glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
@@ -136,6 +141,7 @@ class Nova : public IRenderLoopClient{
         virtual void AllocateToMonoliths();
         virtual void AllocateMeshes();
         virtual void AllocateDescriptorSets();
+        virtual void InitResources();
     private:
         uint32_t MAX_FRAMES;
         float angle = glm::pi<float>() * 1.0f;

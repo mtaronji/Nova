@@ -14,11 +14,12 @@
 #include "Shader.hpp"
 #include "SyncManager.hpp"
 #include "RenderpassLoader.hpp"
-#include "GraphicsPipelineLoader.hpp"
+#include "PipelineLoader.hpp"
 #include "DescriptorAllocator.hpp"
 #include "PipelineManager.hpp"
 #include "ResourceManager.hpp"
-
+#include "DescriptorsetLoader.hpp"
+#include <unordered_set>
 namespace fs = std::filesystem; // safe alias at global scope for this header
 
 Nova::Nova(
@@ -32,7 +33,8 @@ Nova::Nova(
     std::shared_ptr<RenderpassLibrary> renderpassLibrary,
     std::shared_ptr<CommandManager> commandManager,
     std::shared_ptr<DescriptorAllocator> descriptorAllocator,
-    std::shared_ptr<ResourceManager> resourceManager)
+    std::shared_ptr<ResourceManager> resourceManager,
+    std::unordered_map<std::string, DescriptorFile> descriptorFiles)
     :engine(engine),
     shell(shell),
     gpu(gpu), 
@@ -43,7 +45,8 @@ Nova::Nova(
     renderpassLibrary(renderpassLibrary),
     commandManager(commandManager),
     descriptorAllocator(descriptorAllocator),
-    resourceManager(resourceManager)
+    resourceManager(resourceManager),
+    descriptorFiles(descriptorFiles)
 {
     MAX_FRAMES = swapchainManager->GetImageCount();
 }
@@ -68,7 +71,7 @@ void Nova::Start(){
 
 std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
-    auto app = std::make_unique<Nova>(engine,shell,gpu,framebufferLibrary,syncManager,swapchainManager,pipelineLibrary,renderpassLibrary,commandManager, descriptorAllocator, resourceManager);
+    auto app = std::make_unique<Nova>(engine,shell,gpu,framebufferLibrary,syncManager,swapchainManager,pipelineLibrary,renderpassLibrary,commandManager, descriptorAllocator, resourceManager,descriptorFiles);
 
     glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
@@ -83,7 +86,34 @@ std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 }
 
 
+void Nova::InitResources() {
+    auto extent = swapchainManager->GetExtent();
+    float aspectRatio = (float)extent.width / (float)extent.height;
+    CameraUBO c = {};
+    c.proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
 
+    c.view = glm::lookAt(camPos, cameraTarget, cameraUp);
+    // GLM's perspective projection produces clip space with -Z forward; Vulkan wants +Z forward.
+    c.proj[1][1] *= -1;
+
+    // Camera position
+    c.cameraPosition = camPos;
+    c.padding = 0.0f;
+    auto cameraResource = BufferResource::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, MAX_FRAMES, 0, 0);  // max frames and descriptor set 0 with binding 0
+    cameraResource->Upload(&c, sizeof(c), 0);
+    resourceManager->SetResource("camera", cameraResource);
+
+    camera = std::vector<CameraUBO>(MAX_FRAMES, c); //camera for each frame
+
+    auto verticesResource = BufferResource::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES);
+    auto indicesResource = BufferResource::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 1);
+    auto indices = Mesh::GetCubeIndices();
+    auto vertices = Mesh::GenerateCubeVertices(false);
+    verticesResource->Upload(vertices.data(), vertices.size() * sizeof(VertexPC), vertices.size());
+    indicesResource->Upload(indices.data(), sizeof(uint32_t) * indices.size(), indices.size());
+    auto mesh = Mesh::Create(verticesResource, indicesResource);
+    resourceManager->SetMesh("square", mesh);
+}
 void Nova::Init() {
 
     commandManager->CreateCommandPool();
@@ -101,56 +131,24 @@ void Nova::Init() {
         descriptorAllocator,
         resourceManager
     );
-    MAX_FRAMES = swapchainManager->GetImageCount();
-    auto extent = swapchainManager->GetExtent();
-    float aspectRatio = (float)extent.width / (float)extent.height;
 
-    CameraUBO c = {};
-    c.proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
-    
-    c.view = glm::lookAt(camPos, cameraTarget, cameraUp);
-    // GLM's perspective projection produces clip space with -Z forward; Vulkan wants +Z forward.
-    c.proj[1][1] *= -1;
+    this->resourceManager->SetDescriptorFiles(descriptorFiles);
 
-    // Camera position
-    c.cameraPosition = camPos;
-    c.padding = 0.0f;
-
-    auto cameraResource = BufferResource::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,MAX_FRAMES, 0 ,0);  // max frames and descriptor set 0 with binding 0
-    cameraResource->Upload(&c, sizeof(c), 0);
-    resourceManager->SetResource("camera",cameraResource);
-
-    camera = std::vector<CameraUBO>(MAX_FRAMES, c);
-   
-
-    auto verticesResource = BufferResource::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES);
-    auto indicesResource = BufferResource::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 1);
-    auto indices = Mesh::GetCubeIndices();
-    auto vertices = Mesh::GenerateCubeVertices(true);
-    verticesResource->Upload(vertices.data(),vertices.size() * sizeof(VertexPC), vertices.size());
-    indicesResource->Upload(indices.data(), sizeof(uint32_t) * indices.size(),indices.size());
-    auto mesh = Mesh::Create(verticesResource, indicesResource);
-    resourceManager->SetMesh("square", mesh);
-
+    InitResources();
     CreateMoniliths();
     AllocateMeshes(); //allocate buffer resources that are meshes
     AllocateDescriptorSets(); //allocate buffer resources that are descriptor sets
 
-    //get all bindings for each pipeline to create our pool
-    std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet;
-    for(auto& [key, pipelineManager] : pipelineLibrary->GetPipelines()){
-        auto& bindings = pipelineManager->GetDescriptorSetBindings();
-        descriptorBindingsPerSet.insert(descriptorBindingsPerSet.begin(), bindings.begin(), bindings.end());
-    }
-
+    //get all bindings for all 
+    std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet = pipelineLibrary->GetAllDescriptorBindings(descriptorFiles);
+   
     descriptorAllocator->CreateDescriptorSetPool(descriptorBindingsPerSet, MAX_FRAMES);
     pipelineLibrary->CreateDescriptorSetLayouts(descriptorAllocator);
 
-    //take descriptor names specified with the descriptor sets in the pipeline config and create buffer resources that map to descriptor sets for all pipelines
+    //initializes the the resources to configure resources for 
     resourceManager->InitializeDescriptorSetsResources(pipelineLibrary); 
 
-    renderer->AllocateDescriptorSets("msaa4.json");
-    
+    renderer->AllocateDescriptorSets("msaa4.json"); 
     
     pipelineLibrary->CreatePipelines();
 
@@ -354,16 +352,13 @@ Nova::Builder& Nova::Builder::WithDescriptorSets(std::vector<std::vector<BufferR
 
 Nova::Builder& Nova::Builder::WithDescriptorSets(){
 
-    //all descriptor sets will be set here
-    //we set descriptorsets for pipelines
-    
-    // std::vector<std::vector<BufferResource*>> descriptorSets;
-    // std::vector<BufferResource*> set0;
+    auto files = Nova::Builder::GetAllFiles(DESCRIPTOR_FILES_DIRECTORY);
 
-    // //set 0 binding 0
-    // auto descriptor = resourceManager->GetResource("camera");
-    // set0.push_back(descriptor);
-    // descriptorSets.push_back(set0);
-    // resourceManager->SetDescriptorSets("defaultPipelineConfig copy.json", descriptorSets);
+    for (auto& f : files) {
+        auto dfile = DescriptorsetLoader::LoadFromFile(f.string());
+        auto filename = f.filename().string();
+        dfile.fileName = filename;
+        this->descriptorFiles[filename] = dfile;
+    }
     return *this;
 }

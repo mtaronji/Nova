@@ -48,6 +48,19 @@ void DescriptorAllocator::CreateDescriptorSetPool(std::vector<std::vector<VkDesc
         throw std::runtime_error("Failed to create descriptor pool!");
     }
 }
+void DescriptorAllocator::CreateDescriptorSetPool(std::vector<VkDescriptorPoolSize>& poolSizes, uint32_t maxSets, VkDescriptorPoolCreateFlags flags) {
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+
+    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    poolInfo.pPoolSizes = poolSizes.data();
+    poolInfo.maxSets = maxSets;
+    poolInfo.flags = flags;
+
+    if (vkCreateDescriptorPool(gpu->GetVkDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create descriptor pool!");
+    }
+}
 
 void DescriptorAllocator::CreateDescriptorSetLayout(std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet, std::vector<VkDescriptorSetLayout>& descriptorSetLayoutOut){
 

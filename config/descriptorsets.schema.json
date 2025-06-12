@@ -1,67 +1,91 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Nova Descriptor Schema",
-      "descriptorSets":{
-        "type":"array",
-        "items": {
-            "type":"object",
-            "properties": {
-                "descriptorSetLayout":{
-                    "type":"array",
-                    "items":{
-                        "type":"object",
-                        "required": ["descriptorType", "shaderStage","descriptorCount","name"],
-                        "properties": {
-                            "descriptorType":{
-                                "type":"string",
-                                "enum": [
-                                    "uniformBuffer",
-                                    "uniformBufferDynamic",
-                                    "storageBuffer",
-                                    "storageBufferDynamic",
-                                    "sampler",
-                                    "combinedImageSampler",
-                                    "sampledImage",
-                                    "storageImage",
-                                    "uniformTexelBuffer",
-                                    "storageTexelBuffer",
-                                    "inputAttachment",
-                                    "inlineUniformBlock",
-                                    "accelerationStructure"
-                                ]
-                            },
-                            "descriptorCount":{"type":"integer","minimum": 1, "default":1},
-                            "name":{"type":"string"},
-                            "shaderStage":{
-                                "type":"array",
-                                "items": {
-                                    "type":"string",
-                                    "enum": [
-                                        "vertex",
-                                        "fragment",
-                                        "geometry",
-                                        "compute",
-                                        "tessellationControl",
-                                        "tessellationEvaluation",
-                                        "allGraphics",
-                                        "all",
-                                        "raygen",
-                                        "anyHit",
-                                        "closestHit",
-                                        "miss",
-                                        "intersection",
-                                        "callable",
-                                        "task",
-                                        "mesh"
-                                    ]
-                                }                            
-                            }   
-                        }
-                    }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Nova Descriptor Schema",
+  "type": "object",
+  "required": ["descriptorSets"],
+  "properties": {
+    "descriptorSets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "descriptorSetLayout", "usageScope" ],
+        "properties": {
+          "usageScope": {
+            "type": "string",
+            "enum": [ "perObject", "perFrame", "global", "singular" ],
+            "description": "Defines how often this descriptor set changes"
+          },
+          "descriptorSetLayout": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "descriptorType",
+                "shaderStage",
+                "descriptorCount",
+                "name"
+              ],
+              "properties": {
+                "descriptorType": {
+                  "type": "string",
+                  "enum": [
+                    "uniformBuffer",
+                    "uniformBufferDynamic",
+                    "storageBuffer",
+                    "storageBufferDynamic",
+                    "sampler",
+                    "combinedImageSampler",
+                    "sampledImage",
+                    "storageImage",
+                    "uniformTexelBuffer",
+                    "storageTexelBuffer",
+                    "inputAttachment",
+                    "inlineUniformBlock",
+                    "accelerationStructure"
+                  ]
+                },
+                "descriptorCount": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "setIndex": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "name": {
+                  "type": "string"
+                },
+                "shaderStage": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "vertex",
+                      "fragment",
+                      "geometry",
+                      "compute",
+                      "tessellationControl",
+                      "tessellationEvaluation",
+                      "allGraphics",
+                      "all",
+                      "raygen",
+                      "anyHit",
+                      "closestHit",
+                      "miss",
+                      "intersection",
+                      "callable",
+                      "task",
+                      "mesh"
+                    ]
+                  }
                 }
-            }   
+              }
+            }
+          }
         }
-    }  
+      }
+    }
+  }
 }
-
 

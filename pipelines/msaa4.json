@@ -1,5 +1,5 @@
 {
-    "$schema": "../config/pipeline.schema.json",
+  "$schema": "../config/pipeline.schema.json",
     "shaderStages": [
         {"stage": "vertex","path": "shaders/identity.vert.spv"},
         {"stage": "fragment","path": "shaders/identity.frag.spv"}
@@ -9,13 +9,13 @@
         "primitiveRestartEnable": false
     },
     "rasterizer": {
-        "depthClampEnable": false,
-        "rasterizerDiscardEnable": false,
-        "polygonMode": "fill",
-        "cullMode": "none",
-        "depthBiasEnable": false,
-        "frontFace": "counter_clockwise",
-        "lineWidth": 1.0
+      "depthClampEnable": false,
+      "rasterizerDiscardEnable": false,
+      "polygonMode": "fill",
+      "cullMode": "none",
+      "depthBiasEnable": false,
+      "frontFace": "counter_clockwise",
+      "lineWidth": 1.0
     },
     "renderpasskey": "msaa4.json",
     "vertextype": "pc",
@@ -46,26 +46,13 @@
     "dynamicStates": [
         "viewport","scissor"
     ],
-   
-    "pushConstants": [
-        {
-            "name": "frameinfo",
-            "offset": 0,
-            "stage": ["vertex","fragment"]
-        }
-    ],
-    "descriptorSets": [
-        {
-            "descriptorSetLayout": [
-                {
-                    "descriptorType": "uniformBuffer",
-                    "shaderStage": ["vertex"],
-                    "descriptorCount": 1,
-                    "name": "camera"
-                }
-            ]
-        }
-    ]
-        
-    
+
+  "pushConstants": [
+    {
+      "name": "frameinfo",
+      "offset": 0,
+      "stage": [ "vertex", "fragment" ]
+    }
+  ],
+  "descriptorFile": "default.json" 
 }

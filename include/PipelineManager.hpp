@@ -8,11 +8,12 @@
 #include <unordered_map>
 #include "GPU.hpp"
 #include "RenderpassLibrary.hpp"
+#include "DescriptorsetLoader.hpp"
 
 class PipelineManager {
 
     public:
-        PipelineManager();
+        PipelineManager() = delete;
         static PipelineManager* Create(
             std::shared_ptr<GPU> gpu, 
             std::shared_ptr<RenderpassLibrary> renderpassLibrary,
@@ -28,13 +29,18 @@ class PipelineManager {
 
         std::string GetRenderpassKey() const {return renderpassKey;}
         std::string GetVertexType() const {return vertexType;}
-
+        std::string GetDescriptorFileName() const { return descriptorFileName; }
+        void SetDescriptorFile(DescriptorFile* file) { this->descriptorFile = file; }
+        std::vector<uint32_t> GetDescriptorSetIndexes() { return descriptorSetIndexes; }
         VkPushConstantRange& GetPushConstantRange(uint32_t index) {return pushConstantRanges[index]; }
 
         void LoadConfig(const std::string configFile);
 
-        std::vector<std::vector<VkDescriptorSetLayoutBinding>>& GetDescriptorSetBindings() {return descriptorBindingsPerSet;} //bindings per set
-  
+        std::vector<std::vector<VkDescriptorSetLayoutBinding>>& GetDescriptorSetBindings() {
+            return descriptorFile->GetDescriptorBindings();
+        }
+        DescriptorSetInfo& GetDescriptorInfo() { return descriptorSetInfo; }
+        void SetDescriptorInfo(DescriptorSetInfo& info) { descriptorSetInfo = info; }
 
         template <typename vertex>  //this is the type of vertex
         void CreateGraphicsPipeline(){
@@ -194,13 +200,17 @@ class PipelineManager {
         std::vector<VkPushConstantRange> pushConstantRanges;
         std::string renderpassKey;
         std::string vertexType;
+        DescriptorSetInfo descriptorSetInfo;
+        std::vector<uint32_t> descriptorSetIndexes;
+        std::string descriptorFileName;
+        DescriptorFile* descriptorFile;
         
-        
-        void CreateDescriptorSetLayout();
-        void AllocateDescriptorSets();
+        /*void CreateDescriptorSetLayout();
+        void AllocateDescriptorSets();*/
         VkShaderModule CreateShaderModule(const std::vector<char>& code);
-        void CreateDescriptorSetPool();
+        
+        /*void CreateDescriptorSetPool();*/
     private:
-        uint32_t MAX_FRAMES = 3;
+        //uint32_t MAX_FRAMES = 3;
         
 };

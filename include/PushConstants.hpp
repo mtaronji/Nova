@@ -7,3 +7,10 @@ struct FrameInfo {
     float iTime;
     int iframe;
 };
+
+struct FrameInfoModelMatrix {
+    glm::vec2 iResolution;
+    float iTime;
+    int iframe;
+    glm::mat4 model;
+};

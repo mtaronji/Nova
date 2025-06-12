@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0.2)  # CMake version check
-project(nova)               # Create project "magus"
+project(nova)               # Create project "nova"
 set(CMAKE_CXX_STANDARD 23)         # Enable c++23 standard
 
 if(CMAKE_CONFIGURATION_TYPES)
@@ -51,7 +51,7 @@ file(GLOB_RECURSE PIPELINES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "pipelines/*.
 file(GLOB_RECURSE RENDERPASSES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "renderpasses/*.json")
 file(GLOB_RECURSE FONTLOADERHEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/include/*.h" "fontloader/include/*.hpp")
 file(GLOB_RECURSE FONTLOADERSRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/src/*.cpp" "fontloader/src/*.c")
-file(GLOB_RECURSE DESCRIPTORSETS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "descriptorsets/*.json")
+file(GLOB_RECURSE DESCRIPTORS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "descriptors/*.json")
 file(GLOB_RECURSE SCRIPTS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "scripts/*.ps1" "scripts/*.sh")
 file(GLOB_RECURSE CONFIG RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "config/*.json")
 file(GLOB_RECURSE CONFIG_GENERATION RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "generated/*.hpp" "generated/*.in")
@@ -69,7 +69,7 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/src" PREFIX "fontloade
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "shaders" FILES ${SHADERS})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/pipelines" PREFIX "pipelines" FILES ${PIPELINES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/renderpasses" PREFIX "renderpasses" FILES ${RENDERPASSES})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptorsets" PREFIX "descriptorsets" FILES ${DESCRIPTORSETS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptors" PREFIX "descriptors" FILES ${DESCRIPTORS})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/scripts" PREFIX "scripts" FILES ${SCRIPTS})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/config" PREFIX "config" FILES ${CONFIG})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/generated" PREFIX "generated" FILES ${CONFIG_GENERATION})
@@ -100,7 +100,8 @@ endforeach()
 
 #add a custom target to add more control to shader compile
 add_custom_target(compile_shaders ALL DEPENDS ${SPIRV_FILES})
-# Add both sources AND headers (optional but helps IDE indexing)
+
+# Add both sources AND headers (for IDE indexing)
 target_sources(nova PRIVATE 
     main.cpp  # explicitly add the root main.cpp file
     ${SOURCES}
@@ -110,7 +111,7 @@ target_sources(nova PRIVATE
     ${SHADERS}            # Optional (shaders are also assets)
     ${PIPELINES}          # Adds pipeline JSON files to IDE
     ${RENDERPASSES}       # Adds renderpass JSON files to IDE
-    ${DESCRIPTORSETS}     # Adds descriptor set JSON files to IDE
+    ${DESCRIPTORS}     # Adds descriptor set JSON files to IDE
     ${SCRIPTS}            # adds scripts folder to the ide
     ${CONFIG_GENERATION}  #generated data for cross platform paths, etc
     ${CONFIG}             #for config schema files for pipeline render pass, etc to add to IDE
@@ -138,8 +139,8 @@ add_custom_command(TARGET nova POST_BUILD
         ${CMAKE_SOURCE_DIR}/pipelines $<TARGET_FILE_DIR:nova>/pipelines
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/renderpasses $<TARGET_FILE_DIR:nova>/renderpasses
-    #  COMMAND ${CMAKE_COMMAND} -E copy_directory
-    #     ${CMAKE_SOURCE_DIR}/descriptorsets $<TARGET_FILE_DIR:nova>/descriptorsets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/descriptors $<TARGET_FILE_DIR:nova>/descriptors
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/config $<TARGET_FILE_DIR:nova>/config
 )

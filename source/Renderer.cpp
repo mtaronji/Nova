@@ -17,7 +17,7 @@
 #include "Mesh.hpp"
 
 void Renderer::Cleanup(){
-    
+   
 }
 
 Renderer::Renderer(   
