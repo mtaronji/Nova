@@ -10,7 +10,8 @@
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <thread>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class IRenderLoopClient;
 
@@ -23,6 +24,20 @@ public:
     GLFWwindow * GetWindow()const {return window;};
 
     void Run(IRenderLoopClient *app);
+    
+    float GetX() { return static_cast<float>(xpos); }
+    float GetY() { return static_cast<float>(ypos); }
+    float GetDeltaX() { 
+        auto out = static_cast<float>(deltaX); 
+        deltaX = 0.0;
+        return out;
+    }
+    float GetDeltaY() {
+        auto out = static_cast<float>(deltaY);
+        deltaY = 0.0;
+        return out;
+    }
+
 
 protected:
     virtual uint32_t GetWidth() const { return 800; }
@@ -33,10 +48,15 @@ protected:
 
     double xpos;
     double ypos;
+    double lastX;
+    double lastY;
     double xoffset;
     double yoffset;
+    double deltaX = 0.0f;
+    double deltaY = 0.0f;
     bool isFocused;
     bool FramebufferResize = false;
+    bool firstMouse = true;
  
     TimePoint previousTime;
 
@@ -44,9 +64,6 @@ protected:
     void MainLoop(IRenderLoopClient *app);
 
     void Cleanup();
-
-    void CreateSurface();
-
 
    // === CALLBACK FUNCTION DECLARATIONS ===
 

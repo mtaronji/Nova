@@ -47,6 +47,7 @@ void Shell::MainLoop(IRenderLoopClient* app) {
     }
 }
 
+
 void Shell::Run(IRenderLoopClient* app) {
     MainLoop(app);
     Cleanup();
@@ -109,8 +110,21 @@ void Shell::CursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     }
 }
 void Shell::OnCursorPosition(GLFWwindow*, double xpos, double ypos){
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        this->xpos = xpos;
+        this->ypos = ypos;
+        firstMouse = false;
+        return;
+    }
+    this->lastX = this->xpos;
+    this->lastY = this->ypos;
     this->xpos = xpos;
     this->ypos = ypos;
+    this->deltaX = this->xpos - this->lastX;
+    this->deltaY = this->ypos - this->lastY;
+
 }
 
 void Shell::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {

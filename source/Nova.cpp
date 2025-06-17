@@ -148,6 +148,7 @@ void Nova::Init() {
     //initializes the the resources to configure resources for 
     resourceManager->InitializeDescriptorSetsResources(pipelineLibrary); 
 
+    //allocate descriptor sets for the following pipeline.
     renderer->AllocateDescriptorSets("msaa4.json"); 
     
     pipelineLibrary->CreatePipelines();
@@ -165,8 +166,8 @@ void Nova::CreateMoniliths(){
     //ubo like camera don't need it
 
     VkBufferUsageFlags transfer = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000)); 
-    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | transfer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000));
+    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000));  //unofrm monolith
+    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | transfer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000)); //index and vertice buffers with transfer operations
 }
 
 void Nova::AllocateMeshes(){
@@ -192,21 +193,25 @@ void Nova::Update(float deltaTime){
     deltaTime = glm::clamp(deltaTime, 0.0f, 0.05f); // max ~20 FPS frame
 
     //camera orbiting and looking at the origin
-    constexpr float pitch = glm::radians(20.0f); // fixed slight tilt
-    angle += cameraspeed * deltaTime;
-    angle = glm::mod(angle, glm::two_pi<float>());
+    auto deltax = shell->GetDeltaX();
+    if (deltax != 0.0f) {
+        constexpr float pitch = glm::radians(20.0f); // fixed slight tilt
+        angle += cameraspeed * deltax;
+        angle = glm::mod(angle, glm::two_pi<float>());
 
-    // Calculate camera position in spherical coordinates
-    float x = orbitalDistance * cos(pitch) * cos(angle);
-    float y = orbitalDistance * sin(pitch);
-    float z = orbitalDistance * cos(pitch) * sin(angle);
-    camPos = glm::vec3(x, y, z);
+        // Calculate camera position in spherical coordinates
+        float x = orbitalDistance * cos(pitch) * cos(angle);
+        float y = orbitalDistance * sin(pitch);
+        float z = orbitalDistance * cos(pitch) * sin(angle);
+        camPos = glm::vec3(x, y, z);
 
-    // Always look at the target with a fixed up direction
-    camera[frame].view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
-    auto cameraResource = this->resourceManager->GetResource("camera");
-    cameraResource->Upload(&camera[frame], sizeof(camera[frame]));
-    this->resourceManager->UpdateBufferData(cameraResource, gpu.get(),commandManager.get(), frame);
+        // Always look at the target with a fixed up direction
+        camera[frame].view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
+        auto cameraResource = this->resourceManager->GetResource("camera");
+        cameraResource->Upload(&camera[frame], sizeof(camera[frame]));
+        this->resourceManager->UpdateBufferData(cameraResource, gpu.get(), commandManager.get(), frame);
+    }
+
 
     //std::cout << "deltaTime: " << deltaTime << ", angle: " << glm::degrees(angle) << std::endl;
 }

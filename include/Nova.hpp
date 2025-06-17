@@ -145,7 +145,8 @@ class Nova : public IRenderLoopClient{
     private:
         uint32_t MAX_FRAMES;
         float angle = glm::pi<float>() * 1.0f;
-        float cameraspeed = glm::pi<float>() / 10.0f;
-        float orbitalDistance = 5.0f;    
+        float cameraspeed = 0.003;
+        float orbitalDistance = 5.0f;   
+        float yaw = 0.0f; //horizontal angle in randians
         
 };
