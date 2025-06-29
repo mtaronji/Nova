@@ -193,7 +193,7 @@ void Nova::Update(float deltaTime){
     deltaTime = glm::clamp(deltaTime, 0.0f, 0.05f); // max ~20 FPS frame
 
     //camera orbiting and looking at the origin
-    auto deltax = shell->GetDeltaX();
+    auto deltax = 0.0f;  //updating the shell to use observables so it's set to 0. will implement this using observables and come back
     if (deltax != 0.0f) {
         constexpr float pitch = glm::radians(20.0f); // fixed slight tilt
         angle += cameraspeed * deltax;

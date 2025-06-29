@@ -12,30 +12,34 @@
 #include <thread>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <functional>
+#include <memory>
+#include <Observable.hpp>
+#include "MouseEvents.hpp"
+#include "KeyboardEvents.hpp"
+
 
 class IRenderLoopClient;
 
 class Shell {
+
 public:
     GLFWwindow* window;
    
     Shell();
 
     GLFWwindow * GetWindow()const {return window;};
-
     void Run(IRenderLoopClient *app);
-    
-    float GetX() { return static_cast<float>(xpos); }
-    float GetY() { return static_cast<float>(ypos); }
-    float GetDeltaX() { 
-        auto out = static_cast<float>(deltaX); 
-        deltaX = 0.0;
-        return out;
+
+    //we only want to expose the Observable part 
+    std::shared_ptr<Observable<MouseButtonEvent>> MouseButtons() { 
+        return _mouseButtons;
     }
-    float GetDeltaY() {
-        auto out = static_cast<float>(deltaY);
-        deltaY = 0.0;
-        return out;
+    std::shared_ptr<Observable<KeyPressEvent>> Keys() {
+        return _keys;
+    }
+    std::shared_ptr<Observable<MouseMoveEvent>> MouseLocation() {
+        return _mouseLocation;
     }
 
 
@@ -46,18 +50,12 @@ protected:
     using Clock = std::chrono::high_resolution_clock;
     using TimePoint = std::chrono::time_point<Clock>;
 
-    double xpos;
-    double ypos;
-    double lastX;
-    double lastY;
-    double xoffset;
-    double yoffset;
-    double deltaX = 0.0f;
-    double deltaY = 0.0f;
-    bool isFocused;
+    std::shared_ptr<Signal<MouseButtonEvent>> _mouseButtons;
+    std::shared_ptr<Signal<KeyPressEvent>>  _keys;
+    std::shared_ptr<Signal<MouseMoveEvent>> _mouseLocation;
+
     bool FramebufferResize = false;
-    bool firstMouse = true;
- 
+    bool isFocused = false;
     TimePoint previousTime;
 
     void InitWindow();

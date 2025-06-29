@@ -3,7 +3,10 @@
 
 Shell::Shell(){
     InitWindow();
- 
+    
+    std::shared_ptr<Signal<MouseButtonEvent>> _mouseButtons = std::make_shared<Signal<MouseButtonEvent>>();
+    std::shared_ptr<Signal<KeyPressEvent>>  _keys = std::make_shared<Signal<KeyPressEvent>>();
+    std::shared_ptr<Signal<MouseMoveEvent>> _mouseLocation = std::make_shared<Signal<MouseMoveEvent>>();
 }
 
 void Shell::InitWindow() {
@@ -80,8 +83,12 @@ void Shell::KeyPressCallback(GLFWwindow* window, int key, int scancode, int acti
 }
 void Shell::OnKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        KeyPressEvent e = { .key = key,.action = action, .mods = mods };
+        _keys->Emit(e);
         glfwSetWindowShouldClose(window, true);
+    }
+      
 }
 
 void Shell::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -94,8 +101,9 @@ void Shell::MouseButtonCallback(GLFWwindow* window, int button, int action, int 
         throw std::invalid_argument("Unable to retreive the Mouse Button Callback");
     }
 }
-void  Shell::OnMouseButton(GLFWwindow*, int, int, int){
-
+void  Shell::OnMouseButton(GLFWwindow*, int button, int action, int mods){
+    MouseButtonEvent e = { .button = button, .action = action, .mods = mods };
+    _mouseButtons->Emit(e);
 }
 
 void Shell::CursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -110,21 +118,8 @@ void Shell::CursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     }
 }
 void Shell::OnCursorPosition(GLFWwindow*, double xpos, double ypos){
-    if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        this->xpos = xpos;
-        this->ypos = ypos;
-        firstMouse = false;
-        return;
-    }
-    this->lastX = this->xpos;
-    this->lastY = this->ypos;
-    this->xpos = xpos;
-    this->ypos = ypos;
-    this->deltaX = this->xpos - this->lastX;
-    this->deltaY = this->ypos - this->lastY;
-
+    MouseMoveEvent e = { .x = xpos, .y = ypos };
+    _mouseLocation->Emit(e);
 }
 
 void Shell::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -138,8 +133,7 @@ void Shell::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     }
 }
 void Shell::OnScroll(GLFWwindow*, double xoffset, double yoffset){
-    this->xoffset =xoffset;
-    this->yoffset = yoffset;
+    
 }
 
 void Shell::WindowFocusCallback(GLFWwindow* window, int focused) {

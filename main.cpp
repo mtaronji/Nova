@@ -1,4 +1,4 @@
-#include "Nova.hpp"
+#include <Nova.hpp>
 #include <iostream>
 #include <cstdlib> // randcolor
 #include <ctime>  

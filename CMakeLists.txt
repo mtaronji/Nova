@@ -40,73 +40,51 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
-find_program(GLSLANG_VALIDATOR glslangValidator REQUIRED)
+
+add_subdirectory(shaders)
+add_subdirectory(common)
+add_subdirectory(kindle)
+add_subdirectory(nova)
 
 
+#BUILDING NOVA
 # Recursively find source and header files
-file(GLOB_RECURSE SOURCES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "source/*.cpp" "source/*.c")
-file(GLOB_RECURSE HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/*.hpp" "include/*.h")
-file(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "shaders/*.vert" "shaders/*.frag")
-file(GLOB_RECURSE PIPELINES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "pipelines/*.json")
-file(GLOB_RECURSE RENDERPASSES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "renderpasses/*.json")
-file(GLOB_RECURSE FONTLOADERHEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/include/*.h" "fontloader/include/*.hpp")
-file(GLOB_RECURSE FONTLOADERSRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "fontloader/src/*.cpp" "fontloader/src/*.c")
-file(GLOB_RECURSE DESCRIPTORS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "descriptors/*.json")
-file(GLOB_RECURSE SCRIPTS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "scripts/*.ps1" "scripts/*.sh")
-file(GLOB_RECURSE CONFIG RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "config/*.json")
-file(GLOB_RECURSE CONFIG_GENERATION RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "generated/*.hpp" "generated/*.in")
+
+file(GLOB_RECURSE SHADERS CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "shaders/*.vert" "shaders/*.frag")
+file(GLOB_RECURSE PIPELINES CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "pipelines/*.json")
+file(GLOB_RECURSE RENDERPASSES CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "renderpasses/*.json")
+file(GLOB_RECURSE FONTLOADERHEADERS CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "fontloader/include/*.h" "fontloader/include/*.hpp")
+file(GLOB_RECURSE FONTLOADERSRC CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "fontloader/src/*.cpp" "fontloader/src/*.c")
+file(GLOB_RECURSE DESCRIPTORS CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "descriptors/*.json")
+file(GLOB_RECURSE SCRIPTS CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "scripts/*.ps1" "scripts/*.sh")
+file(GLOB_RECURSE CONFIG CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "config/*.json")
+file(GLOB_RECURSE CONFIG_GENERATION CONFIGURE_DEPENDS  "${CMAKE_SOURCE_DIR}" "generated/*.hpp" "generated/*.in")
+
 
 
 #want the main.cpp in the root
-set(ROOT_SOURCES main.cpp)
+set(ENTRY "${CMAKE_SOURCE_DIR}/main.cpp")
 
-#this will add the same directory structure we have in the github project
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ROOT_SOURCES}) # no prefix we want it at the root
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${SOURCES})   
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/include" PREFIX "include" FILES ${HEADERS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/include" PREFIX "fontloader/include" FILES ${FONTLOADERHEADERS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/fontloader/src" PREFIX "fontloader/source" FILES ${FONTLOADERSRC})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" PREFIX "shaders" FILES ${SHADERS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/pipelines" PREFIX "pipelines" FILES ${PIPELINES})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/renderpasses" PREFIX "renderpasses" FILES ${RENDERPASSES})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/descriptors" PREFIX "descriptors" FILES ${DESCRIPTORS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/scripts" PREFIX "scripts" FILES ${SCRIPTS})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/config" PREFIX "config" FILES ${CONFIG})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/generated" PREFIX "generated" FILES ${CONFIG_GENERATION})
 
-add_executable(nova)
+source_group(TREE "${CMAKE_SOURCE_DIR}/fontloader/include" PREFIX "fontloader/include" FILES ${FONTLOADERHEADERS})
+source_group(TREE "${CMAKE_SOURCE_DIR}/fontloader/src" PREFIX "fontloader/source" FILES ${FONTLOADERSRC})
+source_group(TREE "${CMAKE_SOURCE_DIR}/shaders" PREFIX "shaders" FILES ${SHADERS})
+source_group(TREE "${CMAKE_SOURCE_DIR}/pipelines" PREFIX "pipelines" FILES ${PIPELINES})
+source_group(TREE "${CMAKE_SOURCE_DIR}/renderpasses" PREFIX "renderpasses" FILES ${RENDERPASSES})
+source_group(TREE "${CMAKE_SOURCE_DIR}/descriptors" PREFIX "descriptors" FILES ${DESCRIPTORS})
+source_group(TREE "${CMAKE_SOURCE_DIR}/scripts" PREFIX "scripts" FILES ${SCRIPTS})
+source_group(TREE "${CMAKE_SOURCE_DIR}/config" PREFIX "config" FILES ${CONFIG})
+source_group(TREE "${CMAKE_SOURCE_DIR}/generated" PREFIX "generated" FILES ${CONFIG_GENERATION})
+source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENTRY})
 
-# Use the target file directory after nova exists
-set(SHADER_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders")
+add_executable(main)
 
-set(SPIRV_FILES "")
-
-foreach(SHADER ${SHADERS})
-    get_filename_component(FILE_NAME ${SHADER} NAME)
-
-    set(SPIRV "${SHADER_OUTPUT_DIR}/${FILE_NAME}.spv")
-
-    #defining output commands that execute when the target is built
-    add_custom_command(
-        OUTPUT "${SPIRV}"
-        COMMAND ${CMAKE_COMMAND} -E echo "Running: ${GLSLANG_VALIDATOR} -V ${CMAKE_SOURCE_DIR}/${SHADER} -o ${SPIRV}"
-        COMMAND ${GLSLANG_VALIDATOR} -V "${CMAKE_SOURCE_DIR}/${SHADER}" -o "${SPIRV}"
-        DEPENDS "${CMAKE_SOURCE_DIR}/${SHADER}"
-        COMMENT "Compiling shader ${SHADER}"
-        VERBATIM
-    )
-    list(APPEND SPIRV_FILES "${SPIRV}")
-endforeach()
-
-#add a custom target to add more control to shader compile
-add_custom_target(compile_shaders ALL DEPENDS ${SPIRV_FILES})
 
 # Add both sources AND headers (for IDE indexing)
-target_sources(nova PRIVATE 
+target_sources(main PRIVATE 
     main.cpp  # explicitly add the root main.cpp file
-    ${SOURCES}
+
     ${FONTLOADERSRC}
-    ${HEADERS}            # add so ide can create directory strucure
     ${FONTLOADERHEADERS}  # add so ide can create directory strucure 
     ${SHADERS}            # Optional (shaders are also assets)
     ${PIPELINES}          # Adds pipeline JSON files to IDE
@@ -117,46 +95,17 @@ target_sources(nova PRIVATE
     ${CONFIG}             #for config schema files for pipeline render pass, etc to add to IDE
 )
 
-target_include_directories(nova PRIVATE ${CMAKE_SOURCE_DIR}/include
+target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/include
                                         ${CMAKE_SOURCE_DIR}/fontloader/include
-                                        ${Vulkan_INCLUDE_DIRS}
                                         ${FREETYPE_INCLUDE_DIRS}
                                         )
 
 # Link libraries
-target_link_libraries(nova
+target_link_libraries(main
     PRIVATE
-    Vulkan::Vulkan
-    glfw
+    nova
+    common
     ${FREETYPE_LIBRARIES}
 )
-
-# Post-build command to copy shaders and other files to output directory
-add_custom_command(TARGET nova POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:nova>/shaders
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/pipelines $<TARGET_FILE_DIR:nova>/pipelines
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/renderpasses $<TARGET_FILE_DIR:nova>/renderpasses
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/descriptors $<TARGET_FILE_DIR:nova>/descriptors
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/config $<TARGET_FILE_DIR:nova>/config
-)
-if(CMAKE_CONFIGURATION_TYPES)
-    # Multi-config generators like Visual Studio
-    target_compile_definitions(nova PRIVATE
-        $<$<CONFIG:Debug>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/x64/$<CONFIG>\">
-        $<$<CONFIG:Release>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/x64/$<CONFIG>\">
-)
- 
-else()
-    # Single-config generators like Make/Ninja on Linux
-    target_compile_definitions(nova PRIVATE
-        $<$<CONFIG:Debug>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/$<CONFIG>\">
-        $<$<CONFIG:Release>:OUTPUT_DIRECTORY=\"${CMAKE_SOURCE_DIR}/build/$<CONFIG>\">
-)
-endif()
 
 
