@@ -9,4 +9,11 @@ struct MouseButtonEvent {
 struct MouseMoveEvent {
     double x;
     double y;
+
+    MouseMoveEvent operator-(const MouseMoveEvent& other) const {
+        MouseMoveEvent result;
+        result.x = this->x - other.x;
+        result.y = this->y - other.y;
+        return result;
+    }
 };

@@ -59,13 +59,13 @@ class ResourceManager{
         
 
         //assigning a monolith buffer will copy the data to a specified monolith buffer
-        virtual void AssignMonolithBuffer(BufferResource* resource, GPU* gpu, CommandManager* cm, VkMemoryPropertyFlags memoryProperties, VkDeviceSize alignment);
+        virtual void AssignMonolithBuffer(BufferResource& resource, GPU* gpu, CommandManager* cm, VkMemoryPropertyFlags memoryProperties, VkDeviceSize alignment);
 
         //Will try to allocate, if it's too much data, we will try to resize the buffer
         //we will allocate meshes per frame
         //if you don't wish this, create buffer resources with 1 frame
         //virtual void AssignMonolithBuffer(Mesh * m, GPU* gpu, CommandManager* cm, VkDeviceSize alignment);
-        virtual void UpdateBufferData(BufferResource* resource, GPU* gpu, CommandManager* cm, uint32_t frame);
+        virtual void UpdateBufferData(BufferResource& resource, GPU* gpu, CommandManager* cm, uint32_t frame);
 
         //updating descriptor sets is putting actual data buffer location into the descriptor sets
         //pipeline key for the pipeline the descriptorset is a part of

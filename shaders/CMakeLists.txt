@@ -1,7 +1,7 @@
 
 find_program(GLSLANG_VALIDATOR glslangValidator REQUIRED)
 
-function(nova_compile_shaders SHADER_INPUT_DIR SHADER_OUTPUT_DIR)
+function(nova_compile_shaders COMPILE_NAME SHADER_INPUT_DIR SHADER_OUTPUT_DIR)
   
     if(NOT GLSLANG_VALIDATOR)
         message(FATAL_ERROR "glslangValidator not found in PATH")
@@ -39,5 +39,5 @@ function(nova_compile_shaders SHADER_INPUT_DIR SHADER_OUTPUT_DIR)
         list(APPEND SPIRV_FILES "${SPIRV}")
     endforeach()
 
-    add_custom_target(compile_shaders_target ALL DEPENDS ${SPIRV_FILES})
+    add_custom_target(${COMPILE_NAME} ALL DEPENDS ${SPIRV_FILES})
 endfunction()

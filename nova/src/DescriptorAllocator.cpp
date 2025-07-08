@@ -15,39 +15,39 @@ DescriptorAllocator::~DescriptorAllocator() {
 //I will create one ubo for the camera all ahead of time that you will bind into
 //this pool will take in all bindingsperset for each graphics pipeline and create a pool large enough to allocate one per object per frame
 
-void DescriptorAllocator::CreateDescriptorSetPool(std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet, uint32_t MAX_FRAMES) {
-
-    std::unordered_map<VkDescriptorType, uint32_t> descriptorCounts;
-    // Iterate through all descriptor set layouts and count descriptors by type
-    for (const auto& setBindings : descriptorBindingsPerSet) {
-        for (const auto& binding : setBindings) {
-            // Increment the count for this descriptor type
-            descriptorCounts[binding.descriptorType] +=  MAX_FRAMES * binding.descriptorCount;
-        }
-    }
-
-    std::vector<VkDescriptorPoolSize> poolSizes;
-    // Fill the poolSizes vector with the results from the descriptorCounts map
-    poolSizes.clear();  // Clear any previous data
-    poolSizes.reserve(descriptorCounts.size());  // Reserve space to avoid reallocation
-
-    for (const auto& [type, count] : descriptorCounts) {
-        poolSizes.push_back({.type = type, .descriptorCount = count});
-    }
-
-
-    VkDescriptorPoolCreateInfo poolInfo{}; 
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    
-    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-    poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t> (descriptorBindingsPerSet.size() * MAX_FRAMES);
-    poolInfo.flags = 0; // Optional: you could add VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
-
-    if (vkCreateDescriptorPool(gpu->GetVkDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create descriptor pool!");
-    }
-}
+//void DescriptorAllocator::CreateDescriptorSetPool(std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet, uint32_t MAX_FRAMES) {
+//
+//    std::unordered_map<VkDescriptorType, uint32_t> descriptorCounts;
+//    // Iterate through all descriptor set layouts and count descriptors by type
+//    for (const auto& setBindings : descriptorBindingsPerSet) {
+//        for (const auto& binding : setBindings) {
+//            // Increment the count for this descriptor type
+//            descriptorCounts[binding.descriptorType] +=  MAX_FRAMES * binding.descriptorCount;
+//        }
+//    }
+//
+//    std::vector<VkDescriptorPoolSize> poolSizes;
+//    // Fill the poolSizes vector with the results from the descriptorCounts map
+//    poolSizes.clear();  // Clear any previous data
+//    poolSizes.reserve(descriptorCounts.size());  // Reserve space to avoid reallocation
+//
+//    for (const auto& [type, count] : descriptorCounts) {
+//        poolSizes.push_back({.type = type, .descriptorCount = count});
+//    }
+//
+//
+//    VkDescriptorPoolCreateInfo poolInfo{}; 
+//    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+//    
+//    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+//    poolInfo.pPoolSizes = poolSizes.data();
+//    poolInfo.maxSets = static_cast<uint32_t> (descriptorBindingsPerSet.size() * MAX_FRAMES);
+//    poolInfo.flags = 0; // Optional: you could add VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
+//
+//    if (vkCreateDescriptorPool(gpu->GetVkDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+//        throw std::runtime_error("Failed to create descriptor pool!");
+//    }
+//}
 void DescriptorAllocator::CreateDescriptorSetPool(std::vector<VkDescriptorPoolSize>& poolSizes, uint32_t maxSets, VkDescriptorPoolCreateFlags flags) {
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

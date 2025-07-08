@@ -4,9 +4,9 @@
 Shell::Shell(){
     InitWindow();
     
-    std::shared_ptr<Signal<MouseButtonEvent>> _mouseButtons = std::make_shared<Signal<MouseButtonEvent>>();
-    std::shared_ptr<Signal<KeyPressEvent>>  _keys = std::make_shared<Signal<KeyPressEvent>>();
-    std::shared_ptr<Signal<MouseMoveEvent>> _mouseLocation = std::make_shared<Signal<MouseMoveEvent>>();
+    _mouseButtons = std::make_shared<Signal<MouseButtonEvent>>();
+    _keys = std::make_shared<Signal<KeyPressEvent>>();
+    _mouseLocation = std::make_shared<Signal<MouseMoveEvent>>();
 }
 
 void Shell::InitWindow() {

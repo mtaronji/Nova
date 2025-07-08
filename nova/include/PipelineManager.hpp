@@ -39,6 +39,7 @@ class PipelineManager {
         std::vector<std::vector<VkDescriptorSetLayoutBinding>>& GetDescriptorSetBindings() {
             return descriptorFile->GetDescriptorBindings();
         }
+
         DescriptorSetInfo& GetDescriptorInfo() { return descriptorSetInfo; }
         void SetDescriptorInfo(DescriptorSetInfo& info) { descriptorSetInfo = info; }
 

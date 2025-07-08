@@ -61,17 +61,16 @@ struct Mesh {
        
     }
 
-    static Mesh* Create(BufferResource* vertices, BufferResource* indices, glm::mat4 modelMatrix =  glm::mat4(1.0f)){
-        return new Mesh(vertices, indices, modelMatrix);
+    static Mesh Create(BufferResource vertices, BufferResource indices, glm::mat4 modelMatrix =  glm::mat4(1.0f)){
+        return Mesh(vertices, indices, modelMatrix);
     }
     void Cleanup(GPU *gpu){
-        if(vertexResource != nullptr){vertexResource->Cleanup(gpu); vertexResource = nullptr;}
-        if(indiceResource != nullptr){indiceResource->Cleanup(gpu); indiceResource = nullptr;}
+     
     }
 
     void CreateGPUResources(GPU* gpu, CommandManager* commandManager){
-        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, vertexResource->GetData(), vertexResource->GetDataSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexResource->GetBuffer(), vertexResource->GetMemory(),verticeOffset, 0);
-        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, indiceResource->GetData(), indiceResource->GetDataSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indiceResource->GetBuffer(), indiceResource->GetMemory(), indiceOffset, 0);
+        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, vertexResource.GetData(), vertexResource.GetDataSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexResource.GetBuffer(), vertexResource.GetMemory(),verticeOffset, 0);
+        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, indiceResource.GetData(), indiceResource.GetDataSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indiceResource.GetBuffer(), indiceResource.GetMemory(), indiceOffset, 0);
     }
 
     void Bind(VkCommandBuffer cmdBuffer){
@@ -88,12 +87,16 @@ struct Mesh {
     
     glm::mat4 modelMatrix;
     BoundingBox aabb;
-    BufferResource* vertexResource = nullptr;  // represents the vertices
-    BufferResource* indiceResource = nullptr;  // represents the order you draw them in
+    BufferResource vertexResource;  // represents the vertices
+    BufferResource indiceResource;  // represents the order you draw them in
     bool visible = true;
 
     protected:
-        Mesh(BufferResource* vertices, BufferResource* indices, glm::mat4 modelMatrix) { this->vertexResource = vertices; this->indiceResource = indices; this->modelMatrix = modelMatrix; }
+        Mesh(BufferResource& vertices, BufferResource& indices, glm::mat4 modelMatrix) { 
+            this->vertexResource = std::move(vertices);
+            this->indiceResource = std::move(indices); 
+            this->modelMatrix = modelMatrix; 
+        }
     private:
         float verticeOffset = 0.0f;
         float indiceOffset = 0.0f;

@@ -28,7 +28,7 @@ struct BufferOps{
             VkBufferUsageFlags usage,
             VkBuffer& buffer,
             VkDeviceMemory& memory,
-            VkDeviceSize destBufferOffset,
+            VkDeviceSize destinationBufferOffset,
             VkDeviceSize stagingBufferOffset);
 
     static void EnsureHostBuffer(

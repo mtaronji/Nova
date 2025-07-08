@@ -4,7 +4,7 @@
 #include <ctime>  
 
 int main() {
-    srand(static_cast<unsigned>(time(nullptr)));
+  /*  srand(static_cast<unsigned>(time(nullptr)));
 
     std::unique_ptr<IRenderLoopClient> app = Nova::Builder()
                                             .WithShell()
@@ -34,5 +34,5 @@ int main() {
     }
 
 
-    return EXIT_SUCCESS;
+    return EXIT_SUCCESS;*/
 }

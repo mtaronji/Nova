@@ -1,32 +1,38 @@
-#include "ImageManager.hpp"
+#include "ImageOps.hpp"
 
-void ImageManager::CreateImage(
+void ImageOps::CreateImage(
     GPU* gpu,
     uint32_t width,
     uint32_t height,
-    VkSampleCountFlagBits numSamples,
+    uint32_t mipLevels,
+    uint32_t arrayLayers,
+    VkSampleCountFlagBits samples,
     VkFormat format,
     VkImageTiling tiling,
     VkImageUsageFlags usage,
     VkMemoryPropertyFlags properties,
+    VkImageType imageType,
+    VkImageLayout initialLayout,
+    VkImageCreateFlags createFlags,
     VkImage& image,
     VkDeviceMemory& imageMemory
 ) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.imageType = imageType;
     imageInfo.extent.width = width;
     imageInfo.extent.height = height;
     imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = 1;
-    imageInfo.arrayLayers = 1;
+    imageInfo.mipLevels = mipLevels;
+    imageInfo.arrayLayers = arrayLayers;
     imageInfo.format = format;
     imageInfo.tiling = tiling;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.initialLayout = initialLayout;
     imageInfo.usage = usage;
-    imageInfo.samples = numSamples;
+    imageInfo.samples = samples;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    
+    imageInfo.flags = createFlags;
+
     if (vkCreateImage(gpu->GetVkDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
@@ -38,7 +44,6 @@ void ImageManager::CreateImage(
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
 
-    // Find suitable memory type
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(gpu->GetPhysicalDevice(), &memProperties);
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -56,21 +61,50 @@ void ImageManager::CreateImage(
     vkBindImageMemory(gpu->GetVkDevice(), image, imageMemory, 0);
 }
 
-void ImageManager::CreateImageView(GPU *gpu, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView& imageView) {
-
+void ImageOps::CreateImageView(
+    GPU* gpu,
+    VkImage image,
+    VkFormat format,
+    VkImageAspectFlags aspectFlags,
+    VkImageViewType viewType,
+    uint32_t mipLevels,
+    uint32_t arrayLayers,
+    VkImageView& imageView
+) {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.viewType = viewType;
     viewInfo.format = format;
     viewInfo.subresourceRange.aspectMask = aspectFlags;
     viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.levelCount = mipLevels;
     viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
+    viewInfo.subresourceRange.layerCount = arrayLayers;
 
- 
     if (vkCreateImageView(gpu->GetVkDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
         throw std::runtime_error("failed to create image view!");
+    }
+}
+
+void ImageOps::CreateSampler(GPU* gpu, uint32_t mipLevels, VkSampler& sampler) {
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = 16.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = static_cast<float>(mipLevels);
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+    if (vkCreateSampler(gpu->GetVkDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture sampler!");
     }
 }

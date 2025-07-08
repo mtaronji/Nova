@@ -1,7 +1,12 @@
 #include "BufferResource.hpp"
 #include "BufferOps.hpp"
 #include "GPU.hpp"
-BufferResource::BufferResource(VkBufferUsageFlags usage, uint32_t copies, uint32_t set, uint32_t binding):usage(usage), buffer(VK_NULL_HANDLE), set(set), binding(binding),copies(copies){
+#include <stdexcept>
+#include <cstring>
+
+
+BufferResource::BufferResource(VkBufferUsageFlags usage, uint32_t copies, uint32_t set, uint32_t binding)
+:Resource(copies,set,binding), usage(usage){
 
     bool hasMoreThanOneBitSet = (usage & (usage - 1)) != 0;
     if(hasMoreThanOneBitSet){throw std::runtime_error("BufferResources should have only 1 usage specified");}
@@ -14,24 +19,26 @@ BufferResource::BufferResource(VkBufferUsageFlags usage, uint32_t copies, uint32
         throw std::runtime_error("for a uniform texel, you need to specify it's binding position as well as the index for it's descriptor set");}
     if((usage & VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT)&& ((set == NOT_SET) || (binding == NOT_SET))){
         throw std::runtime_error("for a storage texel, you need to specify it's binding position as well as the index for it's descriptor set");}   
+
+    kind = ResourceKind::Buffer;
 }
 
-void BufferResource::Upload(void* srcData, VkDeviceSize dataSize, uint32_t arraySize) {
-    data = malloc(dataSize);
-    memcpy(data, srcData, dataSize);
-    this->previousSize = this->dataSize;
-    this->dataSize = dataSize;
-    this->arraySize = arraySize;
-    
-}
 
 size_t BufferResource::GetAlignedDataSize(VkDeviceSize alignment){
     return BufferOps::AlignUp(dataSize, alignment);
 }
 
+uint32_t BufferResource::GetArraySize() const {
+    if (arraySize == NOT_SET) {
+        throw std::runtime_error("ArraySize has no been set. Fatal Error");
+    }
+    else {
+        return arraySize;
+    }
+}
 void BufferResource::Cleanup(GPU* gpu){
 
-    if(data != nullptr){
+    if(data){
         free(data);
         data = nullptr;
     }      

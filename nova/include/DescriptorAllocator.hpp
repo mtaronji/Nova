@@ -18,7 +18,7 @@ class DescriptorAllocator {
 
         VkDescriptorPool GetPool()const {return descriptorPool;}
 
-        void CreateDescriptorSetPool(std::vector<std::vector<VkDescriptorSetLayoutBinding>>& descriptorBindingsPerSet,  uint32_t MAX_FRAMES);
+
         void CreateDescriptorSetPool(std::vector<VkDescriptorPoolSize>&, uint32_t, VkDescriptorPoolCreateFlags);
 
         //takes input of descriptor set references(to fill out) and creates them from a list of descriptorset layouts
@@ -39,6 +39,7 @@ class DescriptorAllocator {
         std::shared_ptr<GPU> gpu;
         VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
         std::vector<std::vector<std::string>> descriptorNamesPerSet;
+        bool dynamic = false;
         
 
     private:

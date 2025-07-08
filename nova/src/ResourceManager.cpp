@@ -77,6 +77,7 @@ void ResourceManager::InitializeDescriptorSetsResources(std::shared_ptr<Pipeline
 
 //for frame, it is for updating descriptorSets that have per frame data
 //if you this descriptor set isn't per frame, just use 1
+//the overall idea behind vkupdatedescriptor sets is to tell the descriptorset where the buffer resource data is
 void ResourceManager::UpdateDescriptorSet(std::string pipelineKey,
                                             VkDescriptorSet descriptorSet, 
                                             VkDescriptorSetLayout descriptorLayout,
@@ -189,39 +190,39 @@ void ResourceManager::CreateMonolith(GPU* gpu, CommandManager* commandManager, V
 }
 
 //assigning a monolith buffer will copy the data to a specified monolith buffer
-//this function will create memory and a buffer for the number of frames requested
-//when we create a buffer resource it's mandated to have a frame argument for the frame count
+//this function will create memory and a buffer for the number of copies requested
+//when we create a buffer resource it's mandated to have a copies argument for the copy count
 //if your buffer resource is created with 3 frames, this will create memory for 3 of the resource
-void ResourceManager::AssignMonolithBuffer(BufferResource* resource, GPU* gpu, CommandManager* cm, VkMemoryPropertyFlags memoryProperties, VkDeviceSize alignment){
+void ResourceManager::AssignMonolithBuffer(BufferResource& resource, GPU* gpu, CommandManager* cm, VkMemoryPropertyFlags memoryProperties, VkDeviceSize alignment){
     
-    VkBufferUsageFlags usage = resource->GetUsage();  //checked earlier when buffer resource created, just checking again
+    VkBufferUsageFlags usage = resource.GetUsage();  //checked earlier when buffer resource created, just checking again
 
     bool monolithExists = monoliths.contains(usage);
     if(!monolithExists){throw std::runtime_error("Fatal Error: Monolith for buffer usage not allocated");}
 
     auto& monolith = monoliths[usage];
-    resource->SetBuffer(monolith.buffer); 
+    resource.SetBuffer(monolith.buffer); 
 
-    auto copies = resource->GetCopyCount(); //the amount of copies of the resource we requesting for the buffer 
-    resource->SetOffSet(monolith.memoryAllocated);
+    auto copies = resource.GetCopyCount(); //the amount of copies of the resource we requesting for the buffer 
+    resource.SetOffSet(monolith.memoryAllocated);
 
     for(int copy = 0; copy < copies; copy++){
         if(memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT){
-            BufferOps::EnsureHostBuffer(*gpu, *cm, resource->GetData(), resource->GetDataSize(), usage, monolith.buffer, monolith.memory, monolith.memoryAllocated);
+            BufferOps::EnsureHostBuffer(*gpu, *cm, resource.GetData(), resource.GetDataSize(), usage, monolith.buffer, monolith.memory, monolith.memoryAllocated);
         }
         else if (memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT){
-            BufferOps::EnsureDeviceBuffer(*gpu, *cm, resource->GetData(), resource->GetDataSize(), usage, monolith.buffer, monolith.memory, monolith.memoryAllocated, 0);
+            BufferOps::EnsureDeviceBuffer(*gpu, *cm, resource.GetData(), resource.GetDataSize(), usage, monolith.buffer, monolith.memory, monolith.memoryAllocated, 0);
         }
 
-        monolith.memoryAllocated += BufferOps::AlignUp(resource->GetDataSize(), alignment);
+        monolith.memoryAllocated += BufferOps::AlignUp(resource.GetDataSize(), alignment);
     }
 }
 
-void ResourceManager::UpdateBufferData(BufferResource* resource, GPU* gpu, CommandManager* cm, uint32_t frame){
+void ResourceManager::UpdateBufferData(BufferResource& resource, GPU* gpu, CommandManager* cm, uint32_t frame){
 
-    auto usage = resource->GetUsage();
-    auto alignedSize = resource->GetAlignedDataSize(256);
-    auto initialOffset = resource->GetOffSet();
+    auto usage = resource.GetUsage();
+    auto alignedSize = resource.GetAlignedDataSize(256);
+    auto initialOffset = resource.GetOffSet();
     auto offset = static_cast<VkDeviceSize> (initialOffset + alignedSize * frame);
 
     auto& monolith = monoliths.at(usage);
@@ -232,11 +233,11 @@ void ResourceManager::UpdateBufferData(BufferResource* resource, GPU* gpu, Comma
     if(monolith.buffer == VK_NULL_HANDLE){
         throw std::runtime_error("monolith buffer is null");
     }
-    if(resource->GetDataSize() > resource->GetPreviousDataSize()){
+    if(resource.GetDataSize() > resource.GetPreviousDataSize()){
         throw std::runtime_error("Monoliths do not support memory allocation sizes changing in flight");
     }
     
-    BufferOps::UpdateHostBuffer(*gpu, *cm, resource->GetData(), resource->GetDataSize(), monolith.buffer, monolith.memory, offset);
+    BufferOps::UpdateHostBuffer(*gpu, *cm, resource.GetData(), resource.GetDataSize(), monolith.buffer, monolith.memory, offset);
 
 }
 

@@ -1,3 +1,4 @@
+
 #include "Nova.hpp"
 #include "Shell.hpp"
 #include "Renderer.hpp"
@@ -19,7 +20,13 @@
 #include "PipelineManager.hpp"
 #include "ResourceManager.hpp"
 #include "DescriptorsetLoader.hpp"
+#include "ImageOps.hpp"
+#include "ImageResource.hpp"
 #include <unordered_set>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 namespace fs = std::filesystem; // safe alias at global scope for this header
 
 Nova::Nova(
@@ -69,17 +76,37 @@ void Nova::Start(){
     shell->Run(this);
 }
 
+void Nova::ObserveMouseButton(std::function<void(MouseButtonEvent)> observer) { 
+    this->shell->MouseButtons()->Subscribe(observer); 
+}
+void Nova::ObserveMouseLocation(std::function<void(MouseMoveEvent)> observer) { 
+    this->shell->MouseLocation()->Subscribe(observer);
+}
+void Nova::ObserveKeyPress(std::function<void(KeyPressEvent)> observer) {
+    this->shell->Keys()->Subscribe(observer);
+}
 std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
     auto app = std::make_unique<Nova>(engine,shell,gpu,framebufferLibrary,syncManager,swapchainManager,pipelineLibrary,renderpassLibrary,commandManager, descriptorAllocator, resourceManager,descriptorFiles);
 
+    auto extent = app->swapchainManager->GetExtent();
+    float aspectRatio = (float)extent.width / (float)extent.height;
     glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);   
     app->cameraTarget = cameraTarget;
     app->cameraUp = cameraUp;
     app->camPos = camPos; 
-    app->camera = {};
+    app->sceneCamera = {};
+    app->sceneCamera.proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+
+    app->sceneCamera.view = glm::lookAt(camPos, cameraTarget, cameraUp);
+    // GLM's perspective projection produces clip space with -Z forward; Vulkan wants +Z forward.
+    app->sceneCamera.proj[1][1] *= -1;
+
+    // Camera position
+    app->sceneCamera.cameraPosition = camPos;
+    app->sceneCamera.padding = 0.0f;
 
     return app;
     
@@ -87,32 +114,56 @@ std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
 
 void Nova::InitResources() {
-    auto extent = swapchainManager->GetExtent();
-    float aspectRatio = (float)extent.width / (float)extent.height;
-    CameraUBO c = {};
-    c.proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+    
+    //create 3 copies of this uniform data
+    uint32_t copies = MAX_FRAMES;  
+    auto cameraResource = BufferResource::Create(
+        /*usage =*/ VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        /*copies = */ MAX_FRAMES,
+        /*set = */ 0,
+        /*binding = */ 0
+        );  
 
-    c.view = glm::lookAt(camPos, cameraTarget, cameraUp);
-    // GLM's perspective projection produces clip space with -Z forward; Vulkan wants +Z forward.
-    c.proj[1][1] *= -1;
-
-    // Camera position
-    c.cameraPosition = camPos;
-    c.padding = 0.0f;
-    auto cameraResource = BufferResource::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, MAX_FRAMES, 0, 0);  // max frames and descriptor set 0 with binding 0
-    cameraResource->Upload(&c, sizeof(c), 0);
+    cameraResource.Upload(&this->sceneCamera, sizeof(this->sceneCamera), 0);
     resourceManager->SetResource("camera", cameraResource);
 
-    camera = std::vector<CameraUBO>(MAX_FRAMES, c); //camera for each frame
 
     auto verticesResource = BufferResource::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES);
     auto indicesResource = BufferResource::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 1);
-    auto indices = Mesh::GetCubeIndices();
     auto vertices = Mesh::GenerateCubeVertices(false);
-    verticesResource->Upload(vertices.data(), vertices.size() * sizeof(VertexPC), vertices.size());
-    indicesResource->Upload(indices.data(), sizeof(uint32_t) * indices.size(), indices.size());
+    auto indices = Mesh::GetCubeIndices();
+
+    verticesResource.Upload(vertices.data(), vertices.size() * sizeof(VertexPC), vertices.size());
+    indicesResource.Upload(indices.data(), sizeof(uint32_t) * indices.size(), indices.size());
+
     auto mesh = Mesh::Create(verticesResource, indicesResource);
     resourceManager->SetMesh("square", mesh);
+
+    //create a texture resource
+}
+
+Nova::Builder& Nova::Builder::WithTextures(std::unordered_set<std::string> files) {
+    
+    auto texturepath = std::filesystem::path(TEXTURE_FILES_DIRECTORY);
+    
+    for (auto f : std::filesystem::directory_iterator(texturepath)) {
+        auto filename = f.path().filename().string();
+        if (files.find(filename) == files.end()) {
+
+            int width, height, channels; unsigned char* image_data = nullptr;
+            image_data = stbi_load("texture.png", &width, &height, &channels, STBI_rgb_alpha);
+            assert(!image_data && "image data is null");
+                      
+
+        }
+    }
+
+    
+    return *this;
+}
+
+static void LoadTexture() {
+
 }
 void Nova::Init() {
 
@@ -137,19 +188,26 @@ void Nova::Init() {
     InitResources();
     CreateMoniliths();
     AllocateMeshes(); //allocate buffer resources that are meshes
-    AllocateDescriptorSets(); //allocate buffer resources that are descriptor sets
+    AllocateDescriptorResources(); //allocate buffer resources for our descriptor sets
 
     //get all bindings for all 
-    std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet = pipelineLibrary->GetAllDescriptorBindings(descriptorFiles);
    
-    descriptorAllocator->CreateDescriptorSetPool(descriptorBindingsPerSet, MAX_FRAMES);
-    pipelineLibrary->CreateDescriptorSetLayouts(descriptorAllocator);
+    //just pushing one for the camera
+    std::vector<VkDescriptorPoolSize> poolSizes = {
+        {
+            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 3
+        }
+    };
+    uint32_t maxSets = 3; //one for each frame
+    descriptorAllocator->CreateDescriptorSetPool(poolSizes, 3, 0);
+    pipelineLibrary->CreateDescriptorSetLayouts(descriptorAllocator, &descriptorFiles);
 
     //initializes the the resources to configure resources for 
     resourceManager->InitializeDescriptorSetsResources(pipelineLibrary); 
 
     //allocate descriptor sets for the following pipeline.
-    renderer->AllocateDescriptorSets("msaa4.json"); 
+    renderer->AllocateAndUpdateDescriptorSets("msaa4.json");
     
     pipelineLibrary->CreatePipelines();
 
@@ -159,6 +217,30 @@ void Nova::Init() {
 
     this->renderer->BindPipeline("msaa4.json");
 
+    //set up the functor that watctches for delta x changes for camera updates
+    //this is an orbital x camera - meaning i moves in a circle lookin at a spot. In this case it's the origin
+    std::function<void(MouseMoveEvent)> observeX = [this](const MouseMoveEvent& delta) {
+
+        auto frame = renderer->GetFrameIndex();
+        constexpr float pitch = glm::radians(20.0f); // fixed slight tilt
+        angle += cameraspeed * delta.x;
+        angle = glm::mod(angle, glm::two_pi<float>());
+
+        // Calculate camera position in spherical coordinates
+        float x = orbitalDistance * cos(pitch) * cos(angle);
+        float y = orbitalDistance * sin(pitch);
+        float z = orbitalDistance * cos(pitch) * sin(angle);
+        this->camPos = glm::vec3(x, y, z);
+
+        // Always look at the target with a fixed up direction
+        this->sceneCamera.view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
+        auto cameraResource = this->resourceManager->GetResource("camera");
+        cameraResource->Upload(&this->sceneCamera, sizeof(this->sceneCamera));
+        this->resourceManager->UpdateBufferData(cameraResource, gpu.get(), commandManager.get(), frame);
+        };
+
+    this->shell->MouseLocation()->MapDelta()->Subscribe(observeX);
+
 }
 
 void Nova::CreateMoniliths(){
@@ -166,19 +248,19 @@ void Nova::CreateMoniliths(){
     //ubo like camera don't need it
 
     VkBufferUsageFlags transfer = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000));  //unofrm monolith
+    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000));  //uniform monolith
     resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | transfer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000)); //index and vertice buffers with transfer operations
 }
 
 void Nova::AllocateMeshes(){
      //assign geometries
      for(auto& [key,mesh] : resourceManager->GetMeshes()){
-        resourceManager->AssignMonolithBuffer(mesh->vertexResource, gpu.get(), commandManager.get(),VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, static_cast<VkDeviceSize>(256));
-        resourceManager->AssignMonolithBuffer(mesh->indiceResource, gpu.get(), commandManager.get(),VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, static_cast<VkDeviceSize>(256));
+        resourceManager->AssignMonolithBuffer(mesh.vertexResource, gpu.get(), commandManager.get(),VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, static_cast<VkDeviceSize>(256));
+        resourceManager->AssignMonolithBuffer(mesh.indiceResource, gpu.get(), commandManager.get(),VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, static_cast<VkDeviceSize>(256));
     }
 }
 
-void Nova::AllocateDescriptorSets(){
+void Nova::AllocateDescriptorResources(){
      //assign resources like camera or other resources that uses buffers and memory
     auto cameraResource = resourceManager->GetResource("camera");
     resourceManager->AssignMonolithBuffer(cameraResource, gpu.get(), commandManager.get(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256));
@@ -188,32 +270,8 @@ void Nova::AllocateToMonoliths(){
 }
 
 void Nova::Update(float deltaTime){
-
-    auto frame = renderer->GetFrameIndex();
+   
     deltaTime = glm::clamp(deltaTime, 0.0f, 0.05f); // max ~20 FPS frame
-
-    //camera orbiting and looking at the origin
-    auto deltax = 0.0f;  //updating the shell to use observables so it's set to 0. will implement this using observables and come back
-    if (deltax != 0.0f) {
-        constexpr float pitch = glm::radians(20.0f); // fixed slight tilt
-        angle += cameraspeed * deltax;
-        angle = glm::mod(angle, glm::two_pi<float>());
-
-        // Calculate camera position in spherical coordinates
-        float x = orbitalDistance * cos(pitch) * cos(angle);
-        float y = orbitalDistance * sin(pitch);
-        float z = orbitalDistance * cos(pitch) * sin(angle);
-        camPos = glm::vec3(x, y, z);
-
-        // Always look at the target with a fixed up direction
-        camera[frame].view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
-        auto cameraResource = this->resourceManager->GetResource("camera");
-        cameraResource->Upload(&camera[frame], sizeof(camera[frame]));
-        this->resourceManager->UpdateBufferData(cameraResource, gpu.get(), commandManager.get(), frame);
-    }
-
-
-    //std::cout << "deltaTime: " << deltaTime << ", angle: " << glm::degrees(angle) << std::endl;
 }
 
 void Nova::Render() {
@@ -265,7 +323,7 @@ Nova::Builder& Nova::Builder::WithCommandManager(){
 
 }
 
-//this gets all the locations of the fil0es for a given directory
+//this gets all the locations of the files for a given directory
 std::vector<std::filesystem::path>  Nova::Builder::GetAllFiles(std::string repository) {
     std::vector<std::filesystem::path> files;
     const auto directory = fs::path(repository); 
@@ -318,23 +376,6 @@ Nova::Builder& Nova::Builder::WithResourceMap(std::unordered_map<std::string, Bu
 
 Nova::Builder& Nova::Builder::WithResourceMap(){
 
-    // camera.view = glm::lookAt(camPos, cameraTarget, cameraUp);
-
-    // // Perspective projection matrix
-    // auto extent = swapchainManager->GetExtent();
-    // float aspectRatio = (float)extent.width / (float)extent.height;
-    // camera.proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
-
-    // // GLM's perspective projection produces clip space with -Z forward; Vulkan wants +Z forward.
-    // camera.proj[1][1] *= -1;
-
-    // // Camera position
-    // camera.cameraPosition = camPos;
-    // camera.padding = 0.0f;
-
-    // auto cameraResource = BufferResource::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 4, 0 ,0);  // 4 frames and descriptor set 0 with binding 0
-    // cameraResource->Upload(&camera, sizeof(camera), 0);
-    // resourceManager->SetResource("camera",cameraResource);
     return *this;
 }
 

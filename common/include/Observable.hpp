@@ -20,6 +20,9 @@ public:
 	std::shared_ptr<Observable<T>> MapPrevious();
 	std::shared_ptr<Observable<T>> MapDelta();
 	
+	template<typename MappedType>
+	std::shared_ptr<Observable<MappedType>> Map(std::function<MappedType(const T&)>);
+	
 protected:
 	std::vector<Observer<T>> observers;
 };
@@ -54,7 +57,7 @@ std::shared_ptr<Observable<T>> Observable<T>::MapPrevious() {
 			previousObservable->Emit(previousValue);
 		}
 		*previousValue = emission;
-		});
+	});
 
 	return previousObservable;
 }
@@ -70,16 +73,29 @@ std::shared_ptr<Observable<T>> Observable<T>::MapPrevious() {
 template<typename T>
 std::shared_ptr<Observable<T>> Observable<T>::MapDelta() {
 
-	auto previousObservable = std::make_shared<Signal<T>>();
+	auto deltaObservable = std::make_shared<Signal<T>>();
 	std::optional<T> previousValue;
 
-	this->Subscribe([previousObservable, previousValue](const T& emission) {
+	this->Subscribe([deltaObservable, previousValue](const T& emission) mutable {
 
 		if (previousValue.has_value()) {
-			previousObservable->Emit(emission - *previousValue);
+			deltaObservable->Emit(emission - *previousValue);
 		}
-		*previousValue = emission;
-		});
+		previousValue = emission;
+		
+	});
 
-	return previousObservable;
+	return deltaObservable;
+}
+
+template<typename T>
+template<typename MappedType>
+std::shared_ptr<Observable<MappedType>> Observable<T>::Map(std::function<MappedType(const T&)> map) {
+
+	auto mappedObservable = std::make_shared<Signal<MappedType>>();
+
+	this->Subscribe([mappedObservable](const T& emission) {		
+		mappedObservable->Emit(map(emission));	
+	});
+	return mappedObservable;
 }

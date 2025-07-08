@@ -28,10 +28,16 @@ class Shader;
 #include <set>
 #include <glm/gtc/constants.hpp>
 #include <filesystem>
-
+#include <functional>
+#include <unordered_set>
 #include "UBOs.hpp"
 #include "IRenderLoopClient.hpp"
 #include "DescriptorsetLoader.hpp"
+#include "MouseEvents.hpp"
+#include "KeyboardEvents.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+
 
 class Nova : public IRenderLoopClient{
     public:
@@ -52,12 +58,18 @@ class Nova : public IRenderLoopClient{
         );
         ~Nova();
         
-        void Start() override;
-        
-        void Init() override;
-        void Update(float deltaTime) override;
-        void Render() override;
-        void Shutdown() override;
+        virtual void Start() override;   
+        virtual void Init() override;
+        virtual void Update(float deltaTime) override;
+        virtual void Render() override;
+        virtual void Shutdown() override;
+
+        //observers to hook into events
+        void ObserveMouseButton(std::function<void(MouseButtonEvent)> observer);
+        void ObserveMouseLocation(std::function<void(MouseMoveEvent)> observer); 
+        void ObserveKeyPress(std::function<void(KeyPressEvent)> observer); 
+
+
 
         class Builder{
             public:
@@ -78,6 +90,7 @@ class Nova : public IRenderLoopClient{
                 virtual Builder& WithMeshes();                  Builder& WithMeshes(std::unordered_map<std::string, Mesh*> meshes);
                 virtual Builder& WithDescriptorSets();          Builder& WithDescriptorSets(std::vector<std::vector<BufferResource*>>& descriptorSets);
                 virtual Builder& WithResourceMap();             Builder& WithResourceMap(std::unordered_map<std::string, BufferResource*> resourceMap);
+                virtual Builder& WithTextures(std::unordered_set<std::string>);
                 
                 
                 
@@ -96,10 +109,6 @@ class Nova : public IRenderLoopClient{
                 std::shared_ptr<ResourceManager> resourceManager;
                 std::unordered_map<std::string, DescriptorFile> descriptorFiles;
 
-                CameraUBO camera;
-                glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
-                glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
-                glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);           // Up direction
 
                 static std::vector<std::filesystem::path>  GetAllFiles(std::string repository);
                 
@@ -112,7 +121,8 @@ class Nova : public IRenderLoopClient{
                
                 const std::string RENDER_PASS_FILES_DIRECTORY = OUTPUT_DIRECTORY "/renderpasses"; //relative to build
                 const std::string PIPELINE_FILES_DIRECTORY = OUTPUT_DIRECTORY "/pipelines";  //relative to build         
-                const std::string DESCRIPTOR_FILES_DIRECTORY = OUTPUT_DIRECTORY "/descriptors";  //relative to build       
+                const std::string DESCRIPTOR_FILES_DIRECTORY = OUTPUT_DIRECTORY "/descriptors";  //relative to build    
+                const std::string TEXTURE_FILES_DIRECTORY = OUTPUT_DIRECTORY "/textures";  //relative to build
         };
     
     protected:
@@ -126,12 +136,14 @@ class Nova : public IRenderLoopClient{
         std::shared_ptr<FramebufferLibrary> framebuffersLibrary;
         std::shared_ptr<CommandManager> commandManager;
         std::unordered_map<std::string, Shader> shaders;
-        std::shared_ptr<DescriptorAllocator> descriptorAllocator;
+        std::shared_ptr<DescriptorAllocator> descriptorAllocator; //static allocator
+        std::vector<DescriptorAllocator> perFrameDescriptorAllocator;  //max frames size
         std::shared_ptr<Renderer> renderer;
         std::vector<VkAttachmentDescription> attachmentDescriptions;
         std::shared_ptr<ResourceManager> resourceManager;
         std::unordered_map<std::string, DescriptorFile> descriptorFiles;
-        std::vector<CameraUBO> camera;  //per frame
+        CameraUBO sceneCamera; 
+        CameraUBO UICamera;
         glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
         glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
         glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);           // Up direction
@@ -140,7 +152,7 @@ class Nova : public IRenderLoopClient{
         virtual void CreateMoniliths();
         virtual void AllocateToMonoliths();
         virtual void AllocateMeshes();
-        virtual void AllocateDescriptorSets();
+        virtual void AllocateDescriptorResources();
         virtual void InitResources();
     private:
         uint32_t MAX_FRAMES;

@@ -78,7 +78,10 @@ void Renderer::BindPipeline(std::string pipelineKey){
 //are allocating based on the buffer resources
 //if buffer resources has copies we will create descriptorSets for each copy
 //can only allocate 1 copy for max frames copies
-void Renderer::AllocateDescriptorSets(std::string pipelineKey){
+
+//in general, when you allocate descriptor sets you are setting up how many slots or bindings you have. We are setting up handles for the actual buffer resources here
+//when you update the descriptorsets, you are setting the actual references to the data of the descriptor set
+void Renderer::AllocateAndUpdateDescriptorSets(std::string pipelineKey){
     
     auto pipelineManager = pipelineLibrary->GetPipeline(pipelineKey);
     auto& layouts = pipelineManager->GetDescriptorSetLayouts();
@@ -136,6 +139,10 @@ void Renderer::AllocateDescriptorSets(std::string pipelineKey){
             throw std::runtime_error("descriptors can be allocated per frame or must be singular (just 1).");
         }
     } 
+}
+
+void Renderer::AllocateDescriptorSets(std::string pipelineKey) {
+    
 }
 
 void Renderer::DrawFrame() {

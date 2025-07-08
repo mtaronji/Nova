@@ -55,8 +55,8 @@ class Renderer {
 
         uint32_t GetFrameIndex() const {return currentFrame;}
 
+        void AllocateAndUpdateDescriptorSets(std::string pipelineKey);
         void AllocateDescriptorSets(std::string pipelineKey);
-
         void Cleanup();
         
     protected:
