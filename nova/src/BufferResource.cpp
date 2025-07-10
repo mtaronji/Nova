@@ -22,7 +22,19 @@ BufferResource::BufferResource(VkBufferUsageFlags usage, uint32_t copies, uint32
 
     kind = ResourceKind::Buffer;
 }
+void BufferResource::Upload(void* srcData, VkDeviceSize dataSize, uint32_t arraySize) {
 
+    if (!data) {
+        // First allocation only
+        data = malloc(dataSize);
+        assert(data && "failed to upload data");
+    }
+
+    memcpy(data, srcData, dataSize);
+    this->previousSize = this->dataSize;
+    this->dataSize = dataSize;
+    this->arraySize = arraySize;
+}
 
 size_t BufferResource::GetAlignedDataSize(VkDeviceSize alignment){
     return BufferOps::AlignUp(dataSize, alignment);

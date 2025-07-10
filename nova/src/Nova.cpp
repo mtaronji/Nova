@@ -10,7 +10,6 @@
 #include "FramebufferGenerator.hpp"
 #include "RenderPassManager.hpp"
 #include "SwapchainManager.hpp"
-#include "Mesh.hpp"
 #include "CommandManager.hpp"
 #include "Shader.hpp"
 #include "SyncManager.hpp"
@@ -21,7 +20,6 @@
 #include "ResourceManager.hpp"
 #include "DescriptorsetLoader.hpp"
 #include "ImageOps.hpp"
-#include "ImageResource.hpp"
 #include <unordered_set>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -125,7 +123,7 @@ void Nova::InitResources() {
         );  
 
     cameraResource.Upload(&this->sceneCamera, sizeof(this->sceneCamera), 0);
-    resourceManager->SetResource("camera", cameraResource);
+    resourceManager->SetResource("camera", std::move(cameraResource));
 
 
     auto verticesResource = BufferResource::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES);
@@ -136,8 +134,8 @@ void Nova::InitResources() {
     verticesResource.Upload(vertices.data(), vertices.size() * sizeof(VertexPC), vertices.size());
     indicesResource.Upload(indices.data(), sizeof(uint32_t) * indices.size(), indices.size());
 
-    auto mesh = Mesh::Create(verticesResource, indicesResource);
-    resourceManager->SetMesh("square", mesh);
+    auto mesh = Mesh::Create(std::move(verticesResource), std::move(indicesResource));
+    resourceManager->SetMesh("square", std::move(mesh));
 
     //create a texture resource
 }
@@ -153,8 +151,6 @@ Nova::Builder& Nova::Builder::WithTextures(std::unordered_set<std::string> files
             int width, height, channels; unsigned char* image_data = nullptr;
             image_data = stbi_load("texture.png", &width, &height, &channels, STBI_rgb_alpha);
             assert(!image_data && "image data is null");
-                      
-
         }
     }
 
@@ -234,8 +230,8 @@ void Nova::Init() {
 
         // Always look at the target with a fixed up direction
         this->sceneCamera.view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
-        auto cameraResource = this->resourceManager->GetResource("camera");
-        cameraResource->Upload(&this->sceneCamera, sizeof(this->sceneCamera));
+        auto& cameraResource = this->resourceManager->GetResource("camera");
+        cameraResource.Upload(&this->sceneCamera, sizeof(this->sceneCamera));
         this->resourceManager->UpdateBufferData(cameraResource, gpu.get(), commandManager.get(), frame);
         };
 
@@ -262,7 +258,7 @@ void Nova::AllocateMeshes(){
 
 void Nova::AllocateDescriptorResources(){
      //assign resources like camera or other resources that uses buffers and memory
-    auto cameraResource = resourceManager->GetResource("camera");
+    auto& cameraResource = resourceManager->GetResource("camera");
     resourceManager->AssignMonolithBuffer(cameraResource, gpu.get(), commandManager.get(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256));
 }
 void Nova::AllocateToMonoliths(){
@@ -369,8 +365,8 @@ Nova::Builder& Nova::Builder::WithResourceManager(){
     return *this;
 }
 
-Nova::Builder& Nova::Builder::WithResourceMap(std::unordered_map<std::string, BufferResource*> resourceMap){
-    resourceManager->SetResourceMap(resourceMap);
+Nova::Builder& Nova::Builder::WithResourceMap(std::unordered_map<std::string, BufferResource>&& resourceMap){
+    resourceManager->SetResourceMap(std::move(resourceMap));
     return *this;
 }
 
@@ -379,9 +375,9 @@ Nova::Builder& Nova::Builder::WithResourceMap(){
     return *this;
 }
 
-Nova::Builder& Nova::Builder::WithMeshes(std::unordered_map<std::string, Mesh*> meshes){
+Nova::Builder& Nova::Builder::WithMeshes(std::unordered_map<std::string, Mesh>&& meshes){
     
-    resourceManager->SetMeshes(meshes);
+    resourceManager->SetMeshes(std::move(meshes));
     return *this;
 }
 Nova::Builder& Nova::Builder::WithMeshes(){
@@ -390,9 +386,8 @@ Nova::Builder& Nova::Builder::WithMeshes(){
     return *this;
 }
 
-Nova::Builder& Nova::Builder::WithDescriptorSets(std::vector<std::vector<BufferResource*>>& descriptorSets){
+Nova::Builder& Nova::Builder::WithDescriptorSets(std::vector<std::vector<BufferResource>>&& descriptorSets){
     
-    //resourceManager->SetDescriptorSets(descriptorSets);
     return *this;
 }
 

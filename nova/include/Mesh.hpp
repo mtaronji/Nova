@@ -10,6 +10,8 @@ struct BoundingBox {
     glm::vec3 min;  // Minimum corner (lowest x, y, z)
     glm::vec3 max;  // Maximum corner (highest x, y, z)
 
+    
+
     BoundingBox() 
         : min(glm::vec3(FLT_MAX)), max(glm::vec3(-FLT_MAX)) {}
 
@@ -60,12 +62,37 @@ struct Mesh {
     ~Mesh(){
        
     }
+    Mesh(Mesh&& other) noexcept 
+        :vertexResource(std::move(other.vertexResource)), indiceResource(std::move(other.indiceResource)), 
+         visible(std::move(other.visible)), 
+         verticeOffset(std::move(other.verticeOffset)), indiceOffset(std::move(other.indiceOffset)) {
+        
+        this->aabb = other.aabb;
+        this->modelMatrix = other.modelMatrix;
+        
+    }
 
-    static Mesh Create(BufferResource vertices, BufferResource indices, glm::mat4 modelMatrix =  glm::mat4(1.0f)){
-        return Mesh(vertices, indices, modelMatrix);
+    Mesh& operator= (Mesh&& other) noexcept {
+        
+        if (this != &other) {
+            this->vertexResource = std::move(other.vertexResource);
+            this->indiceResource = std::move(other.indiceResource);
+            this->modelMatrix = other.modelMatrix;
+            this->aabb = other.aabb;
+            this->visible = std::move(other.visible);
+            this->verticeOffset = std::move(other.verticeOffset);
+            this->indiceOffset = std::move(other.indiceOffset);
+            *this = std::move(other);
+        }
+        return *this;
+
+    }
+
+    static Mesh Create(BufferResource&& vertices, BufferResource&& indices, glm::mat4 modelMatrix =  glm::mat4(1.0f)){
+        return Mesh(std::move(vertices), std::move(indices), modelMatrix);
     }
     void Cleanup(GPU *gpu){
-     
+    
     }
 
     void CreateGPUResources(GPU* gpu, CommandManager* commandManager){
@@ -92,9 +119,9 @@ struct Mesh {
     bool visible = true;
 
     protected:
-        Mesh(BufferResource& vertices, BufferResource& indices, glm::mat4 modelMatrix) { 
-            this->vertexResource = std::move(vertices);
-            this->indiceResource = std::move(indices); 
+        Mesh(BufferResource&& vertices, BufferResource&& indices, glm::mat4 modelMatrix):
+        vertexResource(std::move(vertices)), indiceResource(std::move(indices)){
+    
             this->modelMatrix = modelMatrix; 
         }
     private:

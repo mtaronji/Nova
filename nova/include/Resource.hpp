@@ -29,16 +29,15 @@ public:
         kind(other.kind),
         needsUpdate(other.needsUpdate),
         descriptorType(other.descriptorType),
-        data(other.data)
+        data(other.data),
+        dataSize(other.dataSize),
+        previousSize(other.previousSize),
+        arraySize(other.arraySize)
     {
         other.memory = VK_NULL_HANDLE;
         other.buffer = VK_NULL_HANDLE;
         other.image = VK_NULL_HANDLE;
-
-        if (other.data) {
-            free(other.data);
-            other.data = nullptr;
-        }
+        other.data = nullptr;
     }
 
     Resource& operator=(Resource&& other) noexcept {
@@ -53,15 +52,15 @@ public:
             image = other.image;
             kind = other.kind;
             data = other.data;
+            dataSize = other.dataSize;
+            arraySize = other.arraySize;
+            previousSize = other.previousSize;
             descriptorType = other.descriptorType;
 
             other.memory = VK_NULL_HANDLE;
             other.buffer = VK_NULL_HANDLE;
             other.image = VK_NULL_HANDLE;
-            if (other.data) {
-                free(other.data);
-                other.data = nullptr;
-            }         
+             
         }
         return *this;
     }
@@ -74,12 +73,12 @@ public:
     uint32_t GetCopyCount() const { return copies; }
     bool NeedsUpdate() const { return needsUpdate; }
     void* GetData() const { return data; }
-    void Upload(void* srcData, VkDeviceSize dataSize, uint32_t arraySize = NOT_SET);
-    virtual VkBuffer& GetBuffer() { 
+    //void Upload(void* srcData, VkDeviceSize dataSize, uint32_t arraySize = NOT_SET);
+    VkBuffer& GetBuffer() { 
         assert(kind == ResourceKind::Buffer && "GetBuffer() called on non-buffer resource");
         return buffer; 
     }
-    virtual VkImage& GetImage() { 
+    VkImage& GetImage() { 
         assert(kind == ResourceKind::Image && "GetBuffer() called on non-buffer resource");
         return image; 
     }

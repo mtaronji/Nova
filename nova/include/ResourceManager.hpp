@@ -8,10 +8,10 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "DescriptorsetLoader.hpp"
+#include "Mesh.hpp"
+#include "BufferResource.hpp"
 
 class CommandManager;
-class BufferResource;
-class Mesh;
 class GPU;
 class BufferOps;
 class PipelineLibrary;
@@ -25,23 +25,23 @@ class ResourceManager{
         ResourceManager(std::shared_ptr<GPU>);
         
 
-        void SetMesh(std::string key, Mesh* mesh);
-        Mesh* GetMesh(std::string key);
-        void SetMeshes(std::unordered_map<std::string, Mesh*>& meshes);
+        void SetMesh(std::string key, Mesh&& mesh);
+        Mesh& GetMesh(std::string key);
+        void SetMeshes(std::unordered_map<std::string, Mesh>&&);
 
-        std::unordered_map<std::string, Mesh*>& GetMeshes();
-        void SetDescriptorSets(std::string pipelineKey, std::vector<std::vector<BufferResource*>> descriptorSets);
+        std::unordered_map<std::string, Mesh>& GetMeshes();
+        void SetDescriptorSets(std::string pipelineKey, std::vector<std::vector<BufferResource>>&& descriptorSets);
 
-        std::vector<BufferResource*>& GetDescriptorSet(std::string pipelineKey, uint32_t set);
+        std::vector<BufferResource>& GetDescriptorSet(std::string pipelineKey, uint32_t set);
 
-        std::vector<std::vector<BufferResource*>>& GetDescriptorSets(std::string pipelineKey);
+        std::vector<std::vector<BufferResource>>& GetDescriptorSets(std::string pipelineKey);
 
-        void SetResourceMap(std::unordered_map<std::string, BufferResource*>& resourceMap);
-        std::unordered_map<std::string, BufferResource*>& GetResourceMap();
+        void SetResourceMap(std::unordered_map<std::string, BufferResource>&& resourceMap);
+        std::unordered_map<std::string, BufferResource>& GetResourceMap();
 
-        BufferResource* GetResource(std::string key);
+        BufferResource& GetResource(std::string key);
 
-        void SetResource(std::string key, BufferResource* r);
+        void SetResource(std::string key, BufferResource&& r);
 
         void SetDescriptorFiles(std::unordered_map<std::string, DescriptorFile>& descriptorFiles) {
             this->descriptorFiles = descriptorFiles;
@@ -94,12 +94,12 @@ class ResourceManager{
         };
 
         std::unordered_map<VkBufferUsageFlags, Monolith> monoliths = {};
-        std::unordered_map<std::string, Mesh*> meshes = {};
+        std::unordered_map<std::string, Mesh> meshes = {};
 
         //all resources of the app that are descriptor sets. This pulls data straight from resource map
         //it's indexed as [set][binding] so each pipelinedescriptorsets is a 2d array of buffer resources
-        std::unordered_map<std::string, std::vector<std::vector<BufferResource*>>> pipelineDescriptorSets = {}; 
-        std::unordered_map<std::string, BufferResource*> resourceMap = {}; // all resources of the app
+        std::unordered_map<std::string, std::vector<std::vector<BufferResource>>> pipelineDescriptorSets = {}; 
+        std::unordered_map<std::string, BufferResource> resourceMap = {}; // all resources of the app
 
         std::unordered_map<std::string, DescriptorFile> descriptorFiles; //descriptor files from the descriptorsets files
 

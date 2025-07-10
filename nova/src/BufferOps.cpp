@@ -2,7 +2,7 @@
 #include "CommandManager.hpp"
 #include "GPU.hpp"
 
-void BufferOps::CreateBuffer(GPU gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+void BufferOps::CreateBuffer(GPU& gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
 
     auto device = gpu.GetVkDevice();
     auto physicalDevice = gpu.GetPhysicalDevice();
@@ -31,7 +31,7 @@ void BufferOps::CreateBuffer(GPU gpu, VkDeviceSize size, VkBufferUsageFlags usag
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
 
-void BufferOps::CopyBuffer(GPU gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize stagingBufferOffset, VkDeviceSize destinationBufferOffset) {
+void BufferOps::CopyBuffer(GPU& gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize stagingBufferOffset, VkDeviceSize destinationBufferOffset) {
 
     VkCommandBuffer commandBuffer = commandManager.BeginSingleTimeCommands();
 
@@ -45,15 +45,15 @@ void BufferOps::CopyBuffer(GPU gpu, CommandManager& commandManager, VkBuffer src
 }
 
 void BufferOps::EnsureDeviceBuffer(
-    GPU gpu,
+    GPU& gpu,
     CommandManager& commandManager,
     void* data,
-    size_t datasize,
+    VkDeviceSize datasize,
     VkBufferUsageFlags usage,
     VkBuffer& buffer,
     VkDeviceMemory& memory,
     VkDeviceSize destinationBufferOffset,
-    VkDeviceSize stagingBufferOffset){
+    VkDeviceSize stagingBufferOffset) {
 
     assert(datasize != 0);
     VkDeviceSize memorySize = datasize;
@@ -111,14 +111,14 @@ void BufferOps::EnsureDeviceBuffer(
 }
 
 void BufferOps::EnsureHostBuffer(
-    GPU gpu,
+    GPU& gpu,
     CommandManager& commandManager,
     void* data,
-    size_t datasize,
+    VkDeviceSize datasize,
     VkBufferUsageFlags usage,
     VkBuffer& buffer,
     VkDeviceMemory& memory,
-    VkDeviceSize destinationBufferOffset){
+    VkDeviceSize destBufferOffset){
 
     assert(datasize != 0);
     VkDeviceSize memorySize = datasize;
@@ -138,13 +138,13 @@ void BufferOps::EnsureHostBuffer(
         
     // Upload data
     void* pGPUVisibleSystemMemory;
-    vkMapMemory(device, memory, destinationBufferOffset, paddedSize, 0, &pGPUVisibleSystemMemory);  //mapping cpu memory that the gpu can see
+    vkMapMemory(device, memory, destBufferOffset, paddedSize, 0, &pGPUVisibleSystemMemory);  //mapping cpu memory that the gpu can see
     memcpy(pGPUVisibleSystemMemory, data, (size_t)memorySize);
 
     VkMappedMemoryRange flushRange = {};
     flushRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
     flushRange.memory = memory;       // The memory to flush/invalidate
-    flushRange.offset = destinationBufferOffset;                  // Start from the beginning
+    flushRange.offset = destBufferOffset;                  // Start from the beginning
     flushRange.size = paddedSize;    
 
     vkFlushMappedMemoryRanges(device,1, &flushRange); 

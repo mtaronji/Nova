@@ -2,51 +2,49 @@
 #include "PipelineManager.hpp"
 #include "PipelineLibrary.hpp"
 #include "BufferOps.hpp"
-#include "BufferResource.hpp"
-#include "Mesh.hpp"
 #include "GPU.hpp"
 
 ResourceManager::ResourceManager(std::shared_ptr<GPU> gpu) :gpu(gpu){
         
 }
 
-void ResourceManager::SetMesh(std::string key, Mesh* mesh){
-    meshes[key] = mesh;
+void ResourceManager::SetMesh(std::string key, Mesh&& mesh){
+    meshes.insert({ key, std::move(mesh) });
 }   
-Mesh* ResourceManager::GetMesh(std::string key){
-    return meshes[key];
+Mesh& ResourceManager::GetMesh(std::string key){
+    return meshes.at(key);
 }
-void ResourceManager::SetMeshes(std::unordered_map<std::string, Mesh*>& meshes){
-    this->meshes = meshes;
+void ResourceManager::SetMeshes(std::unordered_map<std::string, Mesh>&& meshes){
+    this->meshes = std::move(meshes);
 }
-std::unordered_map<std::string, Mesh*>& ResourceManager::GetMeshes(){
+std::unordered_map<std::string, Mesh>& ResourceManager::GetMeshes(){
     return meshes;
 }
-void ResourceManager::SetDescriptorSets(std::string pipelineKey, std::vector<std::vector<BufferResource*>> descriptorSets){
-    this->pipelineDescriptorSets[pipelineKey] = descriptorSets;
+void ResourceManager::SetDescriptorSets(std::string pipelineKey, std::vector<std::vector<BufferResource>>&& descriptorSets){
+    this->pipelineDescriptorSets.insert({ pipelineKey, std::move(descriptorSets) });
 }
 
-std::vector<BufferResource*>& ResourceManager::GetDescriptorSet(std::string pipelineKey, uint32_t set){
-    return pipelineDescriptorSets[pipelineKey][set];         
+std::vector<BufferResource>& ResourceManager::GetDescriptorSet(std::string pipelineKey, uint32_t set){
+    return pipelineDescriptorSets.at(pipelineKey).at(set);         
 }    
 
-std::vector<std::vector<BufferResource*>>& ResourceManager::GetDescriptorSets(std::string pipelineKey){
-    return pipelineDescriptorSets[pipelineKey];
+std::vector<std::vector<BufferResource>>& ResourceManager::GetDescriptorSets(std::string pipelineKey){
+    return pipelineDescriptorSets.at(pipelineKey);
 }
 
-void ResourceManager::SetResourceMap(std::unordered_map<std::string, BufferResource*>& resourceMap){
-    this->resourceMap = resourceMap;
+void ResourceManager::SetResourceMap(std::unordered_map<std::string, BufferResource>&& resourceMap){
+    this->resourceMap = std::move(resourceMap);
 }
-std::unordered_map<std::string, BufferResource*>& ResourceManager::GetResourceMap(){
+std::unordered_map<std::string, BufferResource>& ResourceManager::GetResourceMap(){
     return this->resourceMap;
 }
 
-BufferResource* ResourceManager::GetResource(std::string key){
-    return resourceMap[key];
+BufferResource& ResourceManager::GetResource(std::string key){
+    return resourceMap.at(key);
 }
 
-void ResourceManager::SetResource(std::string key, BufferResource* r){
-    resourceMap[key] = r;
+void ResourceManager::SetResource(std::string key, BufferResource&& r){
+    resourceMap.insert({ key, std::move(r) });
 }
 
 //this fills the descriptor map below. We aredn't creating new resources, just another way to access them
@@ -59,19 +57,19 @@ void ResourceManager::InitializeDescriptorSetsResources(std::shared_ptr<Pipeline
     auto pipelineManagers = pipelineLibrary->GetPipelines();
 
     for(auto& [pipelineName, manager] : pipelineManagers){
-        std::vector<std::vector<BufferResource*>> descriptorSets;
+        std::vector<std::vector<BufferResource>> descriptorSets;
         auto descriptorFileName = manager->GetDescriptorFileName();
         auto descriptorFile = descriptorFiles[descriptorFileName];
         auto descriptorNames = descriptorFile.descriptorNames;
         for (int i = 0; i < descriptorNames.size(); i++) {
 
-            std::vector<BufferResource*> bindings;          
+            std::vector<BufferResource> bindings;          
             for(auto name : descriptorNames[i]) {
-                bindings.push_back(resourceMap.at(name));
+                bindings.push_back(std::move(resourceMap.at(name)));
             }
-            descriptorSets.push_back(bindings);
+            descriptorSets.push_back(std::move(bindings));
         }
-        pipelineDescriptorSets[pipelineName] = descriptorSets;
+        pipelineDescriptorSets.insert({pipelineName, std::move(descriptorSets) });
     }
 }
 
@@ -85,7 +83,7 @@ void ResourceManager::UpdateDescriptorSet(std::string pipelineKey,
                                             uint32_t setIndex,
                                             uint32_t frameIndex){
      
-    auto setResources = GetDescriptorSet(pipelineKey, setIndex);
+    auto& setResources = GetDescriptorSet(pipelineKey, setIndex);
     std::vector<VkWriteDescriptorSet> writes;
     std::vector<VkDescriptorBufferInfo> bufferInfos;
     
@@ -95,12 +93,12 @@ void ResourceManager::UpdateDescriptorSet(std::string pipelineKey,
 
     for (uint32_t binding = 0; binding < setResources.size(); ++binding) {
         
-        auto initialOffset = setResources[binding]->GetOffSet();
-        auto offset = initialOffset + setResources[binding]->GetAlignedDataSize(256) * frameIndex;
+        auto initialOffset = setResources[binding].GetOffSet();
+        auto offset = initialOffset + setResources[binding].GetAlignedDataSize(256) * frameIndex;
         VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = setResources[binding]->GetBuffer();
-        bufferInfo.offset = setResources[binding]->GetOffSet();
-        bufferInfo.range  = setResources[binding]->GetAlignedDataSize(256);
+        bufferInfo.buffer = setResources[binding].GetBuffer();
+        bufferInfo.offset = setResources[binding].GetOffSet();
+        bufferInfo.range  = setResources[binding].GetAlignedDataSize(256);
 
         bufferInfos.push_back(bufferInfo);
 
@@ -198,7 +196,7 @@ void ResourceManager::AssignMonolithBuffer(BufferResource& resource, GPU* gpu, C
     VkBufferUsageFlags usage = resource.GetUsage();  //checked earlier when buffer resource created, just checking again
 
     bool monolithExists = monoliths.contains(usage);
-    if(!monolithExists){throw std::runtime_error("Fatal Error: Monolith for buffer usage not allocated");}
+    assert(monolithExists && "monolith does not exist");
 
     auto& monolith = monoliths[usage];
     resource.SetBuffer(monolith.buffer); 
@@ -260,16 +258,16 @@ void ResourceManager::Cleanup(GPU * gpu){
     //clean up the resources
     //delete resources allocated with new
     for(auto& [key,resource] : resourceMap){
-        resource->Cleanup(gpu);
-        delete(resource);  //all buffer resources allocated with new
+        resource.Cleanup(gpu);
+        //delete(resource);  //all buffer resources allocated with new
     }
     for(auto& [key,mesh] : meshes){
         //for meshes we allocated using new for buffer resources for indices and vertexes as well as the encapsulating mesh
-        mesh->indiceResource->Cleanup(gpu);
-        mesh->vertexResource->Cleanup(gpu);
-        delete(mesh->indiceResource);
-        delete(mesh->vertexResource);
-        delete(mesh); // all meshes allocated with new
+        mesh.indiceResource.Cleanup(gpu);
+        mesh.vertexResource.Cleanup(gpu);
+        //delete(mesh->indiceResource);
+        //delete(mesh->vertexResource);
+        //delete(mesh); // all meshes allocated with new
     }
             
 }

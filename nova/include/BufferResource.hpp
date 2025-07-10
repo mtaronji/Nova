@@ -10,6 +10,7 @@ class GPU;
 class BufferResource : public Resource {
 public:
     BufferResource(const BufferResource&) = delete;
+
     BufferResource& operator=(const BufferResource&) = delete;
     BufferResource(BufferResource&& other) noexcept :Resource(std::move(other)) {
 

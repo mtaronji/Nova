@@ -9,20 +9,21 @@
 class CommandManager;
 class GPU;
 
-struct BufferOps{
+class BufferOps{
 
+public:
  
-    static void CreateBuffer(GPU gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    static void CreateBuffer(GPU& gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
     //copy from source buffer to destination buffer
     //if you have a staging buffer that is monolithic, you can use the soffset parameter for it's start
     //doffset is the destination buffer start offset
-    static void CopyBuffer(GPU gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize soffset, VkDeviceSize doffset);
+    static void CopyBuffer(GPU& gpu, CommandManager& commandManager, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize soffset, VkDeviceSize doffset);
     
     //vkBuffer
     static void EnsureDeviceBuffer(
-            GPU gpu,
-            CommandManager& commandManager,
+            GPU&,
+            CommandManager&,
             void* data,
             VkDeviceSize datasize,
             VkBufferUsageFlags usage,
@@ -32,7 +33,7 @@ struct BufferOps{
             VkDeviceSize stagingBufferOffset);
 
     static void EnsureHostBuffer(
-        GPU gpu,
+        GPU& gpu,
         CommandManager& commandManager,
         void* data,
         VkDeviceSize datasize,

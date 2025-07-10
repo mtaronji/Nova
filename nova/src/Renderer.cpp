@@ -107,10 +107,10 @@ void Renderer::AllocateAndUpdateDescriptorSets(std::string pipelineKey){
     std::vector<uint32_t> descriptorSetCopies = {};
     for(uint32_t set = 0; set < descriptorSetResources.size(); set++){
         auto& resources = descriptorSetResources[set];
-        auto copies = resources[0]->GetCopyCount();
+        auto copies = resources[0].GetCopyCount();  //each set should have the same amount of copies as they are set for the whole set. 
         descriptorSetCopies.push_back(copies);
         for(uint32_t binding = 0; binding < resources.size(); binding++){
-            assert(resources[binding]->GetCopyCount() == copies);
+            assert(resources[binding].GetCopyCount() == copies);
         }
     }
     for(uint32_t i = 0; i < layouts.size(); i++){
@@ -264,60 +264,56 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineManager->GetPipeline());
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineManager->GetPipeline());
 
-        // Push constants
-        const auto & range = pipelineManager->GetPushConstantRange(0);
-        vkCmdPushConstants(
-            commandBuffer,
-            pipelineManager->GetPipelineLayout(),
-            range.stageFlags,
-            0,
-            sizeof(frameinfo),
-            &frameinfo
-        );
+    // Push constants
+    const auto & range = pipelineManager->GetPushConstantRange(0);
+    vkCmdPushConstants(
+        commandBuffer,
+        pipelineManager->GetPipelineLayout(),
+        range.stageFlags,
+        0,
+        sizeof(frameinfo),
+        &frameinfo
+    );
         
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = (float) extent.width;
-        viewport.height = (float) extent.height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float) extent.width;
+    viewport.height = (float) extent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-        VkRect2D scissor{};
-        scissor.offset = {0, 0};
-        scissor.extent = extent;
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = extent;
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     
-        auto square = resourceManager->GetMesh("square");
-        auto vbuffer = square->vertexResource->GetBuffer();
-        auto ibuffer = square->indiceResource->GetBuffer();
+    auto& square = resourceManager->GetMesh("square");
+    auto& vbuffer = square.vertexResource.GetBuffer();
+    auto& ibuffer = square.indiceResource.GetBuffer();
         
-        if (vbuffer != VK_NULL_HANDLE) {
+    if (vbuffer != VK_NULL_HANDLE) {
            
-            VkDeviceSize offsets[] = {square->vertexResource->GetOffSet() + square->vertexResource->GetAlignedDataSize(256) * currentFrame};
-            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbuffer, offsets);
-            vkCmdBindDescriptorSets(commandBuffer, 
-                                    VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                                    pipelineManager->GetPipelineLayout(), 
-                                    0, 
-                                    static_cast<uint32_t>(pipelineDescriptorSets[currentPipelineKey][currentFrame].size()), 
-                                    pipelineDescriptorSets[currentPipelineKey][currentFrame].data(),
-                                    0, 
-                                    nullptr);
+        VkDeviceSize offsets[] = {square.vertexResource.GetOffSet() + square.vertexResource.GetAlignedDataSize(256) * currentFrame};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbuffer, offsets);
+        vkCmdBindDescriptorSets(commandBuffer, 
+                                VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                                pipelineManager->GetPipelineLayout(), 
+                                0, 
+                                static_cast<uint32_t>(pipelineDescriptorSets[currentPipelineKey][currentFrame].size()), 
+                                pipelineDescriptorSets[currentPipelineKey][currentFrame].data(),
+                                0, 
+                                nullptr);
 
-            if(ibuffer != VK_NULL_HANDLE){
-                vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT16);
-                uint32_t arrayCount = square->indiceResource->GetArraySize();
-                vkCmdDrawIndexed(commandBuffer, arrayCount, 1, 0, 0, 0);
-            }
+        if(ibuffer != VK_NULL_HANDLE){
+            vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT16);
+            uint32_t arrayCount = square.indiceResource.GetArraySize();
+            vkCmdDrawIndexed(commandBuffer, arrayCount, 1, 0, 0, 0);
         }
-        
-        
-        
-        
+    }
 
     vkCmdEndRenderPass(commandBuffer);
 
