@@ -125,11 +125,8 @@ void Renderer::DrawFrame() {
     auto presentQueue = gpu->GetPresentQueue();
     auto commandbuffer = commandmanager->GetCommandBuffer(currentFrame);
 
-    auto t1 = NOW;
     // Wait for the fence of the current frame to ensure the GPU has finished processing it.
     vkWaitForFences(device, 1, &frame.inFlight, VK_TRUE, UINT64_MAX);
-    auto t2 = NOW;
-    SECONDS e = (t2 - t1);  std::cout<< 1.0f / e.count() << std::endl;
 
     uint32_t imageIndex;
     // Acquire the next available swapchain image, signal frame.imageAvailable semaphore when ready
@@ -161,10 +158,8 @@ void Renderer::DrawFrame() {
 
     vkResetCommandBuffer(commandbuffer, 0);
 
-    t1 = NOW;
+
     DrawFrameCommands(commandbuffer, imageIndex);
-    t2 = NOW;
-    e = (t2 - t1);  std::cout<<"DRAW FRAME TAKES : " <<1.0f / e.count() << std::endl;
 
     // Submit info
     VkSubmitInfo submitInfo{};

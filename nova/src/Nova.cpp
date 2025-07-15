@@ -265,7 +265,6 @@ void Nova::Init() {
     //this is an orbital x camera - meaning i moves in a circle lookin at a spot. In this case it's the origin
     std::function<void(MouseMoveEvent)> observeX = [this](const MouseMoveEvent& delta) {
 
-        auto frame = renderer->GetFrameIndex();
         constexpr float pitch = glm::radians(20.0f); // fixed slight tilt
         angle += cameraspeed * delta.x;
         angle = glm::mod(angle, glm::two_pi<float>());
@@ -278,9 +277,6 @@ void Nova::Init() {
 
         // Always look at the target with a fixed up direction
         this->sceneCamera.view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
-        auto cameraResource = this->resourceManager->GetBufferResource("camera");
-        cameraResource->Upload(&this->sceneCamera, sizeof(this->sceneCamera));
-        this->resourceManager->UpdateBufferData(cameraResource, gpu.get(), commandManager.get(), frame);
     };
 
     this->shell->MouseLocation()->MapDelta()->Subscribe(observeX);
@@ -316,8 +312,11 @@ void Nova::AllocateToMonoliths(){
 }
 
 void Nova::Update(float deltaTime){
-   
-    deltaTime = glm::clamp(deltaTime, 0.0f, 0.05f); // max ~20 FPS frame
+   //update camera per frame
+    auto frame = renderer->GetFrameIndex();
+    auto cameraResource = this->resourceManager->GetBufferResource("camera");
+    cameraResource->Upload(&this->sceneCamera, sizeof(this->sceneCamera));
+    this->resourceManager->UpdateBufferData(cameraResource, gpu.get(), commandManager.get(), frame);
 }
 
 void Nova::Render() {
