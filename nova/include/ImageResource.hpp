@@ -5,13 +5,18 @@
 
 class ImageResource : public Resource {
 public:
-    ImageResource(VkImageUsageFlags usage,uint32_t copies, uint32_t set, uint32_t binding);
+    ImageResource() = delete;
+    ImageResource(VkImageUsageFlags usage, VkImageLayout layout, uint32_t copies, VkMemoryPropertyFlags memoryProperties);
     ~ImageResource() override = default;
+
     void Upload(void* srcData, VkDeviceSize dataSize);
     void Cleanup(GPU* gpu) override;
 
-    // Add GetImageView, GetSampler, etc.
+    VkImageView ImageView = VK_NULL_HANDLE;
+    VkImageUsageFlags Usage;
+    VkImage Image = VK_NULL_HANDLE;
+    VkImageLayout ImageLayout;
+
 protected:
-    VkImageView imageView = VK_NULL_HANDLE;
-    VkImageUsageFlags usage;
+  
 };

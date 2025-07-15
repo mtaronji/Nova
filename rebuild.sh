@@ -4,4 +4,5 @@
 set -e
 
 echo "Rebuilding project with CMake..."
-cmake -S . -B ./build/Debug
+rm -r ./build
+cmake -S . -B ./build

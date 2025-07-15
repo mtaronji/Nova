@@ -1,7 +1,7 @@
 #include "ImageOps.hpp"
 
 void ImageOps::CreateImage(
-    GPU* gpu,
+    std::shared_ptr<GPU> gpu,
     uint32_t width,
     uint32_t height,
     uint32_t mipLevels,
@@ -54,15 +54,15 @@ void ImageOps::CreateImage(
         }
     }
 
-    if (vkAllocateMemory(gpu->GetVkDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate image memory!");
-    }
+    auto result = vkAllocateMemory(gpu->GetVkDevice(), &allocInfo, nullptr, &imageMemory);
+    assert(result == VK_SUCCESS && "Create image failed");
 
-    vkBindImageMemory(gpu->GetVkDevice(), image, imageMemory, 0);
+    result = vkBindImageMemory(gpu->GetVkDevice(), image, imageMemory, 0);
+    assert(result == VK_SUCCESS && "Bind Image Memory failed");
 }
 
 void ImageOps::CreateImageView(
-    GPU* gpu,
+    std::shared_ptr<GPU> gpu,
     VkImage image,
     VkFormat format,
     VkImageAspectFlags aspectFlags,
@@ -82,29 +82,45 @@ void ImageOps::CreateImageView(
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = arrayLayers;
 
-    if (vkCreateImageView(gpu->GetVkDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create image view!");
-    }
+    auto result = vkCreateImageView(gpu->GetVkDevice(), &viewInfo, nullptr, &imageView);
+    assert(result == VK_SUCCESS && "Create image View failed");
 }
 
-void ImageOps::CreateSampler(GPU* gpu, uint32_t mipLevels, VkSampler& sampler) {
+void ImageOps::CreateSampler(
+        std::shared_ptr<GPU> gpu, 
+        uint32_t mipLevels, 
+        VkFilter magFilter,
+        VkFilter minFilter,
+        VkSamplerMipmapMode mipmapmode,
+        VkSamplerAddressMode addressModeU,
+        VkSamplerAddressMode addressNodeV,
+        VkSamplerAddressMode addressNodeW,
+        float mipLodBias,
+        VkBool32 anisotrophyEnable,
+        float maxAnisotrophy,
+        float minLod,
+        float maxLod,
+        VkBorderColor borderColor,
+        VkBool32 unnormalizedCoordinates,
+        VkSampler& sampler
+    ) {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = 16.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = static_cast<float>(mipLevels);
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.magFilter = magFilter;
+    samplerInfo.minFilter = minFilter;
+    samplerInfo.mipmapMode = mipmapmode;
+    samplerInfo.addressModeU = addressModeU;
+    samplerInfo.addressModeV = addressNodeV;
+    samplerInfo.addressModeW = addressNodeW;
+    samplerInfo.mipLodBias = mipLodBias;
+    samplerInfo.anisotropyEnable = anisotrophyEnable;
+    samplerInfo.maxAnisotropy = maxAnisotrophy;
+    samplerInfo.minLod = minLod;
+    samplerInfo.maxLod = maxLod;
+    samplerInfo.borderColor = borderColor;
+    samplerInfo.unnormalizedCoordinates = unnormalizedCoordinates;
 
-    if (vkCreateSampler(gpu->GetVkDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture sampler!");
-    }
+    auto result = vkCreateSampler(gpu->GetVkDevice(), &samplerInfo, nullptr, &sampler);
+    assert(result == VK_SUCCESS && "Create image Sampler failed");
+    
 }

@@ -90,7 +90,6 @@ class Nova : public IRenderLoopClient{
                 virtual Builder& WithResourceManager();         Builder& WithResourceManager(std::shared_ptr<ResourceManager> resourceManager){ this->resourceManager = resourceManager; return *this;}
                 virtual Builder& WithMeshes();                  Builder& WithMeshes(std::unordered_map<std::string, Mesh>&& meshes);
                 virtual Builder& WithDescriptorSets();          Builder& WithDescriptorSets(std::vector<std::vector<BufferResource>>&& descriptorSets);
-                virtual Builder& WithResourceMap();             Builder& WithResourceMap(std::unordered_map<std::string, BufferResource>&& resourceMap);
                 virtual Builder& WithTextures(std::unordered_set<std::string>);
                 
                 

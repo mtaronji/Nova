@@ -72,24 +72,24 @@ void FramebufferGenerator::CreateRenderPassResources(){
             VkImage image = VK_NULL_HANDLE;
             VkDeviceMemory imageMemory = VK_NULL_HANDLE;
             VkImageView imageView = VK_NULL_HANDLE;
-            ImageOps::CreateImage(  gpu.get(),
-                                        extent.width,
-                                        extent.height, 
-                                        1,
-                                        1,
-                                        attachments[i].samples,
-                                        attachments[i].format,
-                                        VK_IMAGE_TILING_OPTIMAL,    
-                                        imageUses[i],    
-                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                                        VK_IMAGE_TYPE_2D,
-                                        VK_IMAGE_LAYOUT_UNDEFINED,
-                                        0,
-                                        image,     
-                                        imageMemory                      
+            ImageOps::CreateImage(  gpu,
+                                    extent.width,
+                                    extent.height, 
+                                    1,
+                                    1,
+                                    attachments[i].samples,
+                                    attachments[i].format,
+                                    VK_IMAGE_TILING_OPTIMAL,    
+                                    imageUses[i],    
+                                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                    VK_IMAGE_TYPE_2D,
+                                    VK_IMAGE_LAYOUT_UNDEFINED,
+                                    0,
+                                    image,     
+                                    imageMemory                      
                                     );
     
-            ImageOps::CreateImageView(gpu.get(),image, attachments[i].format, imageAspects[i], VK_IMAGE_VIEW_TYPE_2D, 1, 1, imageView);
+            ImageOps::CreateImageView(gpu,image, attachments[i].format, imageAspects[i], VK_IMAGE_VIEW_TYPE_2D, 1, 1, imageView);
             attachmentImagesPerFrame[i] = image;
             attachmentImageMemoryPerFrame[i] = imageMemory;
             attachmentImageViewsPerFrame[i] = imageView;

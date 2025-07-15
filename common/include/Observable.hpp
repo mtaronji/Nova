@@ -94,7 +94,7 @@ std::shared_ptr<Observable<MappedType>> Observable<T>::Map(std::function<MappedT
 
 	auto mappedObservable = std::make_shared<Signal<MappedType>>();
 
-	this->Subscribe([mappedObservable](const T& emission) {		
+	this->Subscribe([mappedObservable, map](const T& emission) {		
 		mappedObservable->Emit(map(emission));	
 	});
 	return mappedObservable;

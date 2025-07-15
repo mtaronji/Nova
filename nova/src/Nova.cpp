@@ -25,6 +25,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+
 namespace fs = std::filesystem; // safe alias at global scope for this header
 
 Nova::Nova(
@@ -115,26 +116,25 @@ void Nova::InitResources() {
     
     //create 3 copies of this uniform data
     uint32_t copies = MAX_FRAMES;  
-    auto cameraResource = BufferResource::Create(
+    auto cameraResource = std::make_shared<BufferResource>(
         /*usage =*/ VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         /*copies = */ MAX_FRAMES,
-        /*set = */ 0,
-        /*binding = */ 0
-        );  
+        /*memory properties*/VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+    );
 
-    cameraResource.Upload(&this->sceneCamera, sizeof(this->sceneCamera), 0);
-    resourceManager->SetResource("camera", std::move(cameraResource));
+    cameraResource->Upload(&this->sceneCamera, sizeof(this->sceneCamera), 0);
+    resourceManager->SetResource("camera", cameraResource);
 
 
-    auto verticesResource = BufferResource::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES);
-    auto indicesResource = BufferResource::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 1);
+    auto verticesResource = std::make_shared<BufferResource>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    auto indicesResource =  std::make_shared<BufferResource>(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 1, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     auto vertices = Mesh::GenerateCubeVertices(false);
     auto indices = Mesh::GetCubeIndices();
 
-    verticesResource.Upload(vertices.data(), vertices.size() * sizeof(VertexPC), vertices.size());
-    indicesResource.Upload(indices.data(), sizeof(uint32_t) * indices.size(), indices.size());
+    verticesResource->Upload(vertices.data(), vertices.size() * sizeof(VertexPC), vertices.size());
+    indicesResource->Upload(indices.data(), sizeof(uint32_t) * indices.size(), indices.size());
 
-    auto mesh = Mesh::Create(std::move(verticesResource), std::move(indicesResource));
+    auto mesh = Mesh::Create(verticesResource, indicesResource);
     resourceManager->SetMesh("square", std::move(mesh));
 
     //create a texture resource
@@ -146,15 +146,62 @@ Nova::Builder& Nova::Builder::WithTextures(std::unordered_set<std::string> files
     
     for (auto f : std::filesystem::directory_iterator(texturepath)) {
         auto filename = f.path().filename().string();
-        if (files.find(filename) == files.end()) {
+        if (files.find(filename) != files.end()) {
 
             int width, height, channels; unsigned char* image_data = nullptr;
-            image_data = stbi_load("texture.png", &width, &height, &channels, STBI_rgb_alpha);
-            assert(!image_data && "image data is null");
-        }
-    }
+            image_data = stbi_load(f.path().c_str(), &width, &height, &channels, STBI_rgb_alpha);
+            assert(image_data && "image data is null");
 
-    
+            VkImage textureImage = VK_NULL_HANDLE;
+            VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+            VkImageView textureImageView = VK_NULL_HANDLE;
+            VkSampler sampler = VK_NULL_HANDLE;
+
+            ImageOps::CreateImage(this->gpu, width,height,
+                                    1,                               //mip levels
+                                    1,                               //array layers                                                                      
+                                    VK_SAMPLE_COUNT_1_BIT,           // samples (no MSAA)
+                                    VK_FORMAT_R8G8B8A8_SRGB,         // format (common 4-channel sRGB)
+                                    VK_IMAGE_TILING_OPTIMAL,         // tiling (optimal for GPU sampling)
+                                    VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, // usage (will copy data & sample)
+                                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,  // properties (GPU local memory)
+                                    VK_IMAGE_TYPE_2D,                // imageType (2D texture)
+                                    VK_IMAGE_LAYOUT_UNDEFINED,       // initialLayout (undefined before transition)
+                                    0,                              // createFlags (no special flags)
+                                    textureImage,
+                                    textureImageMemory);
+            
+            ImageOps::CreateImageView(this->gpu,textureImage,  
+                                    VK_FORMAT_R8G8B8A8_SRGB,
+                                    VK_IMAGE_ASPECT_COLOR_BIT,
+                                    VK_IMAGE_VIEW_TYPE_2D,
+                                    1,        // mipLevels
+                                    1,        // arrayLayers
+                                    textureImageView
+            );
+
+            ImageOps::CreateSampler(this->gpu,
+                                    1,
+                                    VK_FILTER_LINEAR,
+                                    VK_FILTER_LINEAR,
+                                    VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                    0.0f,
+                                    VK_TRUE,
+                                    16.0f,
+                                    0.0f,
+                                    1.0f,
+                                    VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+                                    VK_FALSE,
+                                    sampler
+            );
+
+
+        }
+      
+    }
     return *this;
 }
 
@@ -188,15 +235,16 @@ void Nova::Init() {
 
     //get all bindings for all 
    
-    //just pushing one for the camera
+    //CREATING max frames size for the uniform buffer pool because we need one for each frame
     std::vector<VkDescriptorPoolSize> poolSizes = {
         {
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 3
+            .descriptorCount = MAX_FRAMES 
         }
     };
-    uint32_t maxSets = 3; //one for each frame
-    descriptorAllocator->CreateDescriptorSetPool(poolSizes, 3, 0);
+    uint32_t maxSets = MAX_FRAMES; //currently only 4 descriptors should be coming out
+
+    descriptorAllocator->CreateDescriptorSetPool(poolSizes, maxSets, 0);
     pipelineLibrary->CreateDescriptorSetLayouts(descriptorAllocator, &descriptorFiles);
 
     //initializes the the resources to configure resources for 
@@ -230,10 +278,10 @@ void Nova::Init() {
 
         // Always look at the target with a fixed up direction
         this->sceneCamera.view = glm::lookAt(camPos, cameraTarget, glm::vec3(0, 1, 0));
-        auto& cameraResource = this->resourceManager->GetResource("camera");
-        cameraResource.Upload(&this->sceneCamera, sizeof(this->sceneCamera));
+        auto cameraResource = this->resourceManager->GetBufferResource("camera");
+        cameraResource->Upload(&this->sceneCamera, sizeof(this->sceneCamera));
         this->resourceManager->UpdateBufferData(cameraResource, gpu.get(), commandManager.get(), frame);
-        };
+    };
 
     this->shell->MouseLocation()->MapDelta()->Subscribe(observeX);
 
@@ -251,15 +299,17 @@ void Nova::CreateMoniliths(){
 void Nova::AllocateMeshes(){
      //assign geometries
      for(auto& [key,mesh] : resourceManager->GetMeshes()){
-        resourceManager->AssignMonolithBuffer(mesh.vertexResource, gpu.get(), commandManager.get(),VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, static_cast<VkDeviceSize>(256));
-        resourceManager->AssignMonolithBuffer(mesh.indiceResource, gpu.get(), commandManager.get(),VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, static_cast<VkDeviceSize>(256));
+        resourceManager->AssignMonolithBuffer(mesh.vertexResource, gpu.get(), commandManager.get(),mesh.vertexResource->MemoryProperties, static_cast<VkDeviceSize>(256));
+        resourceManager->AssignMonolithBuffer(mesh.indiceResource, gpu.get(), commandManager.get(),mesh.indiceResource->MemoryProperties, static_cast<VkDeviceSize>(256));
     }
 }
 
 void Nova::AllocateDescriptorResources(){
-     //assign resources like camera or other resources that uses buffers and memory
-    auto& cameraResource = resourceManager->GetResource("camera");
-    resourceManager->AssignMonolithBuffer(cameraResource, gpu.get(), commandManager.get(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256));
+
+    //assign descriptor Resources
+    for(auto& [key, resource] : resourceManager->GetBufferDescriptors()){   
+        resourceManager->AssignMonolithBuffer(resource, gpu.get(), commandManager.get(), resource->MemoryProperties, static_cast<VkDeviceSize>(256));
+    }
 }
 void Nova::AllocateToMonoliths(){
    
@@ -365,15 +415,6 @@ Nova::Builder& Nova::Builder::WithResourceManager(){
     return *this;
 }
 
-Nova::Builder& Nova::Builder::WithResourceMap(std::unordered_map<std::string, BufferResource>&& resourceMap){
-    resourceManager->SetResourceMap(std::move(resourceMap));
-    return *this;
-}
-
-Nova::Builder& Nova::Builder::WithResourceMap(){
-
-    return *this;
-}
 
 Nova::Builder& Nova::Builder::WithMeshes(std::unordered_map<std::string, Mesh>&& meshes){
     

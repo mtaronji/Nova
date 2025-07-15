@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include "NovaConstants.hpp"
+#include "BufferOps.hpp"
 class GPU;
 
 /// <summary>
@@ -9,103 +10,65 @@ class GPU;
 /// </summary>
 /// 
 /// 
-
-
+enum class ResourceType{
+    IMAGE,
+    BUFFER,
+    NOT_SET
+};
 
 class Resource {
 public:
 
-    Resource(uint32_t copies, uint32_t set, uint32_t binding)
-        : copies(copies), set(set), binding(binding) {
-       
+    Resource(uint32_t copies, VkMemoryPropertyFlags memoryProperties)
+        : Copies(copies), MemoryProperties(memoryProperties){
+            
+       auto requestsHostVisibleMemory = (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+       auto requestedDeviceMemory = (memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+       assert(requestsHostVisibleMemory != requestedDeviceMemory && "Can only specify host visible memory or device memory");
+
     }
     Resource(Resource&& other) noexcept
-        : copies(other.copies),
-        set(other.set),
-        binding(other.binding),
-        memory(other.memory),
-        buffer(other.buffer),
-        image(other.image),
-        kind(other.kind),
-        needsUpdate(other.needsUpdate),
-        descriptorType(other.descriptorType),
-        data(other.data),
-        dataSize(other.dataSize),
-        previousSize(other.previousSize),
-        arraySize(other.arraySize)
+        : Copies(other.Copies),
+        Memory(other.Memory),
+        Data(other.Data),
+        DataSize(other.DataSize),
+        MemoryProperties(other.MemoryProperties)
     {
-        other.memory = VK_NULL_HANDLE;
-        other.buffer = VK_NULL_HANDLE;
-        other.image = VK_NULL_HANDLE;
-        other.data = nullptr;
+        other.Memory = VK_NULL_HANDLE;
+        other.Data = nullptr;
+        other.Copies = 0;
+        other.DataSize = 0;
     }
 
     Resource& operator=(Resource&& other) noexcept {
 
         if (this != &other) {
-            copies = other.copies;
-            set = other.set;
-            binding = other.binding;
-            memory = other.memory;
-            needsUpdate = other.needsUpdate;
-            buffer = other.buffer;
-            image = other.image;
-            kind = other.kind;
-            data = other.data;
-            dataSize = other.dataSize;
-            arraySize = other.arraySize;
-            previousSize = other.previousSize;
-            descriptorType = other.descriptorType;
-
-            other.memory = VK_NULL_HANDLE;
-            other.buffer = VK_NULL_HANDLE;
-            other.image = VK_NULL_HANDLE;
-             
+            Copies = other.Copies;
+            Memory = other.Memory;
+            Data = other.Data;
+            DataSize = other.DataSize;
+            MemoryProperties = other.MemoryProperties;
+            other.Memory = VK_NULL_HANDLE;          
         }
         return *this;
     }
 
+    size_t GetAlignedDataSize(VkDeviceSize alignment){
+        return BufferOps::AlignUp(DataSize, alignment);
+    }
     virtual ~Resource() = default;
-
-    uint32_t GetBinding() const { return binding; }
-    uint32_t GetSet() const { return set; }
-
-    uint32_t GetCopyCount() const { return copies; }
-    bool NeedsUpdate() const { return needsUpdate; }
-    void* GetData() const { return data; }
-    //void Upload(void* srcData, VkDeviceSize dataSize, uint32_t arraySize = NOT_SET);
-    VkBuffer& GetBuffer() { 
-        assert(kind == ResourceKind::Buffer && "GetBuffer() called on non-buffer resource");
-        return buffer; 
-    }
-    VkImage& GetImage() { 
-        assert(kind == ResourceKind::Image && "GetBuffer() called on non-buffer resource");
-        return image; 
-    }
 
     virtual void Cleanup(GPU* gpu) = 0;
 
+    uint32_t Copies;
+    VkDeviceMemory Memory = VK_NULL_HANDLE;
+    void* Data = nullptr;
+    size_t DataSize = 0;
+    ResourceType resourceType = ResourceType::NOT_SET;
+    VkMemoryPropertyFlags MemoryProperties;
+
 protected:
-    VkDescriptorType descriptorType{};
-    uint32_t copies;
-    uint32_t set;
-    uint32_t binding;
-    VkDeviceMemory memory = VK_NULL_HANDLE;
-    bool needsUpdate = true;
-    void* data = nullptr;
-    enum class ResourceKind {
-        Buffer,
-        Image,
-        None,
-    } kind = ResourceKind::None;
-
-    VkBuffer buffer = VK_NULL_HANDLE;
-    VkImage image = VK_NULL_HANDLE;
-
-    size_t dataSize = 0;
-    size_t previousSize = 0;
-    uint32_t arraySize = NOT_SET;  //for indice data
-
+   
 private:
  
 };

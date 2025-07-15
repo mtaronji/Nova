@@ -181,6 +181,16 @@ VkDeviceSize BufferOps::AlignUp(VkDeviceSize value, VkDeviceSize alignment) {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
+//11111111 = 255 = 256 - 1
+//00000000_00000000_00000000_00000000   all zeros 4 byte number
+//00000000_00000000_00000001_00000000 = 256 
+//so if alignment is 256 and we want to see if 1000 is aligned what we are doing is this
+// ~(256 - 1) = ~(255) = //11111111_11111111_1111111_00000000
+//1000 + 256 - 1 = (1255) = //00000000_00000000_00000100_11100111
+//now to get the alignment you do 
+//11111111_11111111_1111111_00000000 & 00000000_00000000_00000100_11100111
+//bascially to be 256 aligned means all bits less than the 256th bit will be zero because all bits greater are 256 aligned as the are multiples of 256
+ 
 uint32_t BufferOps::FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);

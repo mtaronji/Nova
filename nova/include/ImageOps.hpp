@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
+#include <memory>
 #include "GPU.hpp"
 
 
@@ -10,7 +11,7 @@ class ImageOps {
 
     public:
         static void CreateImage(
-            GPU* gpu,
+            std::shared_ptr<GPU> gpu,
             uint32_t width,
             uint32_t height,
             uint32_t mipLevels,
@@ -28,7 +29,7 @@ class ImageOps {
         );
 
         static void CreateImageView(
-            GPU* gpu,
+            std::shared_ptr<GPU> gpu,
             VkImage image,
             VkFormat format,
             VkImageAspectFlags aspectFlags,
@@ -38,9 +39,21 @@ class ImageOps {
             VkImageView& imageView
         );
 
-        static void CreateSampler(
-            GPU* gpu,
-            uint32_t mipLevels,
+        static void CreateSampler(std::shared_ptr<GPU> gpu, 
+            uint32_t mipLevels, 
+            VkFilter magFilter,
+            VkFilter minFilter,
+            VkSamplerMipmapMode mipmapmode,
+            VkSamplerAddressMode addressModeU,
+            VkSamplerAddressMode addressNodeV,
+            VkSamplerAddressMode addressNodeW,
+            float mipLodBias,
+            VkBool32 anisotrophyEnable,
+            float maxAnisotrophy,
+            float minLod,
+            float maxLod,
+            VkBorderColor borderColor,
+            VkBool32 unnormalizedCoordinates,
             VkSampler& sampler
         );
 };

@@ -1,6 +1,6 @@
 #include "Shell.hpp"
 
-
+using SECONDS = std::chrono::duration<float>;
 Shell::Shell(){
     InitWindow();
     
@@ -25,18 +25,22 @@ void Shell::MainLoop(IRenderLoopClient* app) {
     const float fixedDeltaTime = 1.0f / 60.0f;
     const float targetFrameTime = 1.0f / 144.0f; // 144 FPS cap
     TimePoint previousTime = Clock::now();
+    TimePoint t1, t2;
     float accumulator = 0.0f;
-
+    float deltaTime = 0.0f;
     while (!glfwWindowShouldClose(this->window)) {
+        
+        t1 = Clock::now();
         glfwPollEvents();
-
-        TimePoint currentTime = Clock::now();
-        std::chrono::duration<float> elapsed = currentTime - previousTime;
-        float deltaTime = elapsed.count();
-
+        t2 = Clock::now();
+        SECONDS e = t2 - t1;
+        std::cout <<"glfw polling takes :" << 1.0f / e.count() << std::endl;
         app->Update(fixedDeltaTime); 
         app->Render();
 
+        TimePoint currentTime = Clock::now();
+        std::chrono::duration<float> elapsed = currentTime - previousTime;
+        deltaTime = elapsed.count();
         // Print FPS based on full frame time (including update+render+sleep)
         std::cout << "FPS : " << 1.0f / deltaTime << std::endl;
 

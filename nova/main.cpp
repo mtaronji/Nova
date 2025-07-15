@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib> // randcolor
 #include <ctime>  
+#include <unordered_set>
 
 int main() {
     srand(static_cast<unsigned>(time(nullptr)));
@@ -18,8 +19,8 @@ int main() {
         .WithCommandManager()
         .WithResourceManager()
         .WithMeshes()
-        .WithResourceMap()
         .WithDescriptorSets()
+        .WithTextures({"Texturelabs_InkPaint_394S.jpg"})
         .Build();
 
 

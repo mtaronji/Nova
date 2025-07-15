@@ -34,6 +34,14 @@ class PipelineManager {
         std::vector<uint32_t> GetDescriptorSetIndexes() { return descriptorSetIndexes; }
         VkPushConstantRange& GetPushConstantRange(uint32_t index) {return pushConstantRanges[index]; }
 
+        std::vector<uint32_t> GetDescriptorSetsSizes(uint32_t maxFrames){
+            std::vector<uint32_t> setCopies;
+            for(auto & b : this->descriptorFile->descriptorSetsInfo){
+                setCopies.push_back(b.scope == DesciptorUsageScope::USAGE_SCOPE_PER_FRAME ? maxFrames : 1);
+            }
+            return setCopies;
+        }
+
         void LoadConfig(const std::string configFile);
 
         std::vector<std::vector<VkDescriptorSetLayoutBinding>>& GetDescriptorSetBindings() {

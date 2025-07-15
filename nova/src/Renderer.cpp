@@ -15,7 +15,10 @@
 #include "FramebufferLibrary.hpp"
 #include "PushConstants.hpp"
 #include "Mesh.hpp"
+#include <chrono>
 
+#define NOW std::chrono::high_resolution_clock::now()
+#define SECONDS std::chrono::duration<float>
 void Renderer::Cleanup(){
    
 }
@@ -84,6 +87,7 @@ void Renderer::BindPipeline(std::string pipelineKey){
 void Renderer::AllocateAndUpdateDescriptorSets(std::string pipelineKey){
     
     auto pipelineManager = pipelineLibrary->GetPipeline(pipelineKey);
+    auto descriptorSetCopies = pipelineManager->GetDescriptorSetsSizes(MAX_FRAMES); //1 indexed
     auto& layouts = pipelineManager->GetDescriptorSetLayouts();
     auto& pipelineBindings = pipelineManager->GetDescriptorSetBindings();
     assert(pipelineBindings.size() == layouts.size());
@@ -98,47 +102,16 @@ void Renderer::AllocateAndUpdateDescriptorSets(std::string pipelineKey){
     auto& descriptorSetResources = resourceManager->GetDescriptorSets(pipelineKey);      //[set][binding]
 
     assert(descriptorSetResources.size() == layouts.size());
+    assert(layouts.size() == descriptorSetCopies.size());
 
-    //check all the resouces and make sure all descriptor sets have the same number of copies
-    //if we specify resources with different copies, this is an error
-    //all descriptors from a set should request the same number of resources
-    //set 0 might have 4 copies
-    //set 1 might have just 1 copy for all it's resources, etc
-    std::vector<uint32_t> descriptorSetCopies = {};
-    for(uint32_t set = 0; set < descriptorSetResources.size(); set++){
-        auto& resources = descriptorSetResources[set];
-        auto copies = resources[0].GetCopyCount();  //each set should have the same amount of copies as they are set for the whole set. 
-        descriptorSetCopies.push_back(copies);
-        for(uint32_t binding = 0; binding < resources.size(); binding++){
-            assert(resources[binding].GetCopyCount() == copies);
-        }
-    }
     for(uint32_t i = 0; i < layouts.size(); i++){
-        auto copies = descriptorSetCopies[i];
-        //if the descriptor set is only requesting 1 copy, we will copy what we allocate multiple times. Each frame requests the same descriptor set
-        //please note anything that might change per frame should not be allocated this way
-        //we are updating the descriptor sets with the buffer info as soon as we allocate
-        if(copies == 1){
+        for(auto copy = 0; copy < descriptorSetCopies[i]; copy++){
             VkDescriptorSet set;
             descriptorAllocator->AllocateDescriptorSet(set, layouts[i]); 
-            resourceManager->UpdateDescriptorSet(pipelineKey, set, layouts[i], pipelineBindings[i], i, 1);
-            for(uint32_t frame = 0; frame < MAX_FRAMES; frame++){          
-                pipelineDescriptorSets[pipelineKey][frame][i] = set;
-            }   
-        }
-        //if the descriptor is requesting per frame, we will allocate a descriptor set for each frame. 
-        else if(copies == MAX_FRAMES){
-            auto descriptorSets = std::vector<VkDescriptorSet>(MAX_FRAMES);
-            for(uint32_t frame = 0; frame < MAX_FRAMES; frame++){          
-                descriptorAllocator->AllocateDescriptorSet(descriptorSets[frame], layouts[i]); 
-                resourceManager->UpdateDescriptorSet(pipelineKey, descriptorSets[frame], layouts[i], pipelineBindings[i], i, frame);
-                pipelineDescriptorSets[pipelineKey][frame][i] = descriptorSets[frame];       
-            }   
-        }
-        else{
-            throw std::runtime_error("descriptors can be allocated per frame or must be singular (just 1).");
-        }
-    } 
+            resourceManager->UpdateDescriptorSet(pipelineKey, set, layouts[i], pipelineBindings[i], i, copy);
+            pipelineDescriptorSets[pipelineKey][copy][i] = set;      
+        }     
+    }
 }
 
 void Renderer::AllocateDescriptorSets(std::string pipelineKey) {
@@ -152,8 +125,11 @@ void Renderer::DrawFrame() {
     auto presentQueue = gpu->GetPresentQueue();
     auto commandbuffer = commandmanager->GetCommandBuffer(currentFrame);
 
+    auto t1 = NOW;
     // Wait for the fence of the current frame to ensure the GPU has finished processing it.
     vkWaitForFences(device, 1, &frame.inFlight, VK_TRUE, UINT64_MAX);
+    auto t2 = NOW;
+    SECONDS e = (t2 - t1);  std::cout<< 1.0f / e.count() << std::endl;
 
     uint32_t imageIndex;
     // Acquire the next available swapchain image, signal frame.imageAvailable semaphore when ready
@@ -182,8 +158,13 @@ void Renderer::DrawFrame() {
     vkResetFences(device, 1, &frame.inFlight);
 
     // Reset command buffer before recording commands for this frame
+
     vkResetCommandBuffer(commandbuffer, 0);
+
+    t1 = NOW;
     DrawFrameCommands(commandbuffer, imageIndex);
+    t2 = NOW;
+    e = (t2 - t1);  std::cout<<"DRAW FRAME TAKES : " <<1.0f / e.count() << std::endl;
 
     // Submit info
     VkSubmitInfo submitInfo{};
@@ -202,10 +183,10 @@ void Renderer::DrawFrame() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
+
     if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frame.inFlight) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
-
     // Present the rendered image
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -290,14 +271,14 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
     scissor.offset = {0, 0};
     scissor.extent = extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-    
+
     auto& square = resourceManager->GetMesh("square");
-    auto& vbuffer = square.vertexResource.GetBuffer();
-    auto& ibuffer = square.indiceResource.GetBuffer();
+    auto& vbuffer = square.vertexResource->Buffer;
+    auto& ibuffer = square.indiceResource->Buffer;
         
     if (vbuffer != VK_NULL_HANDLE) {
            
-        VkDeviceSize offsets[] = {square.vertexResource.GetOffSet() + square.vertexResource.GetAlignedDataSize(256) * currentFrame};
+        VkDeviceSize offsets[] = {square.vertexResource->Offset + square.vertexResource->GetAlignedDataSize(256) * currentFrame};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbuffer, offsets);
         vkCmdBindDescriptorSets(commandBuffer, 
                                 VK_PIPELINE_BIND_POINT_GRAPHICS, 
@@ -310,7 +291,7 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
 
         if(ibuffer != VK_NULL_HANDLE){
             vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT16);
-            uint32_t arrayCount = square.indiceResource.GetArraySize();
+            uint32_t arrayCount = square.indiceResource->ArraySize;
             vkCmdDrawIndexed(commandBuffer, arrayCount, 1, 0, 0, 0);
         }
     }

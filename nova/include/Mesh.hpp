@@ -5,6 +5,7 @@
 #include "CommandManager.hpp"
 #include "Vertex.hpp"
 #include <vector>
+#include <memory>
 
 struct BoundingBox {
     glm::vec3 min;  // Minimum corner (lowest x, y, z)
@@ -62,42 +63,17 @@ struct Mesh {
     ~Mesh(){
        
     }
-    Mesh(Mesh&& other) noexcept 
-        :vertexResource(std::move(other.vertexResource)), indiceResource(std::move(other.indiceResource)), 
-         visible(std::move(other.visible)), 
-         verticeOffset(std::move(other.verticeOffset)), indiceOffset(std::move(other.indiceOffset)) {
-        
-        this->aabb = other.aabb;
-        this->modelMatrix = other.modelMatrix;
-        
-    }
 
-    Mesh& operator= (Mesh&& other) noexcept {
-        
-        if (this != &other) {
-            this->vertexResource = std::move(other.vertexResource);
-            this->indiceResource = std::move(other.indiceResource);
-            this->modelMatrix = other.modelMatrix;
-            this->aabb = other.aabb;
-            this->visible = std::move(other.visible);
-            this->verticeOffset = std::move(other.verticeOffset);
-            this->indiceOffset = std::move(other.indiceOffset);
-            *this = std::move(other);
-        }
-        return *this;
-
-    }
-
-    static Mesh Create(BufferResource&& vertices, BufferResource&& indices, glm::mat4 modelMatrix =  glm::mat4(1.0f)){
-        return Mesh(std::move(vertices), std::move(indices), modelMatrix);
+    static Mesh Create(std::shared_ptr<BufferResource> vertices, std::shared_ptr<BufferResource>indices, glm::mat4 modelMatrix =  glm::mat4(1.0f)){
+        return Mesh(vertices,indices, modelMatrix);
     }
     void Cleanup(GPU *gpu){
     
     }
 
     void CreateGPUResources(GPU* gpu, CommandManager* commandManager){
-        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, vertexResource.GetData(), vertexResource.GetDataSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexResource.GetBuffer(), vertexResource.GetMemory(),verticeOffset, 0);
-        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, indiceResource.GetData(), indiceResource.GetDataSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indiceResource.GetBuffer(), indiceResource.GetMemory(), indiceOffset, 0);
+        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, vertexResource->Data, vertexResource->DataSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexResource->Buffer, vertexResource->Memory,verticeOffset, 0);
+        BufferOps::EnsureDeviceBuffer(*gpu, *commandManager, indiceResource->Data, indiceResource->DataSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indiceResource->Buffer, indiceResource->Memory, indiceOffset, 0);
     }
 
     void Bind(VkCommandBuffer cmdBuffer){
@@ -114,12 +90,12 @@ struct Mesh {
     
     glm::mat4 modelMatrix;
     BoundingBox aabb;
-    BufferResource vertexResource;  // represents the vertices
-    BufferResource indiceResource;  // represents the order you draw them in
+    std::shared_ptr<BufferResource> vertexResource;  // represents the vertices
+    std::shared_ptr<BufferResource> indiceResource;  // represents the order you draw them in
     bool visible = true;
 
     protected:
-        Mesh(BufferResource&& vertices, BufferResource&& indices, glm::mat4 modelMatrix):
+        Mesh(std::shared_ptr<BufferResource> vertices, std::shared_ptr<BufferResource> indices, glm::mat4 modelMatrix):
         vertexResource(std::move(vertices)), indiceResource(std::move(indices)){
     
             this->modelMatrix = modelMatrix; 
