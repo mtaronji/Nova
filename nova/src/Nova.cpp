@@ -149,7 +149,7 @@ Nova::Builder& Nova::Builder::WithTextures(std::unordered_set<std::string> files
         if (files.find(filename) != files.end()) {
 
             int width, height, channels; unsigned char* image_data = nullptr;
-            image_data = stbi_load(f.path().c_str(), &width, &height, &channels, STBI_rgb_alpha);
+            image_data = stbi_load(f.path().string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
             assert(image_data && "image data is null");
 
             VkImage textureImage = VK_NULL_HANDLE;
