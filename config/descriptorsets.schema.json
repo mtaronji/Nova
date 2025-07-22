@@ -80,6 +80,26 @@
                     ]
                   }
                 }
+              },
+              "if": {
+                "properties": {
+                  "descriptorType": {
+                    "enum": [ "combinedImageSampler", "sampledImage" ]
+                  }
+                }
+              },
+              "then": {
+                "required": [ "layers", "mipLevels" ],
+                "properties": {
+                  "mipLevels": {
+                    "type": "number",
+                    "description": "mip levels "
+                  },
+                  "layers": {
+                    "type": "number",
+                    "description": "layer count"
+                  }
+                }
               }
             }
           }

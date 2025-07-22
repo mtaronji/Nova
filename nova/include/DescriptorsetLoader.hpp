@@ -6,6 +6,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <json.hpp>
+#include <optional>
 
 enum DesciptorUsageScope {
     USAGE_SCOPE_PER_FRAME,
@@ -17,7 +18,6 @@ struct DescriptorSetInfo {
     std::vector<VkDescriptorSetLayoutBinding> descriptorBindings;
     DesciptorUsageScope scope = USAGE_SCOPE_SINGULAR;
     std::unordered_map<VkDescriptorType, uint32_t> descriptorCounts;
-
 };
 
 struct DescriptorFile {
@@ -25,7 +25,8 @@ struct DescriptorFile {
     std::vector<std::vector<VkDescriptorSetLayoutBinding>> setsBindings;
     std::vector<std::vector<std::string>> descriptorNames; //per set per binding
     std::string fileName;
-
+    std::vector<std::vector<std::optional<uint32_t>>> requestedLayers;           //only for use in images thus optional
+    std::vector < std::vector<std::optional<uint32_t>>> requestedMipLevels;      //only for use in images thus optional
     std::vector<std::vector<VkDescriptorSetLayoutBinding>>& GetDescriptorBindings() {
         return setsBindings;
     }

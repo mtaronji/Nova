@@ -29,8 +29,11 @@ void Shell::MainLoop(IRenderLoopClient* app) {
     float accumulator = 0.0f;
     float deltaTime = 0.0f;
     while (!glfwWindowShouldClose(this->window)) {
-        
+        t1 = Clock::now();
         glfwPollEvents();                //on wsl this will limit your refresh to roughly 100fps. Performance test on native linux or windows
+        t2 = Clock::now();
+        SECONDS e = t2 - t1;
+        std::cout << "GLFW poll events takes :" <<1.0f/ e.count() << " FPS" << std::endl;
         app->Update(deltaTime); 
         app->Render();
 

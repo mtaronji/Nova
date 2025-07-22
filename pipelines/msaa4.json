@@ -12,13 +12,13 @@
       "depthClampEnable": false,
       "rasterizerDiscardEnable": false,
       "polygonMode": "fill",
-      "cullMode": "none",
+      "cullMode": "back",
       "depthBiasEnable": false,
       "frontFace": "counter_clockwise",
       "lineWidth": 1.0
     },
     "renderpasskey": "msaa4.json",
-    "vertextype": "pc",
+    "vertextype": "pntc",
     "multisampling": {
         "sampleShadingEnable": true,
         "rasterizationSamples":4,

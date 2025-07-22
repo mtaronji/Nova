@@ -29,33 +29,13 @@ class CommandManager {
         void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
         void RecordGraphicsPipelineCommandBuffer(VkCommandBuffer commandBuffer, uint32_t currentFrame, RenderPassManager& renderPassManager, PipelineManager& pipelinemanager);
 
-        class Builder{
-
-            //buildCommand buffer
-            public:
-                Builder& BeginCommandBufferCmd(VkCommandBuffer& commandBuffer, VkCommandBufferBeginInfo beginInfo){
-                    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-                        throw std::runtime_error("failed to begin recording command buffer!");
-                    }
-                }
-                Builder& BeginRenderPassCmd();
-                Builder& BindGraphicsPipelineCmd();
-                Builder& BindViewportCmd();
-                Builder& BindScissorCmd();
-                Builder& BindVertexBufferCmd();
-                Builder& BindIndexBufferCmd();
-                Builder& BindDescriptorSetsCmd();
-                Builder& DrawIndexedCmd();
-
-            private:
-
-        };
 
     protected:
         std::shared_ptr<GPU> gpu;
 
-        VkCommandPool commandPool = VK_NULL_HANDLE;
+        VkCommandPool commandPool = VK_NULL_HANDLE; //graphics pool
         std::vector<VkCommandBuffer> commandBuffers;
+        VkCommandBuffer SingleCommand;
 
     private:
         uint32_t MAX_FRAMES;

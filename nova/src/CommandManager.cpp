@@ -12,6 +12,7 @@ void CommandManager::CreateCommandPool(){
 }
 
 void CommandManager::AllocateCommandBuffers() {
+    //first allocate the cmd buffers for drawing in the render pipeline
     commandBuffers.resize(MAX_FRAMES);
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -20,9 +21,9 @@ void CommandManager::AllocateCommandBuffers() {
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = MAX_FRAMES;
 
-    if (vkAllocateCommandBuffers(gpu->GetVkDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate command buffers!");
-    }
+    auto result = vkAllocateCommandBuffers(gpu->GetVkDevice(), &allocInfo, commandBuffers.data());
+    assert(result == VK_SUCCESS);
+
 }
 
 VkCommandBuffer CommandManager::BeginSingleTimeCommands() {

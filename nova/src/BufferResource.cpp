@@ -5,8 +5,8 @@
 #include <cstring>
 
 
-BufferResource::BufferResource(VkBufferUsageFlags usage, uint32_t copies, VkMemoryPropertyFlags memoryProperties)
-:Resource(copies,memoryProperties), Usage(usage){
+BufferResource::BufferResource(std::shared_ptr<GPU> gpu,VkBufferUsageFlags usage, uint32_t copies, VkMemoryPropertyFlags memoryProperties)
+:Resource(gpu,copies,memoryProperties), Usage(usage){
 
     bool hasMoreThanOneBitSet = (usage & (usage - 1)) != 0;
     assert(!hasMoreThanOneBitSet && "Only one buffer usage should be specified");
@@ -27,7 +27,7 @@ void BufferResource::Upload(void* srcData, VkDeviceSize dataSize, uint32_t array
 }
 
 
-void BufferResource::Cleanup(GPU* gpu){
+void BufferResource::Cleanup(){
 
     if(Data){
         free(Data);

@@ -44,9 +44,7 @@ Renderer::Renderer(
         frameinfo.iResolution = {extent.width, extent.width};   
 
         this->MAX_FRAMES = swapchainmanager->GetImageCount();
-        imagesInFlight.resize(MAX_FRAMES, VK_NULL_HANDLE);
-        
-        
+             
 }
 
 void Renderer::SetFrameTime(float deltaTime){
@@ -90,8 +88,9 @@ void Renderer::AllocateAndUpdateDescriptorSets(std::string pipelineKey){
     auto descriptorSetCopies = pipelineManager->GetDescriptorSetsSizes(MAX_FRAMES); //1 indexed
     auto& layouts = pipelineManager->GetDescriptorSetLayouts();
     auto& pipelineBindings = pipelineManager->GetDescriptorSetBindings();
+    auto descriptorFile = pipelineManager->GetDescriptorFile();
     assert(pipelineBindings.size() == layouts.size());
-
+    
     //create the sizes
     //we want our descriptor sets to have frame set layout
     //all descriptor sets that don't need copies will just copy the one descriptor into all sets
@@ -103,15 +102,30 @@ void Renderer::AllocateAndUpdateDescriptorSets(std::string pipelineKey){
 
     assert(descriptorSetResources.size() == layouts.size());
     assert(layouts.size() == descriptorSetCopies.size());
+    
 
-    for(uint32_t i = 0; i < layouts.size(); i++){
-        for(auto copy = 0; copy < descriptorSetCopies[i]; copy++){
+
+    for (uint32_t i = 0; i < layouts.size(); i++) {
+        if (descriptorFile->descriptorSetsInfo[i].scope == DesciptorUsageScope::USAGE_SCOPE_PER_FRAME) {
+            for (uint32_t frame = 0; frame < MAX_FRAMES; frame++) {
+                VkDescriptorSet set;
+                descriptorAllocator->AllocateDescriptorSet(set, layouts[i]);
+                resourceManager->UpdateDescriptorSet(pipelineKey, set, layouts[i], pipelineBindings[i], i, frame);
+                pipelineDescriptorSets[pipelineKey][frame][i] = set;
+            }
+        }
+        else if(descriptorFile->descriptorSetsInfo[i].scope == DesciptorUsageScope::USAGE_SCOPE_SINGULAR) {
             VkDescriptorSet set;
-            descriptorAllocator->AllocateDescriptorSet(set, layouts[i]); 
-            resourceManager->UpdateDescriptorSet(pipelineKey, set, layouts[i], pipelineBindings[i], i, copy);
-            pipelineDescriptorSets[pipelineKey][copy][i] = set;      
-        }     
+            descriptorAllocator->AllocateDescriptorSet(set, layouts[i]);
+            resourceManager->UpdateDescriptorSet(pipelineKey, set, layouts[i], pipelineBindings[i], i, 0);
+  
+            for (uint32_t frame = 0; frame < MAX_FRAMES; frame++) {
+                pipelineDescriptorSets[pipelineKey][frame][i] = set;
+            }
+        }
     }
+    
+    
 }
 
 void Renderer::AllocateDescriptorSets(std::string pipelineKey) {
@@ -138,7 +152,7 @@ void Renderer::DrawFrame() {
         VK_NULL_HANDLE,
         &imageIndex
     );
-
+  
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         RecreateSwapchain();
         return;
@@ -146,12 +160,7 @@ void Renderer::DrawFrame() {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-    // If another frame is using this image, wait for its fence to ensure it finished
-    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
-        vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-    }
-
-    // Reset fence for this frame to unsignaled state, ready for the GPU to signal it later
+    //// Reset fence for this frame to unsignaled state, ready for the GPU to signal it later
     vkResetFences(device, 1, &frame.inFlight);
 
     // Reset command buffer before recording commands for this frame
@@ -286,16 +295,17 @@ void Renderer::DrawFrameCommands(VkCommandBuffer commandBuffer,
 
         if(ibuffer != VK_NULL_HANDLE){
             vkCmdBindIndexBuffer(commandBuffer, ibuffer, 0, VK_INDEX_TYPE_UINT16);
-            uint32_t arrayCount = square.indiceResource->ArraySize;
+            uint16_t arrayCount = square.indiceResource->ArraySize;
             vkCmdDrawIndexed(commandBuffer, arrayCount, 1, 0, 0, 0);
+      
         }
     }
 
     vkCmdEndRenderPass(commandBuffer);
 
-    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to record command buffer!");
-    }  
+    auto result = vkEndCommandBuffer(commandBuffer);
+    assert(result == VK_SUCCESS);
+     
 }
 
 

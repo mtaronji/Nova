@@ -88,7 +88,7 @@ struct alignas(16) VertexPNT {
         if (location == 0) return offsetof(VertexPNT, pos);
         if (location == 1) return offsetof(VertexPNT, normal);
         if (location == 2) return offsetof(VertexPNT, texCoord);
-        throw std::runtime_error("Incorrect Location specified for VertexPC: " + std::to_string(location));
+        throw std::runtime_error("Incorrect Location specified for VertexPNT: " + std::to_string(location));
     }
 
     static VkVertexInputBindingDescription GetBindingDescription() {
@@ -113,7 +113,7 @@ struct alignas(16) VertexPT {
     static uint32_t GetFieldOffset(int location) {
         if (location == 0) return offsetof(VertexPT, pos);
         if (location == 1) return offsetof(VertexPT, texCoord);
-        throw std::runtime_error("Incorrect Location specified for VertexPC: " + std::to_string(location));
+        throw std::runtime_error("Incorrect Location specified for VertexPT: " + std::to_string(location));
     }
     static VkVertexInputBindingDescription GetBindingDescription() {
         return {0, sizeof(VertexPT), VK_VERTEX_INPUT_RATE_VERTEX};
@@ -143,7 +143,8 @@ struct alignas(16) VertexPNTC {
         if (location == 1) return offsetof(VertexPNTC, normal);
         if (location == 2) return offsetof(VertexPNTC, texCoord);
         if (location == 3) return offsetof(VertexPNTC, color);
-        throw std::runtime_error("Incorrect Location specified for VertexPC: " + std::to_string(location));
+
+        assert(false);
     }
 
     static VkVertexInputBindingDescription GetBindingDescription() {

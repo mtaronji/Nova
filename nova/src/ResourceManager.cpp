@@ -3,7 +3,8 @@
 #include "PipelineLibrary.hpp"
 #include "BufferOps.hpp"
 #include "GPU.hpp"
-
+#include <cassert>
+#include "ImageOps.hpp"
 ResourceManager::ResourceManager(std::shared_ptr<GPU> gpu) :gpu(gpu){
         
 }
@@ -76,6 +77,7 @@ void ResourceManager::InitializeDescriptorSetsResources(std::shared_ptr<Pipeline
         auto descriptorFileName = manager->GetDescriptorFileName();
         auto descriptorFile = descriptorFiles[descriptorFileName];
         auto descriptorNames = descriptorFile.descriptorNames; //flattened 2d vector of descriptor names
+        
         for (uint32_t set = 0; set < descriptorNames.size(); set++) {
 
             vector<shared_ptr<Descriptor>> bindings;          
@@ -86,11 +88,15 @@ void ResourceManager::InitializeDescriptorSetsResources(std::shared_ptr<Pipeline
                 auto& resource = this->resources.at(name);
 
                 if(resource->resourceType == ResourceType::BUFFER){
-                    std::shared_ptr<Descriptor> r = std::make_shared<BufferDescriptor>(BufferDescriptor(set,binding, descriptorCount, descriptorType, bufferDescriptors.at(name)));
+                    std::shared_ptr<Descriptor> r = std::make_shared<BufferDescriptor>(set,binding, descriptorCount, descriptorType, bufferDescriptors.at(name));
                     bindings.push_back(r);
                 }
                 else if(resource->resourceType == ResourceType::IMAGE){
-                    std::shared_ptr<Descriptor> r = std::make_shared<ImageDescriptor>(ImageDescriptor(set,binding, descriptorCount, descriptorType, imageDescriptors.at(name)));
+                    auto mipLevels = descriptorFile.requestedMipLevels[set][binding];
+                    auto layers = descriptorFile.requestedLayers[set][binding];
+                    assert(layers && mipLevels);
+
+                    std::shared_ptr<Descriptor> r = std::make_shared<ImageDescriptor>(set,binding, descriptorCount, descriptorType,layers.value(), mipLevels.value(), imageDescriptors.at(name));
                     bindings.push_back(r);
                 }
                 else{
@@ -116,13 +122,15 @@ void ResourceManager::UpdateDescriptorSet(std::string pipelineKey,
     auto& setResources = GetDescriptorSet(pipelineKey, setIndex);
     std::vector<VkWriteDescriptorSet> writes;
     std::vector<VkDescriptorBufferInfo> bufferInfos;
+    std::vector<VkDescriptorImageInfo> imageInfos;
     
     if(setResources.size() != pipelineDescriptorBindings.size()){ 
         throw std::runtime_error("descriptor resources for set is unequal to the bindings for it. Make sure config bindings and actual buffer resources are equal");
     }
 
     for (uint32_t binding = 0; binding < setResources.size(); ++binding) {
-        auto resource = setResources[binding]->GetResource();
+        auto descriptor = setResources[binding];
+        auto resource = descriptor->GetResource();
         if (auto ptr = std::get_if<std::shared_ptr<BufferResource>>(&resource)) {
             auto bufferResource = *ptr;
             auto initialOffset = bufferResource->Offset;
@@ -145,6 +153,32 @@ void ResourceManager::UpdateDescriptorSet(std::string pipelineKey,
             write.pBufferInfo = &bufferInfos.back();
 
             writes.push_back(write);
+        }
+        else if (auto ptr = std::get_if<std::shared_ptr<ImageResource>>(&resource)) {
+            auto imageResource = *ptr;
+            auto imageDescriptor = static_pointer_cast<ImageDescriptor>(descriptor);
+            auto key = imageDescriptor->key;
+            auto imageBundle = imageResource->GetTextureResolution(key);
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // or imageResource->ImageLayout    
+            imageInfo.imageView = imageBundle.ImageView;
+            imageInfo.sampler = imageBundle.Sampler;
+
+            imageInfos.push_back(imageInfo);
+
+            VkWriteDescriptorSet write{};
+            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet = descriptorSet;
+            write.dstBinding = binding;
+            write.dstArrayElement = 0;
+            write.descriptorType = setResources[binding]->DescriptorType; // likely VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+            write.descriptorCount = setResources[binding]->DescriptorCount;
+            write.pImageInfo = &imageInfos.back();
+
+            writes.push_back(write);
+        }
+        else {
+            assert(false && "only 2 types of resources ATM");
         }
     
     }
@@ -287,16 +321,23 @@ void ResourceManager::Cleanup(GPU * gpu){
     //clean up the resources
     //delete resources allocated with new
     for(auto& [key,resource] : resources){
-        resource->Cleanup(gpu);
+        resource->Cleanup();
         //delete(resource);  //all buffer resources allocated with new
     }
     for(auto& [key,mesh] : meshes){
         //for meshes we allocated using new for buffer resources for indices and vertexes as well as the encapsulating mesh
-        mesh.indiceResource->Cleanup(gpu);
-        mesh.vertexResource->Cleanup(gpu);
+        mesh.indiceResource->Cleanup();
+        mesh.vertexResource->Cleanup();
         //delete(mesh->indiceResource);
         //delete(mesh->vertexResource);
         //delete(mesh); // all meshes allocated with new
     }
-            
+
+    //clean staging buffer if it exists
+    //kill staging buffer 
+    if (ImageOps::stagingBuffer != VK_NULL_HANDLE) {
+        vkDestroyBuffer(gpu->GetVkDevice(), ImageOps::stagingBuffer, nullptr);
+        vkFreeMemory(gpu->GetVkDevice(), ImageOps::stagingMemory, nullptr);
+    }
+
 }

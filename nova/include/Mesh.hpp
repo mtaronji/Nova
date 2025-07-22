@@ -84,7 +84,9 @@ struct Mesh {
     }
 
     static std::vector<VertexPC> GenerateCubeVertices(bool solidColor = false);
+    static std::vector<VertexPNTC> GenerateCubeVerticesPNTC(bool solidColor = false);
     static std::vector<uint16_t> GetCubeIndices();
+    static std::vector<uint16_t> GetCubeIndicesPNTC();
     
 
     

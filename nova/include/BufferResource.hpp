@@ -10,7 +10,7 @@ class GPU;
 //this is for resources that go in buffers
 class BufferResource : public Resource {
 public:
-    BufferResource(VkBufferUsageFlags usage, uint32_t copies, VkMemoryPropertyFlags memoryProperties);
+    BufferResource(std::shared_ptr<GPU> gpu, VkBufferUsageFlags usage, uint32_t copies, VkMemoryPropertyFlags memoryProperties);
     BufferResource(const BufferResource&) = delete;
 
     BufferResource& operator=(const BufferResource&) = delete;
@@ -18,7 +18,7 @@ public:
     ~BufferResource() override = default;
     
     void Upload(void* srcData, VkDeviceSize dataSize, uint32_t arraySize = NOT_SET);
-    void Cleanup(GPU* gpu) override;
+    void Cleanup() override;
 
     VkBuffer Buffer = VK_NULL_HANDLE;
     size_t PreviousSize = 0;

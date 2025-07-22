@@ -22,8 +22,6 @@
 #include "ImageOps.hpp"
 #include <unordered_set>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 
 namespace fs = std::filesystem; // safe alias at global scope for this header
@@ -66,6 +64,7 @@ Nova::~Nova(){
     this->renderpassLibrary->Cleanup();
     this->swapchainManager->Cleanup(this->gpu->GetVkDevice());
     this->resourceManager->Cleanup(gpu.get());
+    
     this->gpu->Cleanup();
     this->engine->Cleanup();
 
@@ -87,6 +86,7 @@ void Nova::ObserveKeyPress(std::function<void(KeyPressEvent)> observer) {
 std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
     auto app = std::make_unique<Nova>(engine,shell,gpu,framebufferLibrary,syncManager,swapchainManager,pipelineLibrary,renderpassLibrary,commandManager, descriptorAllocator, resourceManager,descriptorFiles);
+    app->textureFiles = textureFiles;
 
     auto extent = app->swapchainManager->GetExtent();
     float aspectRatio = (float)extent.width / (float)extent.height;
@@ -116,7 +116,7 @@ void Nova::InitResources() {
     
     //create 3 copies of this uniform data
     uint32_t copies = MAX_FRAMES;  
-    auto cameraResource = std::make_shared<BufferResource>(
+    auto cameraResource = std::make_shared<BufferResource>( this->gpu,
         /*usage =*/ VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         /*copies = */ MAX_FRAMES,
         /*memory properties*/VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
@@ -125,82 +125,34 @@ void Nova::InitResources() {
     cameraResource->Upload(&this->sceneCamera, sizeof(this->sceneCamera), 0);
     resourceManager->SetResource("camera", cameraResource);
 
+    auto verticesResource = std::make_shared<BufferResource>(this->gpu,VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    auto indicesResource =  std::make_shared<BufferResource>(this->gpu,VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 1, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    auto vertices = Mesh::GenerateCubeVerticesPNTC(true);
+    auto indices = Mesh::GetCubeIndicesPNTC();
 
-    auto verticesResource = std::make_shared<BufferResource>(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, MAX_FRAMES, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    auto indicesResource =  std::make_shared<BufferResource>(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 1, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    auto vertices = Mesh::GenerateCubeVertices(false);
-    auto indices = Mesh::GetCubeIndices();
-
-    verticesResource->Upload(vertices.data(), vertices.size() * sizeof(VertexPC), vertices.size());
-    indicesResource->Upload(indices.data(), sizeof(uint32_t) * indices.size(), indices.size());
+    verticesResource->Upload(vertices.data(), vertices.size() * sizeof(VertexPNTC), vertices.size());
+    indicesResource->Upload(indices.data(), sizeof(uint16_t) * indices.size(), indices.size());
 
     auto mesh = Mesh::Create(verticesResource, indicesResource);
     resourceManager->SetMesh("square", std::move(mesh));
 
-    //create a texture resource
+    //create texture resources
+    for(const auto& img : textureFiles) {
+        auto textureResource = std::make_shared<ImageResource>(this->gpu, this->commandManager, img.c_str(), 1, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        resourceManager->SetResource("pinkink",textureResource);
+    }
+  
 }
 
 Nova::Builder& Nova::Builder::WithTextures(std::unordered_set<std::string> files) {
     
+    BufferOps::CreateBuffer(*gpu, ImageOps::currentStagingAllocationSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, ImageOps::stagingBuffer, ImageOps::stagingMemory);
     auto texturepath = std::filesystem::path(TEXTURE_FILES_DIRECTORY);
-    
     for (auto f : std::filesystem::directory_iterator(texturepath)) {
         auto filename = f.path().filename().string();
         if (files.find(filename) != files.end()) {
-
-            int width, height, channels; unsigned char* image_data = nullptr;
-            image_data = stbi_load(f.path().string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
-            assert(image_data && "image data is null");
-
-            VkImage textureImage = VK_NULL_HANDLE;
-            VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
-            VkImageView textureImageView = VK_NULL_HANDLE;
-            VkSampler sampler = VK_NULL_HANDLE;
-
-            ImageOps::CreateImage(this->gpu, width,height,
-                                    1,                               //mip levels
-                                    1,                               //array layers                                                                      
-                                    VK_SAMPLE_COUNT_1_BIT,           // samples (no MSAA)
-                                    VK_FORMAT_R8G8B8A8_SRGB,         // format (common 4-channel sRGB)
-                                    VK_IMAGE_TILING_OPTIMAL,         // tiling (optimal for GPU sampling)
-                                    VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, // usage (will copy data & sample)
-                                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,  // properties (GPU local memory)
-                                    VK_IMAGE_TYPE_2D,                // imageType (2D texture)
-                                    VK_IMAGE_LAYOUT_UNDEFINED,       // initialLayout (undefined before transition)
-                                    0,                              // createFlags (no special flags)
-                                    textureImage,
-                                    textureImageMemory);
-            
-            ImageOps::CreateImageView(this->gpu,textureImage,  
-                                    VK_FORMAT_R8G8B8A8_SRGB,
-                                    VK_IMAGE_ASPECT_COLOR_BIT,
-                                    VK_IMAGE_VIEW_TYPE_2D,
-                                    1,        // mipLevels
-                                    1,        // arrayLayers
-                                    textureImageView
-            );
-
-            ImageOps::CreateSampler(this->gpu,
-                                    1,
-                                    VK_FILTER_LINEAR,
-                                    VK_FILTER_LINEAR,
-                                    VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                    0.0f,
-                                    VK_TRUE,
-                                    16.0f,
-                                    0.0f,
-                                    1.0f,
-                                    VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-                                    VK_FALSE,
-                                    sampler
-            );
-
-
-        }
-      
+            textureFiles.push_back(f.path().string());
+        }  
     }
     return *this;
 }
@@ -240,9 +192,14 @@ void Nova::Init() {
         {
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = MAX_FRAMES 
+        },
+        {
+            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1
+
         }
     };
-    uint32_t maxSets = MAX_FRAMES; //currently only 4 descriptors should be coming out
+    uint32_t maxSets = MAX_FRAMES + 1; //currently only 4 descriptors should be coming out
 
     descriptorAllocator->CreateDescriptorSetPool(poolSizes, maxSets, 0);
     pipelineLibrary->CreateDescriptorSetLayouts(descriptorAllocator, &descriptorFiles);
@@ -288,8 +245,8 @@ void Nova::CreateMoniliths(){
     //ubo like camera don't need it
 
     VkBufferUsageFlags transfer = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000));  //uniform monolith
-    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | transfer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 1000)); //index and vertice buffers with transfer operations
+    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 10000));  //uniform monolith
+    resourceManager->CreateMonolith(gpu.get(), commandManager.get(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | transfer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<VkDeviceSize>(256 * 10000)); //index and vertice buffers with transfer operations
 }
 
 void Nova::AllocateMeshes(){
@@ -409,20 +366,16 @@ Nova::Builder& Nova::Builder::WithRenderpassLibrary(){
     
 }
 Nova::Builder& Nova::Builder::WithResourceManager(){
-    
     this->resourceManager = std::make_shared<ResourceManager>(gpu);
     return *this;
 }
 
-
 Nova::Builder& Nova::Builder::WithMeshes(std::unordered_map<std::string, Mesh>&& meshes){
-    
     resourceManager->SetMeshes(std::move(meshes));
     return *this;
 }
 Nova::Builder& Nova::Builder::WithMeshes(){
     
-  
     return *this;
 }
 

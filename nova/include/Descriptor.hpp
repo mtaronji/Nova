@@ -19,12 +19,11 @@ public:
     
     virtual ResourceVariant GetResource() = 0;
 
-    VkWriteDescriptorSet write;
     uint32_t Set;
     uint32_t Binding;
     uint32_t DescriptorCount;
     VkDescriptorType DescriptorType;
-    void WriteSet(VkDescriptorSet set){write.dstSet = set;}
+
 
 protected:
 
@@ -40,7 +39,7 @@ public:
         }
 
     ResourceVariant GetResource() override {return this->resource;}
-    void CreateWrites();
+
     std::shared_ptr<BufferResource> resource;
 protected:
     
@@ -48,16 +47,18 @@ protected:
 
 
 //this type of descriptor set is for image type resources. 
-//Think data that is 2 or 3 dimensional. Textures would be an example
+//Think data that is 2 or 3 dimensional. 
+//each image descriptor needs a 
 class ImageDescriptor : public Descriptor{
 public:
-    ImageDescriptor(uint32_t set, uint32_t binding, uint32_t descriptorCount, VkDescriptorType descriptorType, std::shared_ptr<ImageResource> resource)
-        :Descriptor(set, binding, descriptorCount, descriptorType), resource(resource)  {}
+    ImageDescriptor(uint32_t set, uint32_t binding, uint32_t descriptorCount, VkDescriptorType descriptorType,uint32_t layers, uint32_t mipLevels, std::shared_ptr<ImageResource> resource)
+        :Descriptor(set, binding, descriptorCount, descriptorType), resource(resource), key{ .mipLevels = mipLevels, .layers = layers } {
+    }
 
     ResourceVariant GetResource() override{return this->resource;}
-    void CreateWrites();
     std::shared_ptr<ImageResource> resource;
+    MipLayer key; //each descriptor for a texture should have it's layer count and mip level. We will then create this new texture if it doesn't exist or return it
 protected:
-  
-
+    
+ 
 };

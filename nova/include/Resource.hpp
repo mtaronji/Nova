@@ -19,8 +19,8 @@ enum class ResourceType{
 class Resource {
 public:
 
-    Resource(uint32_t copies, VkMemoryPropertyFlags memoryProperties)
-        : Copies(copies), MemoryProperties(memoryProperties){
+    Resource(std::shared_ptr<GPU> gpu, uint32_t copies, VkMemoryPropertyFlags memoryProperties)
+        : gpu(gpu),Copies(copies), MemoryProperties(memoryProperties){
             
        auto requestsHostVisibleMemory = (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
        auto requestedDeviceMemory = (memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -58,7 +58,7 @@ public:
     }
     virtual ~Resource() = default;
 
-    virtual void Cleanup(GPU* gpu) = 0;
+    virtual void Cleanup() = 0;
 
     uint32_t Copies;
     VkDeviceMemory Memory = VK_NULL_HANDLE;
@@ -68,7 +68,7 @@ public:
     VkMemoryPropertyFlags MemoryProperties;
 
 protected:
-   
+    std::shared_ptr<GPU> gpu;
 private:
  
 };

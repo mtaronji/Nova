@@ -30,24 +30,6 @@ PipelineManager* PipelineLibrary::GetPipeline(const std::string& name) {
     return pipelines.at(name);
 }
 
-//std::vector<std::vector<VkDescriptorSetLayoutBinding>> PipelineLibrary::GetAllDescriptorBindings(std::unordered_map<std::string, DescriptorFile>& descriptorFiles) {
-//    std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptorBindingsPerSet;
-//    for (auto& [key, pipelineManager] : pipelines) {
-//        auto descriptorFileName = pipelineManager->GetDescriptorFileName();
-//        auto descriptorFile = &descriptorFiles[descriptorFileName];
-//        pipelineManager->SetDescriptorFile(descriptorFile);
-//        auto& setsBindings = descriptorFile->GetDescriptorBindings();
-//        descriptorBindingsPerSet.insert(descriptorBindingsPerSet.begin(), setsBindings.begin(), setsBindings.end());
-//    }
-//    return descriptorBindingsPerSet;
-//}
-
-//take the pipelines empty layouts and create them from the bindings
-//void PipelineLibrary::CreateDescriptorSetLayouts(std::shared_ptr<DescriptorAllocator> descriptorAllocator){
-//     for(auto& [name, pipelineManager] : pipelines){
-//        descriptorAllocator->CreateDescriptorSetLayout(pipelineManager->GetDescriptorSetBindings(), pipelineManager->GetDescriptorSetLayouts());
-//     }
-//}
 
 void PipelineLibrary::CreateDescriptorSetLayouts(std::shared_ptr<DescriptorAllocator> descriptorAllocator, std::unordered_map<std::string, DescriptorFile>* descriptorFiles) {
     for (auto& [name, pipelineManager] : pipelines) {

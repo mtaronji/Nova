@@ -30,7 +30,8 @@ class PipelineManager {
         std::string GetRenderpassKey() const {return renderpassKey;}
         std::string GetVertexType() const {return vertexType;}
         std::string GetDescriptorFileName() const { return descriptorFileName; }
-        void SetDescriptorFile(DescriptorFile* file) { this->descriptorFile = file; }
+        void SetDescriptorFile(DescriptorFile* file) { this->descriptorFile = file; } 
+        DescriptorFile* GetDescriptorFile() { return this->descriptorFile; }
         std::vector<uint32_t> GetDescriptorSetIndexes() { return descriptorSetIndexes; }
         VkPushConstantRange& GetPushConstantRange(uint32_t index) {return pushConstantRanges[index]; }
 

@@ -11,6 +11,19 @@
         }
       ],
       "usageScope": "perFrame"
+    },
+    {
+      "descriptorSetLayout": [
+        {
+          "descriptorType": "combinedImageSampler",
+          "shaderStage": [ "fragment" ],
+          "descriptorCount": 1,
+          "name": "pinkink",
+          "layers": 1,
+          "mipLevels": 1          
+        }
+      ],
+      "usageScope": "singular"
     }
   ]
 }

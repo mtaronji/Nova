@@ -108,6 +108,7 @@ class Nova : public IRenderLoopClient{
                 std::shared_ptr<CommandManager> commandManager;
                 std::shared_ptr<ResourceManager> resourceManager;
                 std::unordered_map<std::string, DescriptorFile> descriptorFiles;
+                std::vector<std::string> textureFiles;
 
 
                 static std::vector<std::filesystem::path>  GetAllFiles(std::string repository);
@@ -147,6 +148,7 @@ class Nova : public IRenderLoopClient{
         glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);                  // Camera at z = 5
         glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.5f);            // Looking at center of square
         glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);           // Up direction
+        std::vector<std::string> textureFiles;
         
         
         virtual void CreateMoniliths();

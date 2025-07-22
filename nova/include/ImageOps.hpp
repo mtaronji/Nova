@@ -1,15 +1,20 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 #include <memory>
-#include "GPU.hpp"
 
-
+class CommandManager;
+class GPU;
 class ImageOps {
 
     ImageOps() = delete;
     ImageOps(const ImageOps&) = delete;
-
+  
     public:
+        static VkBuffer stagingBuffer;
+        static VkDeviceMemory stagingMemory;
+        static VkDeviceSize currentStagingOffset;
+        static VkDeviceSize currentStagingAllocationSize;
+
         static void CreateImage(
             std::shared_ptr<GPU> gpu,
             uint32_t width,
@@ -56,4 +61,29 @@ class ImageOps {
             VkBool32 unnormalizedCoordinates,
             VkSampler& sampler
         );
+
+        static void UploadToStaging(
+            std::shared_ptr<GPU> gpu,
+            VkDeviceSize imageSize,
+            const uint8_t* pixels);
+
+        static void TransitionImageLayout(
+            std::shared_ptr<GPU> gpu,
+            std::shared_ptr<CommandManager> cmdManager,
+            VkImage& image,
+            VkFormat format,
+            VkImageLayout currentLayout,
+            VkImageLayout requestedLayout,
+            uint32_t mipLevels,
+            uint32_t layerCount);
+
+        //only for tightly packed image data in the staging buffer
+        static void CopyBufferToImage(
+            std::shared_ptr<CommandManager> cmdManager,
+            VkBuffer buffer,
+            VkDeviceSize stagingBufferOffset,
+            VkImage image,
+            VkImageAspectFlags aspectMask,
+            uint32_t width,
+            uint32_t height);
 };

@@ -75,7 +75,7 @@ class Renderer {
         std::shared_ptr<Shell> shell;
         std::shared_ptr<DescriptorAllocator> descriptorAllocator;
         std::shared_ptr<ResourceManager> resourceManager;
-        std::vector<VkFence> imagesInFlight; // size = swapchain image count
+
 
         std::unordered_map<std::string, std::vector<std::vector<VkDescriptorSet>>> pipelineDescriptorSets;  ////[frame][set] //we set it like this when we allocate
    
