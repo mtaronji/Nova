@@ -32,7 +32,7 @@ Install dependencies:
 
     .\vcpkg install glfw3 glm freetype vulkan
 
-Integrate with build system:
+Integrate with build system. (This basically writes the vcpkg installed data into the props folder MS build uses):
 
     .\vcpkg integrate install
 
