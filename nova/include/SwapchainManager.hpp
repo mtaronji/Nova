@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <memory>
 #include <algorithm>
+#include "NovaConstants.hpp"
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -29,11 +30,11 @@ class SwapchainManager {
 
         VkSwapchainKHR GetSwapchain() const { return swapchain; }
         const std::vector<VkImageView>& GetImageViews() const { return imageViews; }
+        const std::vector<VkImage>& GetImages() const { return images; }
         VkFormat GetImageFormat() const { return imageFormat; }
         VkExtent2D GetExtent() const { return extent; }
         uint32_t GetImageCount() const { return imageCount;}
         void RechooseSwapExtent();
-        
 
         class Builder{
             public:
@@ -73,6 +74,7 @@ class SwapchainManager {
         VkPresentModeKHR presentMode;
         VkSurfaceFormatKHR surfaceFormat;
         SwapChainSupportDetails details;
+        uint32_t swapchainImageViewIndex = NOT_SET;
 
         void CreateImageViews(VkDevice device);
 };

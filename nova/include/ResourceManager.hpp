@@ -54,7 +54,7 @@ class ResourceManager{
         void SetResource(std::string key, std::shared_ptr<Resource> resource);
         shared_ptr<Resource> GetResource(string key);
 
-        void SetTexture(string key, ImageResource&& r);
+        //void SetTexture(string key, ImageResource&& r);
         void SetDescriptorFiles(unordered_map<string, DescriptorFile>& descriptorFiles) {
             this->descriptorFiles = descriptorFiles;
         }

@@ -66,10 +66,13 @@ void VulkanEngine::CreateSurface() {
         throw std::runtime_error("failed to create window surface!");
     }
 }
-void VulkanEngine::CreateInstance() {
-    
-    if (EnableValidationLayers && !CheckValidationLayerSupport()) {
-        throw std::runtime_error("validation layers requested, but not available!");
+void VulkanEngine::CreateInstance()
+{
+    if (EnableValidationLayers && !CheckValidationLayerSupport())
+    {
+        throw std::runtime_error(
+            "validation layers requested, but not available!"
+        );
     }
 
     VkApplicationInfo appInfo{};
@@ -78,32 +81,87 @@ void VulkanEngine::CreateInstance() {
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "Nova 1.0";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_1; 
+    appInfo.apiVersion = VK_API_VERSION_1_4;
+
+    // ------------------------------------------------------------
+    // Validation features
+    // ------------------------------------------------------------
+
+    VkValidationFeatureEnableEXT enabledValidationFeatures[] =
+    {
+        VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
+        VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT,
+        VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
+    };
+
+    VkValidationFeaturesEXT validationFeatures{};
+    validationFeatures.sType =
+        VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+
+    validationFeatures.enabledValidationFeatureCount =
+        static_cast<uint32_t>(
+            std::size(enabledValidationFeatures)
+            );
+
+    validationFeatures.pEnabledValidationFeatures =
+        enabledValidationFeatures;
+
+    // ------------------------------------------------------------
+    // Instance
+    // ------------------------------------------------------------
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
     auto extensions = GetRequiredExtensions();
- 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
+
+    createInfo.enabledExtensionCount =
+        static_cast<uint32_t>(extensions.size());
+
+    createInfo.ppEnabledExtensionNames =
+        extensions.data();
+
+    // ------------------------------------------------------------
+    // Validation layers + debug messenger
+    // ------------------------------------------------------------
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    if (EnableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
+
+    if (EnableValidationLayers)
+    {
+        createInfo.enabledLayerCount =
+            static_cast<uint32_t>(validationLayers.size());
+
+        createInfo.ppEnabledLayerNames =
+            validationLayers.data();
 
         PopulateDebugMessengerCreateInfo(debugCreateInfo);
-        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
-    } else {
-        createInfo.enabledLayerCount = 0;
 
+        // Chain validation features to debug messenger
+        validationFeatures.pNext = &debugCreateInfo;
+
+        createInfo.pNext = &validationFeatures;
+    }
+    else
+    {
+        createInfo.enabledLayerCount = 0;
+        createInfo.ppEnabledLayerNames = nullptr;
         createInfo.pNext = nullptr;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create instance!");
+    // ------------------------------------------------------------
+    // Create instance
+    // ------------------------------------------------------------
+
+    if (vkCreateInstance(
+        &createInfo,
+        nullptr,
+        &instance) != VK_SUCCESS)
+    {
+        throw std::runtime_error(
+            "failed to create instance!"
+        );
     }
 }
 

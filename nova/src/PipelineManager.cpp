@@ -20,12 +20,12 @@ void PipelineManager::Cleanup(){
 PipelineManager::~PipelineManager(){
 
 }
-PipelineManager* PipelineManager::Create(   
+PipelineManager PipelineManager::Create(   
                                 std::shared_ptr<GPU> gpu, 
                                 std::shared_ptr<RenderpassLibrary> renderpassLibrary,
                                 std::string pipelineFile){
 
-        return new PipelineManager(gpu,renderpassLibrary, pipelineFile);
+        return PipelineManager(gpu,renderpassLibrary, pipelineFile);
 }
 PipelineManager::PipelineManager(
                                 std::shared_ptr<GPU> gpu, 

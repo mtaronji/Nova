@@ -4,117 +4,113 @@ RenderPassManager::~RenderPassManager() {
     
 }
 
-void RenderPassManager:: NotifyRenderPassOutOfDate(){
 
-}
-
-RenderPassManager* RenderPassManager::Create(std::shared_ptr<GPU> gpu,std::string file){
-    return new RenderPassManager(gpu, file);
+RenderPassManager RenderPassManager::Create(std::shared_ptr<GPU> gpu,std::string file){
+    return RenderPassManager(gpu, file);
 }
 
 RenderPassManager::RenderPassManager(std::shared_ptr<GPU> gpu, std::string file){
     this->gpu = gpu;
-    this->info = RenderPassLoader::LoadFromFile(file,
-                                                attachmentDescriptions,
-                                                subpassDescriptions, 
-                                                subpassdependencies,
-                                                colorAtachmentRefs,
-                                                depthAtachmentRefs,
-                                                resolveAtachmentRefs,
-                                                imageUsesForAttachments,
-                                                aspectFlagsForAttachments,
-                                                clearValues);
-    RenderPassManager::CreateRenderPass();
+    RenderPassLoader:: LoadFromFile(file,
+                                    colorAttachments,
+                                    depthAttachments,
+                                    stencilAttachments,
+                                    depthStencilAttachments,
+                                    resolveAttachments,
+                                    inputAttachments,
+                                    attachmentDescriptions,
+                                    attachmentRefs,
+                                    colorAtachmentRefs,
+                                    depthAtachmentRefs,
+                                    resolveAtachmentRefs,
+                                    depthStencilAtachmentRefs,
+                                    stencilAtachmentRefs,
+                                    inputAtachmentRefs,
+                                    imageUsesForAttachments,
+                                    aspectFlagsForAttachments,
+                                    clearValues,
+                                    resolveAttachmentIndices,
+                                    swapchainAttachmentIndex);
+    SetAttachmentFormats();
+    
 }
 
-VkRenderPassCreateInfo RenderPassManager::LoadRenderpassConfig(const std::string path){
-    return RenderPassLoader::LoadFromFile(path,
-                                            attachmentDescriptions,
-                                            subpassDescriptions, 
-                                            subpassdependencies,
-                                            colorAtachmentRefs, 
-                                            depthAtachmentRefs,
-                                            resolveAtachmentRefs,
-                                            imageUsesForAttachments,
-                                            aspectFlagsForAttachments,
-                                            clearValues);
-    }
+void RenderPassManager::LoadRenderpassConfig(const std::string path){
+     RenderPassLoader::LoadFromFile(path, 
+                                    colorAttachments,
+                                    depthAttachments,
+                                    stencilAttachments,
+                                    depthStencilAttachments,
+                                    resolveAttachments,
+                                    inputAttachments,
+                                    attachmentDescriptions,
+                                    attachmentRefs,
+                                    colorAtachmentRefs,
+                                    depthAtachmentRefs,
+                                    resolveAtachmentRefs,
+                                    depthStencilAtachmentRefs,
+                                    stencilAtachmentRefs,
+                                    inputAtachmentRefs,
+                                    imageUsesForAttachments,
+                                    aspectFlagsForAttachments,
+                                    clearValues, 
+                                    resolveAttachmentIndices,
+                                    swapchainAttachmentIndex);
+     SetAttachmentFormats();
+
+}
 
 void RenderPassManager::SetPresentColorAttachmentFormat(){
    
 }
-void RenderPassManager::CreateRenderPass() {
 
-    if (vkCreateRenderPass(gpu->GetVkDevice(), &info, nullptr, &renderPass) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create render pass!");
+void RenderPassManager::SetAttachmentFormats() {
+
+
+    for (const auto& colorRef : colorAtachmentRefs)
+    {
+        auto attachment = attachmentDescriptions[colorRef.attachment];
+        colorAttachmentFormats.push_back(attachment.format);
+        colorAttachmentDescriptions.push_back(attachment);
+    }
+	renderingInfo.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentFormats.size());
+
+    for (const auto& depthRef : depthAtachmentRefs)
+    {
+        const auto& attachment = attachmentDescriptions[depthRef.attachment];
+        depthAttachmentFormats.push_back(attachment.format);
+		depthAttachmentDescriptions.push_back(attachment);
+    }
+
+
+    for (const auto& stencilRef : stencilAtachmentRefs)
+    {
+        auto attachment = attachmentDescriptions[stencilRef.attachment];
+        stencilAttachmentFormats.push_back(attachment.format);
+		stencilAttachmentDescriptions.push_back(attachment);
+    }
+
+    for (const auto& depthStencilRef : depthStencilAtachmentRefs)
+    {
+        auto attachment = attachmentDescriptions[depthStencilRef.attachment];
+        depthStencilAttachmentFormats.push_back(attachment.format);
+		depthStencilAttachmentDescriptions.push_back(attachment);
+    }
+
+
+    for (const auto& inputRef : inputAtachmentRefs)
+    {
+        auto attachment = attachmentDescriptions[inputRef.attachment];
+        inputAttachmentFormats.push_back(attachment.format);
+		inputAttachmentDescriptions.push_back(attachment);
+    }
+    for (const auto& resolveRef : resolveAtachmentRefs)
+    {
+        auto attachment = attachmentDescriptions[resolveRef.attachment];
+        resolveAttachmentFormats.push_back(attachment.format);
+		resolveAttachmentDescriptions.push_back(attachment);
     }
 }
 void RenderPassManager::Cleanup(){
-    vkDestroyRenderPass(gpu->GetVkDevice(), renderPass, nullptr);
-}
-void RenderPassManager::UpdateColorAttachmentFormats(
-    VkFormat oldColorFormat,
-    VkFormat newColorFormat
-){
-
-    VkRenderPassCreateInfo newinfo;
-    newinfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    newinfo.attachmentCount = info.attachmentCount;
-    newinfo.dependencyCount = info.dependencyCount;
-    newinfo.pDependencies = info.pDependencies;
-    newinfo.flags = info.flags;
-    newinfo.subpassCount = info.subpassCount;
-    newinfo.pSubpasses = info.pSubpasses;
-    std::vector<VkAttachmentDescription> newAttachments;
-    for (uint32_t i = 0; i < info.attachmentCount; ++i) {
-        VkAttachmentDescription attachment = info.pAttachments[i];
-
-        // Check if this attachment is likely part of the swapchain
-        bool usesOldFormat = (attachment.format == oldColorFormat);
-        bool endsInPresent = (attachment.finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
-        if (usesOldFormat && endsInPresent) {
-            attachment.format = newColorFormat;         
-        }
-        newAttachments.push_back(attachment);
-    }
-    newinfo.pAttachments = newAttachments.data();
-    info = newinfo;
-}
-
-void  RenderPassManager::UpdateDepthAttachmentFormats(
-    VkFormat oldDepthFormat,
-    VkFormat newDepthFormat
-){
-    VkRenderPassCreateInfo newinfo;
-    newinfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    newinfo.attachmentCount = info.attachmentCount;
-    newinfo.dependencyCount = info.dependencyCount;
-    newinfo.pDependencies = info.pDependencies;
-    newinfo.flags = info.flags;
-    newinfo.subpassCount = info.subpassCount;
-    newinfo.pSubpasses = info.pSubpasses;
-    std::vector<VkAttachmentDescription> newAttachments;
-    for (uint32_t i = 0; i < info.attachmentCount; ++i) {
-        VkAttachmentDescription attachment = info.pAttachments[i];
-    
-        bool isDepthFormat = (
-            attachment.format == VK_FORMAT_D32_SFLOAT ||
-            attachment.format == VK_FORMAT_D32_SFLOAT_S8_UINT ||
-            attachment.format == VK_FORMAT_D24_UNORM_S8_UINT
-        );
-    
-        bool usesOldDepthFormat = (attachment.format == oldDepthFormat);
-        bool endsInDepthLayout = (
-            attachment.finalLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
-            attachment.finalLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL
-        );
-    
-        if (usesOldDepthFormat && isDepthFormat && endsInDepthLayout) {
-            attachment.format = newDepthFormat;
-        }
-        newAttachments.push_back(attachment);
-    }
-    newinfo.pAttachments = newAttachments.data();
-    info = newinfo;
+    //vkDestroyRenderPass(gpu->GetVkDevice(), renderPass, nullptr);
 }

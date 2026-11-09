@@ -228,8 +228,8 @@ std::shared_ptr<SwapchainManager> SwapchainManager::Builder::Build(){
 void SwapchainManager::Cleanup(VkDevice device) {
     vkDeviceWaitIdle(device);
 
-    // for (auto view : imageViews)                                //framebuffer manager cleans these up
-    //     vkDestroyImageView(device, view, nullptr);
+    for (auto view : imageViews)                                //framebuffer manager cleans these up
+       vkDestroyImageView(device, view, nullptr);
     imageViews.clear();
 
     if (swapchain)

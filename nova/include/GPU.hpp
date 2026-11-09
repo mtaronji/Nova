@@ -76,6 +76,7 @@ class GPU {
         void PickPhysicalDevice(VkInstance instance);
         void CreateLogicalDevice();
         const std::vector<const char*> validationLayers = {
-        "VK_LAYER_KHRONOS_validation"
+            "VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT",
+            "VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT"
         };
 };

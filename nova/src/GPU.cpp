@@ -90,11 +90,32 @@ void GPU::CreateLogicalDevice() {
     // VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures separateDSLayoutsEnable{};
     // separateDSLayoutsEnable.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES;
     // separateDSLayoutsEnable.separateDepthStencilLayouts = VK_TRUE;
-    
+    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures{};
+    dynamicRenderingFeatures.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+
+    VkPhysicalDeviceFeatures2 features2{};
+    features2.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+    features2.pNext = &dynamicRenderingFeatures;
+
+    vkGetPhysicalDeviceFeatures2(
+        physicalDevice,
+        &features2
+    );
+
+    if (!dynamicRenderingFeatures.dynamicRendering)
+    {
+        throw std::runtime_error(
+            "Dynamic rendering is not supported!");
+    }
+    dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
     VkPhysicalDeviceFeatures deviceFeatures{};
+   
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.sampleRateShading = VK_TRUE;
-    
+
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -107,14 +128,8 @@ void GPU::CreateLogicalDevice() {
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
     //createInfo.pNext = &separateDSLayoutsEnable;
-    createInfo.pNext = nullptr;
+    createInfo.pNext = &dynamicRenderingFeatures;
 
-    if (enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-    } else {
-        createInfo.enabledLayerCount = 0;
-    }
 
     if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");

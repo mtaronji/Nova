@@ -4,19 +4,19 @@
 #include <unordered_map>
 #include <string>
 
-class FramebufferGenerator;
+#include "FramebufferGenerator.hpp"
 class FramebufferLibrary {
     public:
         FramebufferLibrary() = default;
+        virtual void Cleanup();
         FramebufferLibrary(const FramebufferLibrary&) = delete;
         FramebufferLibrary& operator=(const FramebufferLibrary&) = delete;
-        void AddFramebufferGenerator(std::string name, FramebufferGenerator* framebufferGenerator);
+        void AddFramebufferGenerator(std::string name, FramebufferGenerator&& framebufferGenerator);
     
-        FramebufferGenerator* GetFramebufferGenerator(const std::string& name);
-        virtual void Cleanup();
+        FramebufferGenerator& GetFramebufferGenerator(const std::string& name);
+
     
     protected:
-        std::unordered_map<std::string, FramebufferGenerator*> framebufferGenerators;
-
+        std::unordered_map<std::string, FramebufferGenerator> framebufferGenerators;
         
 };

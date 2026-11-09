@@ -14,22 +14,20 @@ class RenderpassLibrary{
         RenderpassLibrary(const RenderpassLibrary&) = delete;
         RenderpassLibrary& operator=(const RenderpassLibrary&) = delete;
 
-        void AddRenderpassManager(std::string name, RenderPassManager* renderpassManager) {
-            renderpasses[name] = renderpassManager; 
+        void AddRenderpassManager(std::string name, RenderPassManager&& renderpassManager) {
+            renderpasses.emplace(std::move(name), std::move(renderpassManager));
         }
 
-        RenderPassManager* GetRenderpassManager(const std::string& name) {
+        RenderPassManager& GetRenderpassManager(const std::string& name) {
             return renderpasses.at(name);
         }
 
-        void Cleanup(){
-            for(auto& [key,val] : renderpasses){
-                val->Cleanup();
-                delete(val);  //renderpass managers are allocated with new
-            }
+        void Cleanup() {
+
+
         }
     protected:
-        std::unordered_map<std::string, RenderPassManager*> renderpasses;
+        std::unordered_map<std::string, RenderPassManager> renderpasses;
      
 
 };

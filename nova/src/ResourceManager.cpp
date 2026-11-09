@@ -74,7 +74,7 @@ void ResourceManager::InitializeDescriptorSetsResources(std::shared_ptr<Pipeline
 
     for(auto& [pipelineName, manager] : pipelineManagers){
         vector<vector<shared_ptr<Descriptor>>>  descriptorSets;
-        auto descriptorFileName = manager->GetDescriptorFileName();
+        auto descriptorFileName = manager.GetDescriptorFileName();
         auto descriptorFile = descriptorFiles[descriptorFileName];
         auto descriptorNames = descriptorFile.descriptorNames; //flattened 2d vector of descriptor names
         

@@ -27,7 +27,6 @@ class CommandManager {
         void AllocateCommandBuffers();
         VkCommandBuffer BeginSingleTimeCommands();
         void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-        void RecordGraphicsPipelineCommandBuffer(VkCommandBuffer commandBuffer, uint32_t currentFrame, RenderPassManager& renderPassManager, PipelineManager& pipelinemanager);
 
 
     protected:

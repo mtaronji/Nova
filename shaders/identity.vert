@@ -1,5 +1,5 @@
 #version 450
-
+#extension GL_KHR_vulkan_glsl : enable
 // Per-vertex inputs
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -32,3 +32,4 @@ void main() {
     //image resources are all arrays. If it's one image, just pass 0.0
     fragTexCoord = vec3(inTexCoord, 0.0); // Set to desired layer
 }
+

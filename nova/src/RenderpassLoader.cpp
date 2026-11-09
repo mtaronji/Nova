@@ -239,17 +239,37 @@ VkImageAspectFlags ParseImageAspectFlags(const std::string flag){
     throw std::runtime_error("Invalid parse image aspect: " + flag);
 }
 
+VkResolveModeFlagBits ParseResolveModeFlags(const std::string flag) {
+    if (flag == "VK_RESOLVE_MODE_NONE") { return VK_RESOLVE_MODE_NONE; }
+    if (flag == "VK_RESOLVE_MODE_SAMPLE_ZERO_BIT") { return VK_RESOLVE_MODE_SAMPLE_ZERO_BIT; }
+    if (flag == "VK_RESOLVE_MODE_AVERAGE_BIT") { return VK_RESOLVE_MODE_AVERAGE_BIT; }
+    if (flag == "VK_RESOLVE_MODE_MIN_BIT") { return VK_RESOLVE_MODE_MIN_BIT; }
+    if (flag == "VK_RESOLVE_MODE_MAX_BIT") { return VK_RESOLVE_MODE_MAX_BIT ; }
+    throw std::runtime_error("Invalid parse resolve mode: " + flag);
+}
 
-VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePath, 
+
+
+void RenderPassLoader::LoadFromFile(const std::string& filePath, 
+                                                        std::vector< VkRenderingAttachmentInfo>& colorAttachmentsOut,
+                                                        std::vector< VkRenderingAttachmentInfo>& depthAttachmentsOut,
+                                                        std::vector< VkRenderingAttachmentInfo>& stencilAttachmentsOut,
+                                                        std::vector< VkRenderingAttachmentInfo>& depthStencilAttachmentsOut,
+                                                        std::vector< VkRenderingAttachmentInfo>& resolveAttachmentsOut,
+                                                        std::vector< VkRenderingAttachmentInfo>& inputAttachmentsOut,
                                                         std::vector<VkAttachmentDescription>& attachmentDescriptionsOut,
-                                                        std::vector<VkSubpassDescription>& subpassDescriptionsOut,
-                                                        std::vector<VkSubpassDependency>& subpassdependenciesOut,
+                                                        std::vector<VkAttachmentReference>& attachmentReferencesOut,
                                                         std::vector<VkAttachmentReference>& colorAtachmentRefsOut,
                                                         std::vector<VkAttachmentReference>& depthAtachmentRefsOut,
                                                         std::vector<VkAttachmentReference>& resolveAtachmentRefsOut,
+                                                        std::vector<VkAttachmentReference>& depthStencilAtachmentRefsOut,
+                                                        std::vector<VkAttachmentReference>& stencilAtachmentRefsOut,
+                                                        std::vector<VkAttachmentReference>& inputAtachmentRefsOut,
                                                         std::vector<VkImageUsageFlags>& imageUsesForAttachmentsOut,
                                                         std::vector<VkImageAspectFlags>& aspectFlagsForAttachmentsOut,
-                                                        std::vector<VkClearValue>& clearValuesOut) {
+                                                        std::vector<VkClearValue>& clearValuesOut,
+                                                        std::vector<uint32_t>& resolveAttachmentIndices,
+                                                        uint32_t& swapchainIndex) {
     std::ifstream in(filePath);
     if (!in.is_open()) {
         throw std::runtime_error("Failed to open render pass file: " + filePath);
@@ -257,9 +277,7 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
     json j;
     in >> j;
     
-    VkRenderPassCreateInfo out = {};
-    out.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-
+	uint32_t attachmentIndex = 0;
     for (const auto& a : j["attachments"]) {
         VkAttachmentDescription desc{};
         
@@ -271,6 +289,10 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
         desc.stencilStoreOp = ParseStoreOp(a.value("stencilStoreOp", "dont_care"));
         desc.initialLayout = ParseLayoutForAttachmentDescription(a["initialLayout"]);
         desc.finalLayout = ParseLayoutForAttachmentDescription(a["finalLayout"]);
+       
+        if(desc.finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR){
+            swapchainIndex = attachmentIndex;
+		}
 
         if(a.contains("flags")){
             desc.flags = ParseFlags(a["flags"]);
@@ -289,101 +311,142 @@ VkRenderPassCreateInfo RenderPassLoader::LoadFromFile(const std::string& filePat
         }
         aspectFlagsForAttachmentsOut.push_back(aspectflag);
         attachmentDescriptionsOut.push_back(desc);
-
-        // if(a["attachmentType"] == "color"){colorAttachmentDescriptionsOut.push_back(desc);} 
-        // if(a["attachmentType"] == "depth"){depthAttachmentDescriptionsOut.push_back(desc);}
-        // if(a["attachmentType"] == "stencil"){stencilAttachmentDescriptionsOut.push_back(desc);}
-        // if(a["attachmentType"] == "input"){inputAttachmentDescriptionsOut.push_back(desc);}
-        // if(a["attachmentType"] == "resolve"){resolveAttachmentDescriptionsOut.push_back(desc);}
+        attachmentIndex++;
     }
     CreateClearValues(attachmentDescriptionsOut, clearValuesOut);
 
-    for (const auto& s : j["subpasses"]) {
-        VkSubpassDescription sp{};
-       
-        sp.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        
-        
-        for (const auto& c : s["colorAttachments"]) {
-           VkAttachmentReference colorAttachmentRef{};
-           auto index = static_cast<uint32_t>(c["attachment"]);
-           auto layout = ParseLayoutForAttachmentReference(c["layout"]);
-           colorAttachmentRef.attachment = index;
-           colorAttachmentRef.layout = layout;
-           colorAtachmentRefsOut.push_back(colorAttachmentRef);
+    colorAttachmentsOut.resize(0);
+    depthAttachmentsOut.resize(0);
+    stencilAttachmentsOut.resize(0);
+    depthStencilAttachmentsOut.resize(0);
+    resolveAttachmentsOut.resize(0);
+    inputAttachmentsOut.resize(0);
+
+    const auto& config = j["config"];
+   
+    // Make the image ready for rendering
+    for (const auto& c : config["colorAttachments"]) {
+
+		VkRenderingAttachmentInfo renderingAttachment{}; renderingAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+        VkAttachmentReference colorAttachmentRef{};
+        auto index = static_cast<uint32_t>(c["attachment"]);
+        auto attachment = attachmentDescriptionsOut[index];
+
+        auto layout = ParseLayoutForAttachmentReference(c["layout"]);
+        colorAttachmentRef.attachment = index;
+        colorAttachmentRef.layout = layout;
+
+        colorAtachmentRefsOut.push_back(colorAttachmentRef);
+        renderingAttachment.loadOp = attachment.loadOp;
+        renderingAttachment.storeOp = attachment.storeOp;
+        renderingAttachment.clearValue = clearValuesOut[index];
+        renderingAttachment.imageLayout = layout;
+
+        if(c.contains("resolveMode")){
+            VkAttachmentReference resolveAttachmentRef{};
+            resolveAttachmentRef.attachment = c["resolveAttachment"];
+            resolveAttachmentRef.layout = ParseLayoutForAttachmentReference(c["resolveImageLayout"]);
+            resolveAtachmentRefsOut.push_back(resolveAttachmentRef);
+
+            renderingAttachment.resolveMode = ParseResolveModeFlags(c["resolveMode"]);
+            assert(c.contains("resolveAttachment"));
+
+		}
+        colorAttachmentsOut.push_back(renderingAttachment);
+  
+		
+    }
+      
+    if(config.contains("depthStencilAttachments")){
+        for (const auto& c : config["depthStencilAttachments"]) {
+         
+            VkAttachmentReference depthStencilAttachmentRef{};
+           
+            auto index = static_cast<uint32_t>(c["attachment"]);
+            auto attachment = attachmentDescriptionsOut[index];
+
+            auto layout = ParseLayoutForAttachmentReference(c["layout"]);
+            depthStencilAttachmentRef.attachment = index;
+            depthStencilAttachmentRef.layout = layout;
+          
+            depthStencilAtachmentRefsOut.push_back(depthStencilAttachmentRef);      
+
+            VkRenderingAttachmentInfo renderingAttachment{}; renderingAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+            renderingAttachment.loadOp = attachment.loadOp;
+            renderingAttachment.storeOp = attachment.storeOp;
+            renderingAttachment.clearValue = clearValuesOut[index];
+            renderingAttachment.imageLayout = layout;
+            
+
+            depthStencilAttachmentsOut.push_back(renderingAttachment);
            
         }
-      
-        if(s.contains("depthStencilAttachments")){
-            for (const auto& c : s["depthStencilAttachments"]) {
-                VkAttachmentReference depthAttachmentRef{};
-                auto index = static_cast<uint32_t>(c["attachment"]);
-                auto layout = ParseLayoutForAttachmentReference(c["layout"]);
-                depthAttachmentRef.attachment = index;
-                depthAttachmentRef.layout = layout;
-                depthAtachmentRefsOut.push_back(depthAttachmentRef);
-                    
-            }
+    }
+    if (config.contains("depthAttachments")) {
+        for (const auto& c : config["depthAttachments"]) {
+            VkAttachmentReference depthAttachmentRef{};
+            auto index = static_cast<uint32_t>(c["attachment"]);
+            auto attachment = attachmentDescriptionsOut[index];
+            auto layout = ParseLayoutForAttachmentReference(c["layout"]);
+            depthAttachmentRef.attachment = index;
+            depthAttachmentRef.layout = layout;
+            depthAtachmentRefsOut.push_back(depthAttachmentRef);
+
+
+            VkRenderingAttachmentInfo renderingAttachment{}; renderingAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+            renderingAttachment.loadOp = attachment.loadOp;
+            renderingAttachment.storeOp = attachment.storeOp;
+            renderingAttachment.clearValue = clearValuesOut[index];
+            renderingAttachment.imageLayout = layout;
+            depthAttachmentsOut.push_back(renderingAttachment);
+            
         }
-        if(s.contains("resolveAttachments")){
-            for (const auto& c : s["resolveAttachments"]) {
-                VkAttachmentReference resolveAttachmentRef{};
-                auto index = static_cast<uint32_t>(c["attachment"]);
-                auto layout = ParseLayoutForAttachmentReference(c["layout"]);
-                resolveAttachmentRef.attachment = index;
-                resolveAttachmentRef.layout = layout;
-                resolveAtachmentRefsOut.push_back(resolveAttachmentRef);
-                    
-            }
+    }
+    if (config.contains("stencilAttachments")) {
+        for (const auto& c : config["stencilAttachments"]) {
+
+            VkAttachmentReference stencilAttachmentRef{};
+            auto index = static_cast<uint32_t>(c["attachment"]);
+            auto attachment = attachmentDescriptionsOut[index];
+            auto layout = ParseLayoutForAttachmentReference(c["layout"]);
+            stencilAttachmentRef.attachment = index;
+            stencilAttachmentRef.layout = layout;
+            stencilAtachmentRefsOut.push_back(stencilAttachmentRef);
+
+
+            VkRenderingAttachmentInfo renderingAttachment{}; renderingAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+            renderingAttachment.loadOp = attachment.loadOp;
+            renderingAttachment.storeOp = attachment.storeOp;
+            renderingAttachment.clearValue = clearValuesOut[index];
+            renderingAttachment.imageLayout = layout;
+            stencilAttachmentsOut.push_back(renderingAttachment);
+           
         }
-      
-        sp.colorAttachmentCount = colorAtachmentRefsOut.size();
-        sp.pColorAttachments = colorAtachmentRefsOut.data();
-        if(depthAtachmentRefsOut.size() > 0){
-            sp.pDepthStencilAttachment = &depthAtachmentRefsOut[0];
-        }
-        if(resolveAtachmentRefsOut.size() > 0){
-            sp.pResolveAttachments = resolveAtachmentRefsOut.data();
-        }
-        subpassDescriptionsOut.push_back(sp);
         
     }
  
-    if (j.contains("dependencies")) {
-        for (const auto& d : j["dependencies"]) {
-            VkSubpassDependency dep{};
-            dep.srcSubpass = ParseSubpassIndexStr(d["srcSubpass"]);       
-            dep.dstSubpass = ParseSubpassIndexStr(d["dstSubpass"]);     
-                   
-            for (const auto& m : d["srcStageMask"]) {
-                dep.srcStageMask |= ParseStageMask(m);
-            }
-            for (const auto& m : d["srcAccessMask"]) {
-                dep.srcAccessMask |= ParseAcessMask(m);
-            }
-            for (const auto& m : d["dstStageMask"]) {
-                dep.dstStageMask |= ParseStageMask(m);
-            }
-         
-            for (const auto& m : d["dstAccessMask"]) {
-                dep.dstAccessMask |= ParseAcessMask(m);
-            }
-            
-            for (const auto& m : d["dependencyFlags"]) {
-                dep.dependencyFlags |= ParseDepFlags(m);
-            }
-            
-            subpassdependenciesOut.push_back(dep);
+    if (config.contains("inputAttachments")) {
+        for (const auto& c : config["inputAttachments"]) {
+            VkAttachmentReference inputAttachmentRef{};
+            auto index = static_cast<uint32_t>(c["attachment"]);
+            auto attachment = attachmentDescriptionsOut[index];
+            auto layout = ParseLayoutForAttachmentReference(c["layout"]);
+            inputAttachmentRef.attachment = index;
+            inputAttachmentRef.layout = layout;
+            inputAtachmentRefsOut.push_back(inputAttachmentRef);
+
+
+            VkRenderingAttachmentInfo renderingAttachment{}; renderingAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+            renderingAttachment.loadOp = attachment.loadOp;
+            renderingAttachment.storeOp = attachment.storeOp;
+            renderingAttachment.clearValue = clearValuesOut[index];
+            renderingAttachment.imageLayout = layout;
+            inputAttachmentsOut.push_back(renderingAttachment);
+           
         }
     }
-    out.attachmentCount = attachmentDescriptionsOut.size();
-    out.pAttachments = attachmentDescriptionsOut.data();
-    out.subpassCount = subpassDescriptionsOut.size();
-    out.pSubpasses = subpassDescriptionsOut.data();
-    out.dependencyCount = subpassdependenciesOut.size();
-    out.pDependencies = subpassdependenciesOut.data();
-
-    return out;
+ 
+    return;
 }
 
 

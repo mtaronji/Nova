@@ -408,8 +408,7 @@ void PipelineLoader::LoadFromFile(
         }
         colorblendAttachmentsOut.push_back(colorBlendAttachment);
     }  
-    colorBlendingOut.attachmentCount = colorblendAttachmentsOut.size();
-    colorBlendingOut.pAttachments = colorblendAttachmentsOut.data();           
+    colorBlendingOut.attachmentCount = colorblendAttachmentsOut.size();      
     
     dynamicStatesOut = {};
     if(j.contains("dynamicStates")){
@@ -417,11 +416,6 @@ void PipelineLoader::LoadFromFile(
             dynamicStatesOut.push_back(ParseDynamicState(a));
         }
     }
-    
-    // VkPipelineDynamicStateCreateInfo dynamicState{};
-    // dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    // dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-    // dynamicState.pDynamicStates = dynamicStates.data();
 
     
     if(j.contains("pushConstants")){

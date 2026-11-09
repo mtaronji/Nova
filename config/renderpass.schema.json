@@ -1,577 +1,491 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Nova Render Pass Schema",
-    "type": "object",
-    "properties": {
-      "attachments": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "required": ["id", "name", "format", "loadOp", "storeOp", "initialLayout", "finalLayout","imageUsage","imageAspectFlags"],
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "attachmentType": {
-              "type": "string",
-              "enum": ["color", "depth", "stencil", "input", "resolve"]
-            },
-            "format": {
-              "type": "string"
-            },
-            "samples": {
-              "type": "integer",
-              "enum": [1, 2, 4, 8, 16, 32, 64],
-              "default": 1
-            },
-            "loadOp": {
-              "type": "string",
-              "enum": ["load", "clear", "dont_care"]
-            },
-            "storeOp": {
-              "type": "string",
-              "enum": ["store", "dont_care"]
-            },
-            "stencilLoadOp": {
-              "type": "string",
-              "enum": ["load", "clear", "dont_care"],
-              "default": "dont_care"
-            },
-            "stencilStoreOp": {
-              "type": "string",
-              "enum": ["store", "dont_care"],
-              "default": "dont_care"
-            },
-            "initialLayout": {
-              "type": "string"
-            },
-            "finalLayout": {
-              "type": "string"
-            },
-            "flags":{
-              "type":"string",
-              "enum":["VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT"]
-                             
-            },
-            "imageUsage":{
-              "type":"array",
-              "items":{
-                "type":"string",
-                "enum": 
-                  [
-                    "VK_IMAGE_USAGE_TRANSFER_SRC_BIT",
-                    "VK_IMAGE_USAGE_TRANSFER_DST_BIT",
-                    "VK_IMAGE_USAGE_SAMPLED_BIT",
-                    "VK_IMAGE_USAGE_STORAGE_BIT",
-                    "VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT",
-                    "VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT",
-                    "VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT",
-                    "VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT",
-                    "VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR",
-                    "VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR",
-                    "VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR",
-                    "VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT",
-                    "VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR",
-                    "VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT",
-                    "VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT",
-                    "VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI",
-                    "VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM",
-                    "VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM"
-                ]        
-              }
-            },
-            "imageAspectFlags":{
-              "type":"array",
-              "items":{
-                "type":"string",
-                "enum": 
-                  [
-                    "VK_IMAGE_ASPECT_COLOR_BIT",
-                    "VK_IMAGE_ASPECT_DEPTH_BIT",
-                    "VK_IMAGE_ASPECT_STENCIL_BIT",	
-                    "VK_IMAGE_ASPECT_METADATA_BIT",
-                    "VK_IMAGE_ASPECT_PLANE_0_BIT "
-                ]        
-              }
-            }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Nova Render Pass Schema",
+  "type": "object",
+  "properties": {
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "id", "name", "format", "loadOp", "storeOp", "initialLayout", "finalLayout", "imageUsage", "imageAspectFlags" ],
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "attachmentType": { "const": "color" }
-                }
-              },
-              "then": {
-                "properties": {
-                  "format": {
-                    "type":"string",
-                    "enum": [
-                      "VK_FORMAT_R8G8B8A8_UNORM",
-                      "VK_FORMAT_B8G8R8A8_UNORM",
-                      "VK_FORMAT_R8G8B8A8_SRGB",
-                      "VK_FORMAT_B8G8R8A8_SRGB",
-                      "VK_FORMAT_R8_UNORM",
-                      "VK_FORMAT_R8G8_UNORM",
-                      "VK_FORMAT_R16G16B16A16_SFLOAT",
-                      "VK_FORMAT_R32G32B32A32_SFLOAT",
-                      "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
-                      "VK_FORMAT_R16_SFLOAT",
-                      "VK_FORMAT_R32_UINT",
-                      "VK_FORMAT_R32G32_UINT",
-                      "VK_FORMAT_R32G32B32_SFLOAT",
-                      "VK_FORMAT_R32G32B32A32_UINT",
-                      "VK_FORMAT_BC3_UNORM_BLOCK"
-                    ]
-                  },
-                  "initialLayout":{
-                    "type":"string",
-                    "enum":[
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
-                      "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]     
-                  },
-                  "finallayout":{
-                    "type":"string",
-                    "enum":[
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
-                      "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]     
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "attachmentType": { "const": "depth"}
-                }
-              },
-              "then": {
-                "properties": {
-                  "format": {
-                    "type":"string",
-                    "enum": [
-                      "VK_FORMAT_D16_UNORM",
-                      "VK_FORMAT_D24_UNORM_S8_UINT",
-                      "VK_FORMAT_D32_SFLOAT",
-                      "VK_FORMAT_D32_SFLOAT_S8_UINT"
-                    ]
-                  },
-                  "initialLayout":{
-                    "type":"string",
-                    "enum": [
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]
-                  },
-                  "finalLayout":{
-                    "type":"string",
-                    "enum": [
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]
-                  }
-                }
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "attachmentType": { "const": "stencil" }
-                }
-              },
-              "then": {
-                 "properties": {
-                  "format": {
-                    "type":"string",
-                    "enum": [
-                      "VK_FORMAT_D16_UNORM",
-                      "VK_FORMAT_D24_UNORM_S8_UINT",
-                      "VK_FORMAT_D32_SFLOAT",
-                      "VK_FORMAT_D32_SFLOAT_S8_UINT"
-                    ]
-                  },
-                  "initialLayout":{
-                    "type":"string",
-                    "enum": [
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]
-                  },
-                  "finalLayout":{
-                    "type":"string",
-                    "enum": [
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]
-                  }
-                }
-              }
-            },
-             {
-              "if": {
-                "properties": {
-                  "attachmentType": { "const": "resolve" }
-                }
-              },
-              "then": {
-                "properties": {
-                  "format": {
-                    "type":"string",
-                    "enum": [
-                      "VK_FORMAT_R8G8B8A8_UNORM",
-                      "VK_FORMAT_B8G8R8A8_UNORM",
-                      "VK_FORMAT_R8G8B8A8_SRGB",
-                      "VK_FORMAT_B8G8R8A8_SRGB",
-                      "VK_FORMAT_R8_UNORM",
-                      "VK_FORMAT_R8G8_UNORM",
-                      "VK_FORMAT_R16G16B16A16_SFLOAT",
-                      "VK_FORMAT_R32G32B32A32_SFLOAT",
-                      "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
-                      "VK_FORMAT_R16_SFLOAT",
-                      "VK_FORMAT_R32_UINT",
-                      "VK_FORMAT_R32G32_UINT",
-                      "VK_FORMAT_R32G32B32_SFLOAT",
-                      "VK_FORMAT_R32G32B32A32_UINT",
-                      "VK_FORMAT_BC3_UNORM_BLOCK"
-                    ]
-                  },
-                  "initialLayout":{
-                    "type":"string",
-                    "enum":[
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
-                      "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]     
-                  },
-                  "finallayout":{
-                    "type":"string",
-                    "enum":[
-                      "VK_IMAGE_LAYOUT_UNDEFINED",
-                      "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
-                      "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
-                    ]     
-                  }
-                }
-              }
-            }
-          ],
-          "additionalProperties": false
-        }
-      },
-      "subpasses": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "pipelineBindPoint": {
-              "type": "string",
-              "enum": ["graphics", "compute"],
-              "default": "graphics"
-            },
-            "colorAttachments": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": ["attachment", "layout"],
-                "properties": {
-                  "attachment": { "type": "integer" },
-                  "layout": {
-                    "type": "string",
-                    "enum": 
-                      [
-                        "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
-                        "VK_IMAGE_LAYOUT_GENERAL",
-                        "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                        "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                        "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
-                      ]
-                  }
-                }
-              }
-            },
-            "inputAttachments": { 
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "attachment": { "type": "integer" },
-                  "layout": { 
-                    "type": "string",
-                    "enum": ["VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL"]
-                
-                  }
-                },
-                "required": ["attachment", "layout"]
-              }
-            },
-            "resolveAttachments": { 
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "attachment": { "type": "integer" },
-                  "layout": { 
-                    "type": "string",
-                    "enum": [
-                      "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL"
-                    ]
-                  }
-                },
-                "required": ["attachment", "layout"]
-              }
-            },
-            "depthStencilAttachments": {
-              "type": "array",
-              "items":{
-                "type":"object",
-                "required": ["attachment", "layout"],
-                "properties": {
-                  "attachment": { "type": "integer" },
-                  "layout": {
-                    "type": "string",
-                    "enum": [
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_GENERAL",
-                      "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
-                      "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
-                    ]
-                  }
-                }
-              }             
-            }
+          "name": {
+            "type": "string"
           },
-          "required": ["pipelineBindPoint", "colorAttachments"],
-          "additionalProperties": false
-        }
-      },
-      "dependencies": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "required": ["srcSubpass", "dstSubpass", "srcStageMask", "dstStageMask"],
-          "properties": {
-            "srcSubpass": {
+          "attachmentType": {
+            "type": "string",
+            "enum": [ "color", "depth", "stencil", "input", "resolve", "depth_stencil" ]
+          },
+          "format": {
+            "type": "string"
+          },
+          "samples": {
+            "type": "integer",
+            "enum": [ 1, 2, 4, 8, 16, 32, 64 ],
+            "default": 1
+          },
+          "loadOp": {
+            "type": "string",
+            "enum": [ "load", "clear", "dont_care" ]
+          },
+          "storeOp": {
+            "type": "string",
+            "enum": [ "store", "dont_care" ]
+          },
+          "stencilLoadOp": {
+            "type": "string",
+            "enum": [ "load", "clear", "dont_care" ],
+            "default": "dont_care"
+          },
+          "stencilStoreOp": {
+            "type": "string",
+            "enum": [ "store", "dont_care" ],
+            "default": "dont_care"
+          },
+          "initialLayout": {
+            "type": "string"
+          },
+          "finalLayout": {
+            "type": "string"
+          },
+          "flags": {
+            "type": "string",
+            "enum": [ "VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT" ]
+
+          },
+          "imageUsage": {
+            "type": "array",
+            "items": {
               "type": "string",
               "enum": [
-                "VK_SUBPASS_EXTERNAL", "0", "1", "2", "3", "4", "5", "6", "7",
-                "8", "9", "10", "11", "12", "13", "14", "15"
+                "VK_IMAGE_USAGE_TRANSFER_SRC_BIT",
+                "VK_IMAGE_USAGE_TRANSFER_DST_BIT",
+                "VK_IMAGE_USAGE_SAMPLED_BIT",
+                "VK_IMAGE_USAGE_STORAGE_BIT",
+                "VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT",
+                "VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT",
+                "VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT",
+                "VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT",
+                "VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR",
+                "VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR",
+                "VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR",
+                "VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT",
+                "VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR",
+                "VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT",
+                "VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT",
+                "VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI",
+                "VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM",
+                "VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM"
               ]
- 
-            },
-            "dstSubpass": {
+            }
+          },
+          "imageAspectFlags": {
+            "type": "array",
+            "items": {
               "type": "string",
               "enum": [
-                "VK_SUBPASS_EXTERNAL", "0", "1", "2", "3", "4", "5", "6", "7",
-                "8", "9", "10", "11", "12", "13", "14", "15"
+                "VK_IMAGE_ASPECT_COLOR_BIT",
+                "VK_IMAGE_ASPECT_DEPTH_BIT",
+                "VK_IMAGE_ASPECT_STENCIL_BIT",
+                "VK_IMAGE_ASPECT_METADATA_BIT",
+                "VK_IMAGE_ASPECT_PLANE_0_BIT "
               ]
-           
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "attachmentType": { "const": "color" }
+              }
             },
-            "srcStageMask": {
-              "type": "array",
-              "items": { 
-                "type": "string",
-                "enum": [
-                  "VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT",
-                  "VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT",
-                  "VK_PIPELINE_STAGE_VERTEX_INPUT_BIT",
-                  "VK_PIPELINE_STAGE_VERTEX_SHADER_BIT",
-                  "VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT",
-                  "VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT",
-                  "VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT",
-                  "VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT",
-                  "VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT",
-                  "VK_PIPELINE_STAGE_TRANSFER_BIT",
-                  "VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT",
-                  "VK_PIPELINE_STAGE_HOST_BIT",
-                  "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT",
-                  "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT"
-                ]
-              },
-              "minItems":1,
-              "description": "All the previous stages in srcSubpass that need to finish before we start dstSubpass"
-            },
-            "dstStageMask": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT",
-                  "VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT",
-                  "VK_PIPELINE_STAGE_VERTEX_INPUT_BIT",
-                  "VK_PIPELINE_STAGE_VERTEX_SHADER_BIT",
-                  "VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT",
-                  "VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT",
-                  "VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT",
-                  "VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT",
-                  "VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT",
-                  "VK_PIPELINE_STAGE_TRANSFER_BIT",
-                  "VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT",
-                  "VK_PIPELINE_STAGE_HOST_BIT",
-                  "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT",
-                  "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT"
-                ]         
-              },
-              "minItems":1,
-              "description": "All the dstsubpass stages we can't start until after srcstages in srcsubpass have finished"
-            },
-            "srcAccessMask": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "0",
-                  "VK_ACCESS_INDIRECT_COMMAND_READ_BIT",
-                  "VK_ACCESS_INDEX_READ_BIT",
-                  "VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT",
-                  "VK_ACCESS_UNIFORM_READ_BIT",
-                  "VK_ACCESS_INPUT_ATTACHMENT_READ_BIT",
-                  "VK_ACCESS_SHADER_READ_BIT",
-                  "VK_ACCESS_SHADER_WRITE_BIT",
-                  "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT",
-                  "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT",
-                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT",
-                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT",
-                  "VK_ACCESS_TRANSFER_READ_BIT",
-                  "VK_ACCESS_TRANSFER_WRITE_BIT",
-                  "VK_ACCESS_HOST_READ_BIT",
-                  "VK_ACCESS_HOST_WRITE_BIT",
-                  "VK_ACCESS_MEMORY_READ_BIT",
-                  "VK_ACCESS_MEMORY_WRITE_BIT"
-                ]
-              },
-              "minItems":1
-            },
-            "dstAccessMask": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "VK_ACCESS_INDIRECT_COMMAND_READ_BIT",
-                  "VK_ACCESS_INDEX_READ_BIT",
-                  "VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT",
-                  "VK_ACCESS_UNIFORM_READ_BIT",
-                  "VK_ACCESS_INPUT_ATTACHMENT_READ_BIT",
-                  "VK_ACCESS_SHADER_READ_BIT",
-                  "VK_ACCESS_SHADER_WRITE_BIT",
-                  "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT",
-                  "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT",
-                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT",
-                  "VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT",
-                  "VK_ACCESS_TRANSFER_READ_BIT",
-                  "VK_ACCESS_TRANSFER_WRITE_BIT",
-                  "VK_ACCESS_HOST_READ_BIT",
-                  "VK_ACCESS_HOST_WRITE_BIT",
-                  "VK_ACCESS_MEMORY_READ_BIT",
-                  "VK_ACCESS_MEMORY_WRITE_BIT"
-                ]
-              },
-              "minItems":1
-            },
-            "dependencyFlags": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "VK_DEPENDENCY_BY_REGION_BIT",
-                  "VK_DEPENDENCY_VIEW_LOCAL_BIT",
-                  "VK_DEPENDENCY_DEVICE_GROUP_BIT"
-                ]
+            "then": {
+              "properties": {
+                "format": {
+                  "type": "string",
+                  "enum": [
+                    "VK_FORMAT_R8G8B8A8_UNORM",
+                    "VK_FORMAT_B8G8R8A8_UNORM",
+                    "VK_FORMAT_R8G8B8A8_SRGB",
+                    "VK_FORMAT_B8G8R8A8_SRGB",
+                    "VK_FORMAT_R8_UNORM",
+                    "VK_FORMAT_R8G8_UNORM",
+                    "VK_FORMAT_R16G16B16A16_SFLOAT",
+                    "VK_FORMAT_R32G32B32A32_SFLOAT",
+                    "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
+                    "VK_FORMAT_R16_SFLOAT",
+                    "VK_FORMAT_R32_UINT",
+                    "VK_FORMAT_R32G32_UINT",
+                    "VK_FORMAT_R32G32B32_SFLOAT",
+                    "VK_FORMAT_R32G32B32A32_UINT",
+                    "VK_FORMAT_BC3_UNORM_BLOCK"
+                  ]
+                },
+                "initialLayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+                    "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                },
+                "finallayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+                    "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                }
               }
             }
           },
-          "additionalProperties": false
-        }
+          {
+            "if": {
+              "properties": {
+                "attachmentType": { "const": "depth" }
+              }
+            },
+            "then": {
+              "properties": {
+                "format": {
+                  "type": "string",
+                  "enum": [
+                    "VK_FORMAT_D16_UNORM",
+                    "VK_FORMAT_D24_UNORM_S8_UINT",
+                    "VK_FORMAT_D32_SFLOAT",
+                    "VK_FORMAT_D32_SFLOAT_S8_UINT"
+                  ]
+                },
+                "initialLayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                },
+                "finalLayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "attachmentType": { "const": "stencil" }
+              }
+            },
+            "then": {
+              "properties": {
+                "format": {
+                  "type": "string",
+                  "enum": [
+                    "VK_FORMAT_D16_UNORM",
+                    "VK_FORMAT_D24_UNORM_S8_UINT",
+                    "VK_FORMAT_D32_SFLOAT",
+                    "VK_FORMAT_D32_SFLOAT_S8_UINT"
+                  ]
+                },
+                "initialLayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                },
+                "finalLayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "attachmentType": { "const": "resolve" }
+              }
+            },
+            "then": {
+              "properties": {
+                "format": {
+                  "type": "string",
+                  "enum": [
+                    "VK_FORMAT_R8G8B8A8_UNORM",
+                    "VK_FORMAT_B8G8R8A8_UNORM",
+                    "VK_FORMAT_R8G8B8A8_SRGB",
+                    "VK_FORMAT_B8G8R8A8_SRGB",
+                    "VK_FORMAT_R8_UNORM",
+                    "VK_FORMAT_R8G8_UNORM",
+                    "VK_FORMAT_R16G16B16A16_SFLOAT",
+                    "VK_FORMAT_R32G32B32A32_SFLOAT",
+                    "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
+                    "VK_FORMAT_R16_SFLOAT",
+                    "VK_FORMAT_R32_UINT",
+                    "VK_FORMAT_R32G32_UINT",
+                    "VK_FORMAT_R32G32B32_SFLOAT",
+                    "VK_FORMAT_R32G32B32A32_UINT",
+                    "VK_FORMAT_BC3_UNORM_BLOCK"
+                  ]
+                },
+                "initialLayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+                    "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                },
+                "finallayout": {
+                  "type": "string",
+                  "enum": [
+                    "VK_IMAGE_LAYOUT_UNDEFINED",
+                    "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_GENERAL",
+                    "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR",
+                    "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL",
+                    "VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "additionalProperties": false
       }
     },
-    "required": ["attachments", "subpasses"]
-  }
+    "config": {
+      "type": "object",
+      "properties": {
+        "pipelineBindPoint": {
+          "type": "string",
+          "enum": [ "graphics", "compute" ],
+          "default": "graphics"
+        },
+        "colorAttachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [ "attachment", "layout" ],
+            "properties": {
+              "attachment": {
+                "type": "integer"
+              },
+              "layout": {
+                "type": "string",
+                "enum": [
+                  "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_GENERAL",
+                  "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
+                ]
+              },
+
+              "resolveAttachment": {
+                "type": "integer"
+              },
+              "resolveMode": {
+                "type": "string",
+                "enum": [
+                  "VK_RESOLVE_MODE_NONE",
+                  "VK_RESOLVE_MODE_SAMPLE_ZERO_BIT",
+                  "VK_RESOLVE_MODE_AVERAGE_BIT",
+                  "VK_RESOLVE_MODE_MIN_BIT",
+                  "VK_RESOLVE_MODE_MAX_BIT"
+                ]
+              }
+            },
+            "resolveImageLayout": {
+              "type": "string",
+              "enum": [
+                "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL",
+                "VK_IMAGE_LAYOUT_GENERAL"
+              ]
+            }
+          },
+            "additionalProperties": false,
+            "dependencies": {
+              "resolveAttachment": [ "resolveMode" ],
+              "resolveMode": ["resolveAttachment"]
+            }
+          }
+        },
+        "inputAttachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "attachment": { "type": "integer" },
+              "layout": {
+                "type": "string",
+                "enum": [ "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL" ]
+              }
+            },
+            "required": [ "attachment", "layout" ]
+          }
+        },
+        "depthStencilAttachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [ "attachment", "layout" ],
+            "properties": {
+              "attachment": { "type": "integer" },
+              "layout": {
+                "type": "string",
+                "enum": [
+                  "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_GENERAL",
+                  "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
+                ]
+              }
+            }
+          }
+        },
+        "depthAttachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [ "attachment", "layout" ],
+            "properties": {
+              "attachment": { "type": "integer" },
+              "layout": {
+                "type": "string",
+                "enum": [
+                  "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_GENERAL",
+                  "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
+                ]
+              }
+            }
+          }
+        },
+        "stencilAttachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [ "attachment", "layout" ],
+            "properties": {
+              "attachment": { "type": "integer" },
+              "layout": {
+                "type": "string",
+                "enum": [
+                  "VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_GENERAL",
+                  "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL",
+                  "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [ "pipelineBindPoint", "colorAttachments" ],
+      "additionalProperties": false
+    }
+  },
+  "required": [ "attachments", "config" ]
+}

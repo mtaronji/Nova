@@ -44,6 +44,7 @@ class Renderer {
         void virtual DrawFrame();
 
         void virtual SetFrameTime(float deltaTime);
+       
         
         void NotifySwapchainOutOfDate(); 
 
@@ -63,6 +64,12 @@ class Renderer {
         void virtual DrawFrameCommands(VkCommandBuffer commandBuffer, 
                                         uint32_t imageIndex
                                         );
+        void TransitionImage(
+            VkCommandBuffer commandBuffer,
+            VkImage image,
+            VkImageLayout& currentLayout,
+            VkImageLayout newLayout,
+            VkImageAspectFlags aspectMask);
 
         std::shared_ptr<GPU> gpu;
         std::shared_ptr<VulkanEngine> engine;
@@ -80,15 +87,16 @@ class Renderer {
         std::unordered_map<std::string, std::vector<std::vector<VkDescriptorSet>>> pipelineDescriptorSets;  ////[frame][set] //we set it like this when we allocate
    
         //the following 3 variables are initially null. Must bind a pipeline to set them
-        RenderPassManager* renderpassmanager = nullptr;
-        PipelineManager* pipelineManager = nullptr;
-        FramebufferGenerator* framebufferContainer = nullptr;
+        /*RenderPassManager renderpassmanager = nullptr;
+        PipelineManager pipelineManager = nullptr;
+        FramebufferGenerator framebufferContainer = nullptr;*/
 
         uint32_t currentFrame = 0;
         uint32_t  MAX_FRAMES;
         FrameInfo frameinfo;
         std::string currentPipelineKey;
         bool framebufferResized = false;
+        bool firstframe = true;
 
         void RecreateSwapchain();
         void DestroyFrameBuffers();

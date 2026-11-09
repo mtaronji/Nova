@@ -114,7 +114,7 @@ std::unique_ptr<IRenderLoopClient>  Nova::Builder::Build(){
 
 void Nova::InitResources() {
     
-    //create 3 copies of this uniform data
+    //create MAX frames copies of this uniform data
     uint32_t copies = MAX_FRAMES;  
     auto cameraResource = std::make_shared<BufferResource>( this->gpu,
         /*usage =*/ VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -136,9 +136,13 @@ void Nova::InitResources() {
     auto mesh = Mesh::Create(verticesResource, indicesResource);
     resourceManager->SetMesh("square", std::move(mesh));
 
-    //create texture resources
+    //going though each Image specified in the WithTextures and creating texture resources
     for(const auto& img : textureFiles) {
-        auto textureResource = std::make_shared<ImageResource>(this->gpu, this->commandManager, img.c_str(), 1, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        auto textureResource = std::make_shared<ImageResource>(
+            this->gpu, this->commandManager, 
+            img.c_str(),                                            //image location
+            1,                                                      //How many copies of the data that will sit on the GPU
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         resourceManager->SetResource("pinkink",textureResource);
     }
   
@@ -200,6 +204,7 @@ void Nova::Init() {
         }
     };
     uint32_t maxSets = MAX_FRAMES + 1; //currently only 4 descriptors should be coming out
+
 
     descriptorAllocator->CreateDescriptorSetPool(poolSizes, maxSets, 0);
     pipelineLibrary->CreateDescriptorSetLayouts(descriptorAllocator, &descriptorFiles);
@@ -345,7 +350,7 @@ Nova::Builder& Nova::Builder::WithPipelineLibrary(){
     auto files = Nova::Builder::GetAllFiles(PIPELINE_FILES_DIRECTORY);
     for(auto& f : files){
         auto pipeline = PipelineManager::Create(gpu, renderpassLibrary, f.string());   
-        pipelineLibrary->AddPipeline(f.filename().string(),pipeline);
+        pipelineLibrary->AddPipeline(f.filename().string(), pipeline);
     }
     return *this;
 }
@@ -359,8 +364,8 @@ Nova::Builder& Nova::Builder::WithRenderpassLibrary(){
         
         auto renderpassManager = RenderPassManager::Create(gpu,f.string());
         auto framebufferGenerator = FramebufferGenerator::Create(gpu, renderpassManager, swapchainManager);
-        renderpassLibrary->AddRenderpassManager(f.filename().string(), renderpassManager);    
-        framebufferLibrary->AddFramebufferGenerator(f.filename().string(), framebufferGenerator);
+        renderpassLibrary->AddRenderpassManager(f.filename().string(), std::move(renderpassManager));    
+        framebufferLibrary->AddFramebufferGenerator(f.filename().string(), std::move(framebufferGenerator));
     }
     return *this;
     

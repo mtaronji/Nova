@@ -4,54 +4,32 @@
 #include "RenderPassManager.hpp"
 #include "ImageOps.hpp"
 
-FramebufferGenerator* FramebufferGenerator::Create(std::shared_ptr<GPU> gpu,
-                            RenderPassManager* renderpassManager,
+FramebufferGenerator FramebufferGenerator::Create(std::shared_ptr<GPU> gpu,
+                            const RenderPassManager&  renderpassManager,
                             std::shared_ptr<SwapchainManager> swapchainManager){
 
-    return new FramebufferGenerator(gpu,renderpassManager,swapchainManager);
+    return FramebufferGenerator(gpu,renderpassManager,swapchainManager);
 }
 FramebufferGenerator::  FramebufferGenerator(
                         std::shared_ptr<GPU> gpu,
-                        RenderPassManager* renderpassManager,
-                        std::shared_ptr<SwapchainManager> swapchainManager) : gpu(gpu),renderpassManager(renderpassManager), swapchainManager(swapchainManager)
+                        const RenderPassManager& renderpassManager,
+                        std::shared_ptr<SwapchainManager> swapchainManager):gpu(gpu)
 {
-    CreateRenderPassResources();
-    CreateFramebuffers();
+    CreateRenderPassResources(gpu, renderpassManager,swapchainManager);
   
-}
-
-void FramebufferGenerator::CreateFramebuffers(){
-    auto imageViews = swapchainManager->GetImageViews();
-    auto extent = swapchainManager->GetExtent();
-    this->framebuffers.resize(imageViews.size());
-
-    for (size_t i = 0; i < imageViews.size(); ++i) {
-        
-        //any attachment we specified as the present attachment will use the swapchain images and image views
-        framebufferImageViewsPerFrame[i][swapchainImageViewIndex] = imageViews[i];
   
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderpassManager->GetRenderPass();
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(framebufferImageViewsPerFrame[i].size());
-        framebufferInfo.pAttachments = framebufferImageViewsPerFrame[i].data();
-        framebufferInfo.width = extent.width;
-        framebufferInfo.height = extent.height;
-        framebufferInfo.layers = 1;
-
-        if (vkCreateFramebuffer(gpu->GetVkDevice(), &framebufferInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
-    }
 }
 
 //create our image view resources for the framebuffers
 //each attachment needs an image view EXCEPT the swapchain image present attachment. -- this will use the swapchain image view
-void FramebufferGenerator::CreateRenderPassResources(){
+void FramebufferGenerator::CreateRenderPassResources(
+    std::shared_ptr<GPU> gpu,
+    const RenderPassManager& renderpassManager,
+    std::shared_ptr<SwapchainManager> swapchainManager){
     
-    auto& attachments = renderpassManager->GetAttachmentDescriptions();
-    auto& imageUses = renderpassManager->GetImageUseFlags();
-    auto& imageAspects = renderpassManager->GetImageAspectFlags();
+    auto& attachments = renderpassManager.GetAttachmentDescriptions();
+    auto& imageUses = renderpassManager.GetImageUseFlags();
+    auto& imageAspects = renderpassManager.GetImageAspectFlags();
     auto attachmentCount = attachments.size();
     assert(attachments.size() == imageUses.size()); 
     assert(attachments.size() == imageAspects.size());
@@ -64,11 +42,9 @@ void FramebufferGenerator::CreateRenderPassResources(){
         std::vector<VkImage> attachmentImagesPerFrame(attachmentCount);
         std::vector<VkDeviceMemory> attachmentImageMemoryPerFrame(attachmentCount);
         std::vector<VkImageView> attachmentImageViewsPerFrame(attachmentCount);
+        std::vector<VkImageLayout> currentImageLayoutsForAttachments(attachmentCount, VK_IMAGE_LAYOUT_UNDEFINED);
         for(int i = 0; i < attachments.size(); i++){
-            if(attachments[i].finalLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR){
-                swapchainImageViewIndex = i;
-                continue;
-            }
+            
             VkImage image = VK_NULL_HANDLE;
             VkDeviceMemory imageMemory = VK_NULL_HANDLE;
             VkImageView imageView = VK_NULL_HANDLE;
@@ -97,16 +73,13 @@ void FramebufferGenerator::CreateRenderPassResources(){
         framebufferImageViewsPerFrame.push_back(attachmentImageViewsPerFrame);
         framebufferImagesPerFrame.push_back(attachmentImagesPerFrame);
         framebufferImageMemoryPerFrame.push_back(attachmentImageMemoryPerFrame);
+        currentImageLayoutsPerFrame.push_back(currentImageLayoutsForAttachments);
     }
-    if(swapchainImageViewIndex == NOT_SET){throw std::runtime_error("unable to find the swapchainattachment for the framebuffer. Fatal error");}
 }
 void FramebufferGenerator::Cleanup() {
-    vkDeviceWaitIdle(gpu->GetVkDevice());
-    for (auto framebuffer : this->framebuffers) {
-        vkDestroyFramebuffer(gpu->GetVkDevice(), framebuffer, nullptr);
-    }
-    framebuffers.clear();
 
+    vkDeviceWaitIdle(gpu->GetVkDevice());
+  
     for(auto& imageviewsPerFrame : framebufferImageViewsPerFrame){
         for(auto& imageView: imageviewsPerFrame){
             
@@ -129,7 +102,4 @@ void FramebufferGenerator::Cleanup() {
 
 }
 
-void FramebufferGenerator::ReCreateFramebuffers(){
-    FramebufferGenerator::CreateRenderPassResources();
-    FramebufferGenerator::CreateFramebuffers();
-}
+

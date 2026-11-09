@@ -7,6 +7,13 @@
 int main() {
     srand(static_cast<unsigned>(time(nullptr)));
 
+#include <iostream>
+    
+    static_assert(sizeof(VkQueue) == sizeof(void*), "VkQueue should be pointer-sized");
+    std::cout << "sizeof(VkSemaphore)=" << sizeof(VkSemaphore) << "\n"
+        << "sizeof(VkFence)=" << sizeof(VkFence) << "\n"
+        << "sizeof(void*)=" << sizeof(void*) << "\n";
+
     std::unique_ptr<IRenderLoopClient> app = Nova::Builder()
         .WithShell()
         .WithEngine()
